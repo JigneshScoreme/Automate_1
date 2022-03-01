@@ -1,0 +1,33 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto8
+  build:
+    commands:
+      - mvn clean install -DskipTests
+  post_build:
+    commands:
+      - echo Build completed
+artifacts:
+  files:
+    - target/*.jar
+    - scripts/*.sh
+    - src/main/resources/*.properties
+    - appspec.yml
+  #com/mycompany/app/HelloWorld.java, specifying yes will place this file in /HelloWorld.java
+  discard-paths: yes
+cache:
+  paths:
+    - '/root/.m2/**/*'
+    - 'build/**/*'
+    # files:
+    # - location
+    # - location
+    #name: $(date +%Y-%m-%d)
+    #discard-paths: yes
+    #base-directory: location
+    #cache:
+    #paths:
+    # - paths 
