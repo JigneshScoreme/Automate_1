@@ -1115,13 +1115,15 @@ public class SalesGapServiceImpl implements SalesGapService {
 		log.debug("dbList size::::::: :" + dbList.size());
 		log.debug("dbList " + dbList);
 		String salRange = tRole.getSalary();
+		log.debug("salRange:::"+salRange);
+		
 		if (null != salRange) {
 			// throw new DynamicFormsServiceException("Salary Details of Employees are
 			// missing", HttpStatus.INTERNAL_SERVER_ERROR);
 			salRange = StringUtils.replaceIgnoreCase(salRange, "k", "");
 			salRange = salRange.trim();
 			Integer sal = Integer.valueOf(salRange);
-			log.info("Sal range of emp " + tRole.getEmpId() + " is " + salRange);
+			log.debug("Sal range of emp " + tRole.getEmpId() + " is " + salRange);
 
 			for (TargetEntity te : dbList) {
 				if (null != te.getSalrayRange() &&te.getSalrayRange().length()>0
@@ -1130,7 +1132,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 						&& null != te.getMaxSalary() && te.getMaxSalary().length()>0) {
 					Integer minSal = Integer.valueOf(te.getMinSalary());
 					Integer maxSal = Integer.valueOf(te.getMaxSalary());
-					log.info("minSal::" + minSal + " maxSal " + maxSal);
+					log.debug("minSal::" + minSal + " maxSal " + maxSal);
 					if ((minSal <= sal) && (sal <= maxSal)) {
 						finalList.add(te);
 					}
@@ -1448,10 +1450,12 @@ public class SalesGapServiceImpl implements SalesGapService {
 
 		try {
 			String empId = req.getEmployeeId();
+			log.debug("empId::"+empId);
 			Integer retailTarget = parseRetailTarget(req);
 
 			String tmpQuery = dmsEmpByidQuery.replaceAll("<EMP_ID>", String.valueOf(empId));
 			tmpQuery = roleMapQuery.replaceAll("<EMP_ID>", String.valueOf(empId));
+			log.debug("tmpQuery  "+tmpQuery);
 			List<Object[]> data = entityManager.createNativeQuery(tmpQuery).getResultList();
 			TargetRoleRes trRoot = new TargetRoleRes();
 			for (Object[] arr : data) {
@@ -1495,7 +1499,8 @@ public class SalesGapServiceImpl implements SalesGapService {
 				String branchId = req.getBranch();
 				log.debug("Input branch ID ,orgmapid "+branchId);
 				if (null != branchId) {
-					DmsBranch branch = dmsBranchDao.getBranchByOrgMpId(Integer.parseInt(branchId));
+					//DmsBranch branch = dmsBranchDao.getBranchByOrgMpId(Integer.parseInt(branchId));
+					DmsBranch branch = dmsBranchDao.findById(Integer.parseInt(branchId)).get();
 					log.debug("branch:::"+branch);
 					if (branch != null) {
 						branchId = String.valueOf(branch.getBranchId());
@@ -1824,6 +1829,8 @@ public class SalesGapServiceImpl implements SalesGapService {
 	private String calculateTargets(String adminTargets, Integer retailTarget)
 			throws JsonMappingException, JsonProcessingException, DynamicFormsServiceException {
 		TargetParamReq[] paramArr=null;
+		log.debug("adminTargets::"+adminTargets);
+		
 		if(null!=adminTargets) {
 		 paramArr = objectMapper.readValue(adminTargets, TargetParamReq[].class);
 		 String enquiry = null;
