@@ -656,7 +656,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 
 	@Override
 	public Map<String, Object> getTargetDataWithRole(TargetRoleReq req) throws DynamicFormsServiceException {
-		log.debug(dmsEmpByidQuery);
+		log.debug("calling getTargetDataWithRole ,given req "+req);
 		List<TargetSettingRes> outputList = new ArrayList<>();
 		Map<String, Object> map = new LinkedHashMap<>();
 		int pageNo = req.getPageNo();
@@ -665,6 +665,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 			int empId = req.getEmpId();
 
 			TargetRoleRes trRoot = getEmpRoleData(empId);
+			log.debug("Givne Emp Designation "+trRoot.getDesignationName());
 
 			if (validateDSE(trRoot.getDesignationName())) {
 				log.info("Generating Data for DSE");
@@ -697,7 +698,9 @@ public class SalesGapServiceImpl implements SalesGapService {
 			if (fromIndex > toIndex) {
 				fromIndex = toIndex;
 			}
+			if(outputList.size()>toIndex) {
 			outputList = outputList.subList(fromIndex, toIndex);
+			}
 			map.put("totalCnt", totalCnt);
 			map.put("pageNo", pageNo);
 			map.put("size", size);
@@ -2163,6 +2166,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 
 			String minSal = "";
 			String maxSal = "";
+			if(null!=salRange) {
 			if (salRange.contains("-")) {
 				String tmp[] = salRange.split("-");
 				minSal = tmp[0];
@@ -2174,8 +2178,10 @@ public class SalesGapServiceImpl implements SalesGapService {
 				minSal = salRange;
 				minSal = StringUtils.replaceIgnoreCase(minSal, "k", "").trim();
 			}
+			}
 			te.setMaxSalary(maxSal);
 			te.setMinSalary(minSal);
+			
 			List<Target> list = request.getTargets();
 			log.debug("Before Targets " + list);
 			// list = updatedTargetValues(list);
