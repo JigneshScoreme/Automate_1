@@ -2181,6 +2181,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 			}
 			te.setMaxSalary(maxSal);
 			te.setMinSalary(minSal);
+			te.setActive("Y");
 			
 			List<Target> list = request.getTargets();
 			log.debug("Before Targets " + list);
