@@ -21,6 +21,8 @@ public interface DmsBranchDao extends JpaRepository<DmsBranch, Integer>{
 	@Query(value="select * FROM dms_branch where org_map_id=:id",nativeQuery = true)
 	DmsBranch getBranchByOrgMpId(@Param(value = "id") Integer id);
 	
+	
+	
 	@Modifying
 	@Transactional 
 	@Query(value="update dms_branch set name=:name where org_map_id=:id",nativeQuery = true)

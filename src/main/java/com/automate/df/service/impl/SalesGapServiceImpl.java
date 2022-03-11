@@ -698,7 +698,9 @@ public class SalesGapServiceImpl implements SalesGapService {
 			if (fromIndex > toIndex) {
 				fromIndex = toIndex;
 			}
-			if(outputList.size()>toIndex) {
+			log.debug("outputList ::"+outputList.size());
+			
+			if(outputList!=null && !outputList.isEmpty() &&outputList.size()>toIndex) {
 			outputList = outputList.subList(fromIndex, toIndex);
 			}
 			map.put("totalCnt", totalCnt);
@@ -885,7 +887,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 			//trRoot.setBranchId(trRoot.getOrgMapBranches());
 			List<String> l = trRoot.getOrgMapBranches();
 			log.debug("ORG MAP BRANCHES in buildTargetRoleRes "+trRoot.getOrgMapBranches());
-			if(null!=l) {
+			if(null!=l && !l.isEmpty()) {
 				trRoot.setBranchId(l.get(0));
 			}
 
