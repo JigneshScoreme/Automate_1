@@ -700,7 +700,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 			}
 			log.debug("outputList ::"+outputList.size());
 			
-			if(outputList!=null && !outputList.isEmpty() &&outputList.size()>toIndex) {
+			if(outputList!=null && !outputList.isEmpty() && outputList.size()>toIndex) {
 			outputList = outputList.subList(fromIndex, toIndex);
 			}
 			map.put("totalCnt", totalCnt);
@@ -1847,8 +1847,9 @@ public class SalesGapServiceImpl implements SalesGapService {
 				}
 			 
 		 }
+		 log.debug("paramArr::"+paramArr);
 		for (TargetParamReq param : paramArr) {
-			
+			log.debug("param:::"+param.getParameter());
 			if (param.getParameter().equalsIgnoreCase("testDrive")) {
 				param.setTarget(calculateBooking(enquiry, param.getTarget(), param.getUnit()));
 			}
