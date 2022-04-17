@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
@@ -2129,8 +2130,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 						al.addAndGet(v);
 					});
 				}
-				cnt++;
-				
+				cnt++;				
 			}
 			
 			Map<String, Long> otherMap = new HashMap<>();
@@ -2140,6 +2140,24 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		}
 
 			log.debug("sales comparsion data " + subList);
+			/*Code to calcuate the percentage of sales data*/
+			
+			//Iterate the list
+			 Long totalSalesCount = 0L ;
+				for (Map<String, Long> salesData : subList) {
+					for(Long value : salesData.values()) {
+						//Sum the total sales 
+						totalSalesCount =  totalSalesCount + value;
+					}
+				}
+			
+			//Calculate percentage for each
+				if(totalSalesCount  > 0L) {
+				for (Map<String, Long> salesData : subList) {
+					//add percentage to the map
+						getSalesPercentage(salesData, totalSalesCount);
+					}	
+				}
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -2642,5 +2660,19 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 		return resList;
 	}
+	
+	private long salesPercentage(Long totalSalesCount , Long particularSaleCount) {
 		
+			long percenatge = (long)((particularSaleCount * 100)/totalSalesCount);
+			
+			return percenatge;
+	}
+		
+	public void getSalesPercentage(Map<String, Long> salesData, Long totalSalesCount) {
+		
+		for(Long value : salesData.values()) {
+			salesData.put("percentage", salesPercentage(totalSalesCount, value));
+		}
+		
+	}
 }
