@@ -181,11 +181,11 @@ public class SalesGapServiceImpl implements SalesGapService {
 			if (obj.has("target"))
 				res.setEnquiry(obj.get("target").getAsString());
 		}
-		if (null != paramName && paramName.equalsIgnoreCase("testDrive")) {
+		if (null != paramName && paramName.equalsIgnoreCase("Test Drive")) {
 			if (obj.has("target"))
 				res.setTestDrive(obj.get("target").getAsString());
 		}
-		if (null != paramName && paramName.equalsIgnoreCase("homeVisit")) {
+		if (null != paramName && paramName.equalsIgnoreCase("Home Visit")) {
 			if (obj.has("target"))
 				res.setHomeVisit(obj.get("target").getAsString());
 		}
@@ -215,7 +215,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 			if (obj.has("target"))
 				res.setExWarranty(obj.get("target").getAsString());
 		}
-		if (null != paramName && paramName.equalsIgnoreCase("accessories")) {
+		if (null != paramName && paramName.equalsIgnoreCase("Accessories Per/car")) {
 			if (obj.has("target"))
 				res.setAccessories(obj.get("target").getAsString());
 		}
@@ -235,6 +235,11 @@ public class SalesGapServiceImpl implements SalesGapService {
 		if (null != paramName && paramName.equalsIgnoreCase(INVOICE)) {
 			if (obj.has("target"))
 				res.setInvoice(obj.get("target").getAsString());
+		}
+		
+		if (null != paramName && paramName.equalsIgnoreCase("Ex-Warranty")) {
+			if (obj.has("target"))
+				res.setExWarranty(obj.get("target").getAsString());
 		}
 
 		return res;
@@ -687,7 +692,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 				log.info("Generating Data for General Mgr of ID " + empId);
 				outputList = getGeneralMgrData(String.valueOf(empId), outputList);
 			}
-			outputList = outputList.stream().distinct().collect(Collectors.toList());
+			//outputList = outputList.stream().distinct().collect(Collectors.toList());
 			int totalCnt = outputList.size();
 			int fromIndex = size * (pageNo - 1);
 			int toIndex = size * pageNo;
@@ -1265,7 +1270,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 		String res = null;
 		String empNameQuery = "SELECT emp_name FROM dms_employee where emp_id=<ID>;";
 		try {
-			if (null != id && !id.equalsIgnoreCase("string")) {
+			if (null != id || !id.equalsIgnoreCase("string") || id.length()>0){
 				Object obj = entityManager.createNativeQuery(empNameQuery.replaceAll("<ID>", id)).getSingleResult();
 				res = (String) obj;
 			} else {
@@ -1846,18 +1851,19 @@ public class SalesGapServiceImpl implements SalesGapService {
 					param.setTarget(enquiry);
 				}
 			 
+				
 		 }
 		 log.debug("paramArr::"+paramArr);
 		for (TargetParamReq param : paramArr) {
 			log.debug("param:::"+param.getParameter());
-			if (param.getParameter().equalsIgnoreCase("testDrive")) {
+			if (param.getParameter().equalsIgnoreCase("testDrive")||param.getParameter().equalsIgnoreCase("Test drive")) {
 				param.setTarget(calculateBooking(enquiry, param.getTarget(), param.getUnit()));
 			}
-			if (param.getParameter().equalsIgnoreCase("homeVisit")) {
+			if (param.getParameter().equalsIgnoreCase("homeVisit")||param.getParameter().equalsIgnoreCase("Home Visit")) {
 				param.setTarget(calculateBooking(enquiry, param.getTarget(), param.getUnit()));
 			}
 			if (param.getParameter().equalsIgnoreCase("booking")) {
-				param.setTarget(calculateBooking(enquiry, param.getTarget(), param.getUnit()));
+				param.setTarget(calculateBooking(String.valueOf(retailTarget), param.getTarget(), param.getUnit()));
 			}
 			if (param.getParameter().equalsIgnoreCase("exchange")) {
 				param.setTarget(calculateEnquiry(retailTarget, param.getTarget(), param.getUnit()));
@@ -1959,7 +1965,8 @@ public class SalesGapServiceImpl implements SalesGapService {
 			return bookingTarget;
 		}
 	}
-
+	
+	
 	@Override
 	public List<TargetSettingRes> searchTargetMappingData(TargetSearch request) {
 		log.debug("Inside searchTargetMappingData()");
@@ -2048,7 +2055,8 @@ public class SalesGapServiceImpl implements SalesGapService {
 	public boolean validateDSE(String roleName) {
 		boolean flag = false;
 		log.debug("dseDesignationList " + dseDesignationList);
-		if (dseDesignationList.contains(roleName)) {
+		if (dseDesignationList.contains(roleName) || roleName.contains("Sales Consultant")||roleName.contains("sales consultant"))
+		{
 			flag = true;
 		}
 		return flag;
