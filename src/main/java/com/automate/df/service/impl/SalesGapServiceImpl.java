@@ -1762,7 +1762,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 			String managerId =req.getManagerId();
 			String teamLeadId = req.getTeamLeadId();
 			String generalManagerId = req.getGeneralManagerId();
-			log.debug("test "+Optional.of(teamLeadId).isPresent());
+
 			
 			if(empId!=null && Optional.of(empId).isPresent()) {
 				finalEmpId=empId;
