@@ -90,6 +90,9 @@ public class SalesGapServiceImpl implements SalesGapService {
 
 	@Autowired
 	Gson gson;
+	
+	@Autowired
+	DashBoardServiceImplV2 dashBoardServiceImplV2; 
 
 	@Autowired
 	private EntityManager entityManager;
@@ -175,82 +178,66 @@ public class SalesGapServiceImpl implements SalesGapService {
 	private TargetSettingRes convertJsonToStr(TargetSettingRes res, String paramName, JsonObject obj) {
 		if (null != paramName && paramName.equalsIgnoreCase("retailTarget")) {
 			if (obj.has("target"))
-				res.setRetailTarget((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
-						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
-				;
+				res.setRetailTarget(obj.get("target").getAsString());
 		}
 		if (null != paramName && paramName.equalsIgnoreCase("enquiry")) {
 			if (obj.has("target"))
-				res.setEnquiry((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
-						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
+				res.setEnquiry(obj.get("target").getAsString());
 		}
 		if (null != paramName && paramName.equalsIgnoreCase("Test Drive")) {
 			if (obj.has("target"))
-				res.setTestDrive((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
-						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
+				res.setTestDrive(obj.get("target").getAsString());
 		}
 		if (null != paramName && paramName.equalsIgnoreCase("Home Visit")) {
 			if (obj.has("target"))
-				res.setHomeVisit((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
-						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
+				res.setHomeVisit(obj.get("target").getAsString());
 		}
 
 		if (null != paramName && paramName.equalsIgnoreCase("videoConference")) {
 			if (obj.has("target"))
-				res.setVideoConference((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
-						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
+				res.setVideoConference(obj.get("target").getAsString());
 		}
 
 		if (null != paramName && paramName.equalsIgnoreCase("booking")) {
 			if (obj.has("target"))
-				res.setBooking((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
-						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
+				res.setBooking(obj.get("target").getAsString());
 		}
 		if (null != paramName && paramName.equalsIgnoreCase("exchange")) {
 			if (obj.has("target"))
-				res.setExchange((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
-						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
+				res.setExchange(obj.get("target").getAsString());
 		}
 		if (null != paramName && paramName.equalsIgnoreCase("finance")) {
 			if (obj.has("target"))
-				res.setFinance((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
-						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
+				res.setFinance(obj.get("target").getAsString());
 		}
 		if (null != paramName && paramName.equalsIgnoreCase("insurance")) {
 			if (obj.has("target"))
-				res.setInsurance((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
-						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
+				res.setInsurance(obj.get("target").getAsString());
 		}
 		if (null != paramName && paramName.equalsIgnoreCase("exWarranty")) {
 			if (obj.has("target"))
-				res.setExWarranty((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
-						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
+				res.setExWarranty(obj.get("target").getAsString());
 		}
 		if (null != paramName && paramName.equalsIgnoreCase("Accessories Per/car")) {
 			if (obj.has("target"))
-				res.setAccessories((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
-						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
+				res.setAccessories(obj.get("target").getAsString());
 		}
 		if (null != paramName && paramName.equalsIgnoreCase("events")) {
 			if (obj.has("target"))
-				res.setEvents((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
-						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
+				res.setEvents(obj.get("target").getAsString());
 		}
 		if (null != paramName && paramName.equalsIgnoreCase("other")) {
 			if (obj.has("target"))
-				res.setOther((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
-						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
+				res.setOther(obj.get("target").getAsString());
 		}
 		if (null != paramName && paramName.equalsIgnoreCase("enquiry")) {
 			if (obj.has("target"))
-				res.setEnquiry((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
-						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
+				res.setEnquiry(obj.get("target").getAsString());
 		}
 
 		if (null != paramName && paramName.equalsIgnoreCase(INVOICE)) {
 			if (obj.has("target"))
-				res.setInvoice((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
-						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
+				res.setInvoice(obj.get("target").getAsString());
 		}
 		
 		if (null != paramName && paramName.equalsIgnoreCase("Ex-Warranty")) {
@@ -674,7 +661,95 @@ public class SalesGapServiceImpl implements SalesGapService {
 		 */
 		return list;
 	}
+	
+	@Override
+	public Map<String, Object> getTargetDataWithRole(TargetRoleReq req) throws DynamicFormsServiceException {
+		log.debug("calling getTargetDataWithRole ,given req "+req);
+		List<TargetSettingRes> outputList = new ArrayList<>();
+		Map<String, Object> map = new LinkedHashMap<>();
+		int pageNo = req.getPageNo();
+		int size = req.getSize();
+		//List<TargetSettingRes> outputList = new ArrayList<>();
+		try {
+			int empId = req.getEmpId();
 
+			List<Integer> empReportingIdList = new ArrayList<>();
+			empReportingIdList.add(empId);
+			empReportingIdList.addAll(dashBoardServiceImplV2.getReportingEmployes(empId)); 
+			
+			log.debug("empReportingIdList for emp "+empId);
+			log.debug(""+empReportingIdList);
+			
+			;
+
+			for(Integer id : empReportingIdList) {
+
+			String eId = String.valueOf(id);
+			log.debug("Executing for EMP ID " + eId);
+
+			String tmpQuery = roleMapQuery.replaceAll("<EMP_ID>", eId);
+			List<Object[]> tlData = entityManager.createNativeQuery(tmpQuery).getResultList();
+			List<TargetRoleRes> tlDataResList = new ArrayList<>();
+
+			for (Object[] arr : tlData) {
+				TargetRoleRes tlDataRole = new TargetRoleRes();
+				tlDataRole.setOrgId(String.valueOf(arr[0]));
+				tlDataRole.setBranchId(String.valueOf(arr[1]));
+				tlDataRole.setEmpId(String.valueOf(arr[2]));
+				tlDataRole.setRoleName(String.valueOf(arr[3]));
+				tlDataRole.setRoleId(String.valueOf(arr[4]));
+				tlDataResList.add(tlDataRole);
+				
+				String tEmpId = String.valueOf(arr[2]);
+				Integer emp = Integer.parseInt(tEmpId);
+				tlDataResList.add(getEmpRoleDataV3(emp));
+			}
+			if (null != tlDataResList) {
+				log.info("Size of tlDataResList " + tlDataResList.size() + " tlDataResList " + tlDataResList);
+
+				for (TargetRoleRes tr : tlDataResList) {
+					Optional<DmsEmployee> empOpt = dmsEmployeeRepo.findById(Integer.valueOf(tr.getEmpId()));
+					if (empOpt.isPresent()) {
+						DmsEmployee emp = empOpt.get();
+						// outputList.add(getTSDataForRole(buildTargetRoleRes(tr,
+						// emp),String.valueOf(empId),managerId,branchMgrId,generalMgrId));
+						outputList.addAll(getTSDataForRoleV2(buildTargetRoleRes(tr, emp), String.valueOf(empId),
+								"", "", ""));
+
+					}
+				}
+			}
+			}
+		
+			
+			outputList = outputList.stream().distinct().collect(Collectors.toList());
+			int totalCnt = outputList.size();
+			int fromIndex = size * (pageNo - 1);
+			int toIndex = size * pageNo;
+
+			if (toIndex > totalCnt) {
+				toIndex = totalCnt;
+			}
+			if (fromIndex > toIndex) {
+				fromIndex = toIndex;
+			}
+			log.debug("outputList ::"+outputList.size());
+			
+			if(outputList!=null && !outputList.isEmpty() && outputList.size()>toIndex) {
+			outputList = outputList.subList(fromIndex, toIndex);
+			}
+			map.put("totalCnt", totalCnt);
+			map.put("pageNo", pageNo);
+			map.put("size", size);
+			map.put("data", outputList);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return map;
+	}
+	
+	
+/*
 	@Override
 	public Map<String, Object> getTargetDataWithRole(TargetRoleReq req) throws DynamicFormsServiceException {
 		log.debug("calling getTargetDataWithRole ,given req "+req);
@@ -685,6 +760,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 		try {
 			int empId = req.getEmpId();
 
+			
 			TargetRoleRes trRoot = getEmpRoleData(empId);
 			log.debug("Givne Emp Designation "+trRoot.getDesignationName());
 
@@ -733,6 +809,8 @@ public class SalesGapServiceImpl implements SalesGapService {
 		}
 		return map;
 	}
+	
+	*/
 
 	/**
 	 * @param empId
@@ -845,14 +923,15 @@ public class SalesGapServiceImpl implements SalesGapService {
 
 	private List<TargetSettingRes> getTLData(String empId, List<TargetSettingRes> outputList, String managerId,
 			String branchMgrId, String generalMgrId) {
-
+		log.debug("getTLData(){},empId "+empId);
 		try {
 			List<Object> tlEmpIDData = entityManager
 					.createNativeQuery(getEmpUnderTLQuery.replaceAll("<ID>", String.valueOf(empId))).getResultList();
-
+			log.debug("tlEmpIDData size "+tlEmpIDData.size());
+			if(!tlEmpIDData.isEmpty()) {
 			for (Object id : tlEmpIDData) {
 				String eId = String.valueOf(id);
-				log.info("Executing for EMP ID " + eId);
+				log.debug("Executing for EMP ID " + eId);
 
 				String tmpQuery = roleMapQuery.replaceAll("<EMP_ID>", eId);
 				List<Object[]> tlData = entityManager.createNativeQuery(tmpQuery).getResultList();
@@ -886,6 +965,46 @@ public class SalesGapServiceImpl implements SalesGapService {
 						}
 					}
 				}
+			}
+			}else {
+				log.debug("tlEmpIDData is empty ");
+
+				String eId = String.valueOf(empId);
+				log.debug("Executing for EMP ID " + eId);
+
+				String tmpQuery = roleMapQuery.replaceAll("<EMP_ID>", eId);
+				List<Object[]> tlData = entityManager.createNativeQuery(tmpQuery).getResultList();
+				List<TargetRoleRes> tlDataResList = new ArrayList<>();
+
+				for (Object[] arr : tlData) {
+					TargetRoleRes tlDataRole = new TargetRoleRes();
+					tlDataRole.setOrgId(String.valueOf(arr[0]));
+					tlDataRole.setBranchId(String.valueOf(arr[1]));
+					tlDataRole.setEmpId(String.valueOf(arr[2]));
+					tlDataRole.setRoleName(String.valueOf(arr[3]));
+					tlDataRole.setRoleId(String.valueOf(arr[4]));
+					tlDataResList.add(tlDataRole);
+					
+					String tEmpId = String.valueOf(arr[2]);
+					Integer emp = Integer.parseInt(tEmpId);
+					tlDataResList.add(getEmpRoleDataV3(emp));
+				}
+				if (null != tlDataResList) {
+					log.info("Size of tlDataResList " + tlDataResList.size() + " tlDataResList " + tlDataResList);
+
+					for (TargetRoleRes tr : tlDataResList) {
+						Optional<DmsEmployee> empOpt = dmsEmployeeRepo.findById(Integer.valueOf(tr.getEmpId()));
+						if (empOpt.isPresent()) {
+							DmsEmployee emp = empOpt.get();
+							// outputList.add(getTSDataForRole(buildTargetRoleRes(tr,
+							// emp),String.valueOf(empId),managerId,branchMgrId,generalMgrId));
+							outputList.addAll(getTSDataForRoleV2(buildTargetRoleRes(tr, emp), String.valueOf(empId),
+									managerId, branchMgrId, generalMgrId));
+
+						}
+					}
+				}
+			
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1480,9 +1599,39 @@ public class SalesGapServiceImpl implements SalesGapService {
 			String empId = req.getEmployeeId();
 			log.debug("empId::"+empId);
 			Integer retailTarget = parseRetailTarget(req);
+			
+			String finalEmpId =null;
+			String managerId =req.getManagerId();
+			String teamLeadId = req.getTeamLeadId();
+			String generalManagerId = req.getGeneralManagerId();
+			String branchManagerId = req.getBranchmangerId();
+			
+			
+			System.out.println("Optional.of(managerId).isPresent() "+Optional.of(managerId).isPresent());
+			
+			if(empId!=null && Optional.of(empId).isPresent()) {
+				finalEmpId=empId;
+			}
+			
+			else if(teamLeadId!=null && Optional.of(teamLeadId).isPresent()) {
+				finalEmpId=teamLeadId;
+			}
+			else if(managerId!=null && Optional.of(managerId).isPresent()) {
+				finalEmpId=managerId;
+			
+			}
+			else if(generalManagerId!=null && Optional.of(generalManagerId).isPresent()) {
+				
+				finalEmpId=generalManagerId;
+			}
+			else if(branchManagerId!=null && Optional.of(branchManagerId).isPresent()) {
+				
+				finalEmpId=branchManagerId;
+			}
+			log.debug("finalEmpId:::"+finalEmpId);
 
-			String tmpQuery = dmsEmpByidQuery.replaceAll("<EMP_ID>", String.valueOf(empId));
-			tmpQuery = roleMapQuery.replaceAll("<EMP_ID>", String.valueOf(empId));
+			String tmpQuery = dmsEmpByidQuery.replaceAll("<EMP_ID>", String.valueOf(finalEmpId));
+			tmpQuery = roleMapQuery.replaceAll("<EMP_ID>", String.valueOf(finalEmpId));
 			log.debug("tmpQuery  "+tmpQuery);
 			List<Object[]> data = entityManager.createNativeQuery(tmpQuery).getResultList();
 			TargetRoleRes trRoot = new TargetRoleRes();
@@ -1495,8 +1644,8 @@ public class SalesGapServiceImpl implements SalesGapService {
 			}
 			
 			TargetSettingRes userDefaultTsRes = null;
-			log.debug("addTargetDataWithRole::::"+empId);
-			Optional<DmsEmployee> empOpt = dmsEmployeeRepo.findById(Integer.valueOf(empId));
+			log.debug("addTargetDataWithRole::::"+finalEmpId);
+			Optional<DmsEmployee> empOpt = dmsEmployeeRepo.findById(Integer.valueOf(finalEmpId));
 			TargetRoleRes tRole = null;
 
 			if (empOpt.isPresent()) {
@@ -1505,7 +1654,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 				tRole = buildTargetRoleRes(trRoot, emp);
 
 			}
-			String adminTargets = getAdminTargetString(Integer.parseInt(req.getEmployeeId()));
+			String adminTargets = getAdminTargetString(Integer.parseInt(finalEmpId));
 			log.debug("adminTargets :" + adminTargets);
 			String calculatedTargetString = calculateTargets(adminTargets, retailTarget);
 			log.debug("calculatedTargetString in add " + calculatedTargetString);
@@ -1518,7 +1667,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 				teUser.setStartDate(req.getStartDate());
 				teUser.setEndDate(req.getEndDate());
 
-				teUser.setEmployeeId(req.getEmployeeId());
+				teUser.setEmployeeId(finalEmpId);
 
 				modelMapper.getConfiguration().setAmbiguityIgnored(true);
 				teUser.setTeamLeadId(req.getTeamLeadId());
@@ -1556,7 +1705,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 				teUser.setEndDate(req.getEndDate());
 				teUser.setRetailTarget(retailTarget);
 
-				List<TargetEntityUser> list = targetUserRepo.findAllQ3(empId);
+				List<TargetEntityUser> list = targetUserRepo.findAllQ3(finalEmpId);
 				log.debug("Data list for emp id " + list.size());
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
