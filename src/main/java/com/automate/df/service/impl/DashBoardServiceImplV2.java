@@ -133,7 +133,10 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	public static final String ENQUIRY = "Enquiry";
 	public static final String DROPPED = "DROPPED";
 	public static final String TEST_DRIVE= "Test Drive";
+	public static final String TEST_DRIVE_APPROVAL= "Test Drive Approval";
+	
 	public static final String HOME_VISIT= "Home Visit";
+	public static final String HOME_VISIT_APPROVAL= "Home Visit Approval";
 	public static final String FINANCE= "Finance";
 	public static final String INSURANCE= "Insurance";
 	public static final String VIDEO_CONFERENCE= "Video Conference";
@@ -1425,6 +1428,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 
 	public Long getTestDriveCount(List<DmsWFTask> wfTaskList) {
+		//TEST_DRIVE_APPROVAL
 		return wfTaskList.stream().filter(x->(x.getTaskName().equalsIgnoreCase(TEST_DRIVE) && x.getTaskStatus().equalsIgnoreCase("CLOSED")) ).count();
 	}
 
