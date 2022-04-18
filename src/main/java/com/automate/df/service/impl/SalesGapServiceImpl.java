@@ -1768,7 +1768,6 @@ public class SalesGapServiceImpl implements SalesGapService {
 				finalEmpId=empId;
 			}
 			
-			
 			else if(teamLeadId!=null && Optional.of(teamLeadId).isPresent()) {
 				finalEmpId=teamLeadId;
 			}
