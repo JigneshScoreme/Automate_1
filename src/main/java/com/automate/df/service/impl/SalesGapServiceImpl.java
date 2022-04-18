@@ -175,66 +175,82 @@ public class SalesGapServiceImpl implements SalesGapService {
 	private TargetSettingRes convertJsonToStr(TargetSettingRes res, String paramName, JsonObject obj) {
 		if (null != paramName && paramName.equalsIgnoreCase("retailTarget")) {
 			if (obj.has("target"))
-				res.setRetailTarget(obj.get("target").getAsString());
+				res.setRetailTarget((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
+						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
+				;
 		}
 		if (null != paramName && paramName.equalsIgnoreCase("enquiry")) {
 			if (obj.has("target"))
-				res.setEnquiry(obj.get("target").getAsString());
+				res.setEnquiry((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
+						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
 		}
 		if (null != paramName && paramName.equalsIgnoreCase("testDrive")) {
 			if (obj.has("target"))
-				res.setTestDrive(obj.get("target").getAsString());
+				res.setTestDrive((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
+						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
 		}
 		if (null != paramName && paramName.equalsIgnoreCase("homeVisit")) {
 			if (obj.has("target"))
-				res.setHomeVisit(obj.get("target").getAsString());
+				res.setHomeVisit((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
+						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
 		}
 
 		if (null != paramName && paramName.equalsIgnoreCase("videoConference")) {
 			if (obj.has("target"))
-				res.setVideoConference(obj.get("target").getAsString());
+				res.setVideoConference((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
+						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
 		}
 
 		if (null != paramName && paramName.equalsIgnoreCase("booking")) {
 			if (obj.has("target"))
-				res.setBooking(obj.get("target").getAsString());
+				res.setBooking((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
+						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
 		}
 		if (null != paramName && paramName.equalsIgnoreCase("exchange")) {
 			if (obj.has("target"))
-				res.setExchange(obj.get("target").getAsString());
+				res.setExchange((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
+						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
 		}
 		if (null != paramName && paramName.equalsIgnoreCase("finance")) {
 			if (obj.has("target"))
-				res.setFinance(obj.get("target").getAsString());
+				res.setFinance((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
+						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
 		}
 		if (null != paramName && paramName.equalsIgnoreCase("insurance")) {
 			if (obj.has("target"))
-				res.setInsurance(obj.get("target").getAsString());
+				res.setInsurance((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
+						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
 		}
 		if (null != paramName && paramName.equalsIgnoreCase("exWarranty")) {
 			if (obj.has("target"))
-				res.setExWarranty(obj.get("target").getAsString());
+				res.setExWarranty((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
+						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
 		}
 		if (null != paramName && paramName.equalsIgnoreCase("accessories")) {
 			if (obj.has("target"))
-				res.setAccessories(obj.get("target").getAsString());
+				res.setAccessories((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
+						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
 		}
 		if (null != paramName && paramName.equalsIgnoreCase("events")) {
 			if (obj.has("target"))
-				res.setEvents(obj.get("target").getAsString());
+				res.setEvents((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
+						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
 		}
 		if (null != paramName && paramName.equalsIgnoreCase("other")) {
 			if (obj.has("target"))
-				res.setOther(obj.get("target").getAsString());
+				res.setOther((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
+						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
 		}
 		if (null != paramName && paramName.equalsIgnoreCase("enquiry")) {
 			if (obj.has("target"))
-				res.setEnquiry(obj.get("target").getAsString());
+				res.setEnquiry((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
+						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
 		}
 
 		if (null != paramName && paramName.equalsIgnoreCase(INVOICE)) {
 			if (obj.has("target"))
-				res.setInvoice(obj.get("target").getAsString());
+				res.setInvoice((obj.has("unit") && obj.get("unit").getAsString().equalsIgnoreCase("percentage"))?
+						obj.get("target").getAsString() + "%": obj.get("target").getAsString());
 		}
 
 		return res;
