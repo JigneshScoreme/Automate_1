@@ -692,7 +692,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 				log.info("Generating Data for General Mgr of ID " + empId);
 				outputList = getGeneralMgrData(String.valueOf(empId), outputList);
 			}
-			//outputList = outputList.stream().distinct().collect(Collectors.toList());
+			outputList = outputList.stream().distinct().collect(Collectors.toList());
 			int totalCnt = outputList.size();
 			int fromIndex = size * (pageNo - 1);
 			int toIndex = size * pageNo;
@@ -1270,12 +1270,14 @@ public class SalesGapServiceImpl implements SalesGapService {
 		String res = null;
 		String empNameQuery = "SELECT emp_name FROM dms_employee where emp_id=<ID>;";
 		try {
-			if (null != id || !id.equalsIgnoreCase("string") || id.length()>0){
+			if(id!=null && id.length()>0) {
+			//if (null != id || !id.equalsIgnoreCase("string") || id.length()>0){
 				Object obj = entityManager.createNativeQuery(empNameQuery.replaceAll("<ID>", id)).getSingleResult();
 				res = (String) obj;
 			} else {
 				res = "";
 			}
+			//}
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1752,10 +1754,42 @@ public class SalesGapServiceImpl implements SalesGapService {
 		try {
 			Integer retailTarget = parseRetailTarget(req);
 
-			Optional<TargetEntityUser> opt = targetUserRepo.findByEmpIdWithDate(req.getEmployeeId(), req.getStartDate(),
+			
+			
+			String finalEmpId =null;
+			
+			String empId = req.getEmployeeId();
+			String managerId =req.getManagerId();
+			String teamLeadId = req.getTeamLeadId();
+			String generalManagerId = req.getGeneralManagerId();
+			log.debug("test "+Optional.of(teamLeadId).isPresent());
+			
+			if(empId!=null && Optional.of(empId).isPresent()) {
+				finalEmpId=empId;
+			}
+			
+			
+			else if(teamLeadId!=null && Optional.of(teamLeadId).isPresent()) {
+				finalEmpId=teamLeadId;
+			}
+			else if(managerId!=null && Optional.of(managerId).isPresent()) {
+				finalEmpId=managerId;
+			}
+			else if(generalManagerId!=null && Optional.of(generalManagerId).isPresent()) {
+				finalEmpId=generalManagerId;
+			}
+		/*	else if(Optional.of(empId).isEmpty() && Optional.of(teamLeadId).isEmpty() && Optional.of(managerId).isPresent()) {
+				finalEmpId=managerId;
+			}*/
+			
+			log.debug("finalEmpId::"+finalEmpId);
+			
+			Optional<TargetEntityUser> opt = targetUserRepo.findByEmpIdWithDate(finalEmpId, req.getStartDate(),
 					req.getEndDate());
 
-			String adminTargets = getAdminTargetString(Integer.parseInt(req.getEmployeeId()));
+			
+			
+			String adminTargets = getAdminTargetString(Integer.parseInt(finalEmpId));
 			log.debug("adminTargets :" + adminTargets);
 			if (opt.isPresent()) {
 
@@ -1766,13 +1800,23 @@ public class SalesGapServiceImpl implements SalesGapService {
 
 				modelMapper.getConfiguration().setAmbiguityIgnored(true);
 				te.setTeamLeadId(req.getTeamLeadId());
+				if(req.getManagerId()!=null) {
 				te.setManagerId(req.getManagerId());
+				}
 				te.setBranch(req.getBranch());
+				if(req.getBranchmangerId()!=null) {
 				te.setBranchmangerId(req.getBranchmangerId());
+				}
+				if(req.getGeneralManagerId()!=null) {
 				te.setGeneralManager(getEmpName(req.getGeneralManagerId()));
+				}
 				te.setStartDate(req.getStartDate());
 				te.setEndDate(req.getEndDate());
 				te.setRetailTarget(retailTarget);
+				
+				TargetRoleRes role = getEmpRoleDataV3(Integer.parseInt(finalEmpId));
+				te.setOrgId(role.getOrgId());
+				
 				res = modelMapper.map(targetUserRepo.save(te), TargetSettingRes.class);
 
 				res.setEmpName(getEmpName(res.getEmployeeId()));

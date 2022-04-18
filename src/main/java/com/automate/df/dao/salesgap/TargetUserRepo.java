@@ -11,6 +11,7 @@ import com.automate.df.entity.salesgap.TargetEntity;
 import com.automate.df.entity.salesgap.TargetEntityUser;
 
 
+
 public interface TargetUserRepo extends JpaRepository<TargetEntityUser, Integer> {
 	
 	@Query(value="SELECT * FROM dms_target_setting_user where emp_id=:empId",nativeQuery = true)

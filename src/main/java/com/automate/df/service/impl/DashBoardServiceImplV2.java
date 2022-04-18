@@ -160,6 +160,8 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	public static final String EXCHANGE = "Exchange";
 	public static final String ACCCESSORIES = "Accessories";
 	public static final String EVENTS = "Events";
+
+	private static final String RETAIL_TARGET = "RETAIL_TARGET";
 	
 	String roleMapQuery = "SELECT rolemap.organization_id,rolemap.branch_id,rolemap.emp_id,role.role_name,role.role_id FROM dms_role role INNER JOIN dms_employee_role_mapping rolemap ON rolemap.role_id=role.role_id\r\n"
 			+ "AND rolemap.emp_id=<EMP_ID>;";
@@ -342,6 +344,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			map = validateAndUpdateMapData(ACCCESSORIES,innerMap,map);
 			map = validateAndUpdateMapData(EVENTS,innerMap,map);
 			map = validateAndUpdateMapData(INVOICE,innerMap,map);
+			
 		}
 		
 		//List<DmsLead> dmsLeadList = dmsLeadDao.getAllEmployeeLeads(empNamesList, startDate, endDate, ENQUIRY);
@@ -382,12 +385,12 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 	private Map<String, Integer> validateAndUpdateMapData(String targetParmType, Map<String, Integer> innerMap,
 			Map<String, Integer> map) {
-		System.out.println("targetParmType:"+targetParmType+",map.get(targetParmType) "+map.get(targetParmType)+" ,innerMap.get(targetParmType):"+innerMap.get(targetParmType));
-		if(map.containsKey(targetParmType)) {
-			map.put(targetParmType,map.get(targetParmType)+innerMap.get(targetParmType));
-			}else {
-				map.put(targetParmType, innerMap.get(targetParmType));
-			}
+
+		if (map.containsKey(targetParmType)) {
+			map.put(targetParmType, map.get(targetParmType) + innerMap.get(targetParmType));
+		} else {
+			map.put(targetParmType, innerMap.get(targetParmType));
+		}
 		return map;
 	}
 
@@ -716,7 +719,8 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		map.put(INSURANCE, insurance);
 		map.put(ACCCESSORIES, accessories);
 		map.put(EVENTS, events);
-		map.put(INVOICE, invoice);
+		map.put(INVOICE, retailTarget);
+		//map.put(RETAIL_TARGET, retailTarget);
 		return map;
 	}
 
