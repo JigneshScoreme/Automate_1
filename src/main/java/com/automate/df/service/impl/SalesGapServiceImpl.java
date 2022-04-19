@@ -2599,8 +2599,8 @@ public class SalesGapServiceImpl implements SalesGapService {
 				log.debug("tRole.getLocationId()::" + tRole.getLocationId());
 				
 				
-				List<TargetEntityUser> userTargetList = targetUserRepo.getUserTargetData(tRole.getOrgId(),
-						tRole.getDeptId(), tRole.getDesignationId(), orgMapBranchID);
+				List<TargetEntityUser> userTargetList = targetUserRepo.getUserTargetDataV2(tRole.getOrgId(),
+						tRole.getDeptId(), tRole.getDesignationId(), orgMapBranchID,String.valueOf(empId));
 				tRole.setBranchId(orgMapBranchID);
 				tRole.setLocationId(orgMapBranchID);
 				log.info("userTargetListis not empty " + userTargetList.size());
@@ -2631,7 +2631,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 				}
 
 			}
-			System.out.println("list in getTSDataForRoleV2  " + list);
+
 
 		} catch (Exception e) {
 			log.error("getTargetSettingData() ", e);
