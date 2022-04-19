@@ -21,11 +21,20 @@ public interface TargetUserRepo extends JpaRepository<TargetEntityUser, Integer>
 	public List<TargetEntityUser> findAllEmpIds(@Param(value="empId") String empId);
 	
 	
-	@Query(value = "SELECT * FROM dms_target_setting_user where org_id=:orgId and department=:department and designation=:designation and branch=:branch and is_active='Y'", nativeQuery = true)
+	@Query(value = "SELECT * FROM dms_target_setting_user where org_id=:orgId  and department=:department and designation=:designation and branch=:branch and is_active='Y'", nativeQuery = true)
 	List<TargetEntityUser> getUserTargetData(@Param(value = "orgId") String orgId,
 			@Param(value="department") String deptId,
 			@Param(value="designation") String designation,
 			@Param(value="branch") String branch
+			);
+	
+	
+	@Query(value = "SELECT * FROM dms_target_setting_user where org_id=:orgId and emp_id=:eid and department=:department and designation=:designation and branch=:branch and is_active='Y'", nativeQuery = true)
+	List<TargetEntityUser> getUserTargetDataV2(@Param(value = "orgId") String orgId,
+			@Param(value="department") String deptId,
+			@Param(value="designation") String designation,
+			@Param(value="branch") String branch,
+			@Param(value="eid") String eid
 			);
 	
 	

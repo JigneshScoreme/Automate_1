@@ -244,7 +244,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 
 
-	private List<Integer> getReportingEmployes(Integer empId) throws DynamicFormsServiceException {
+	public List<Integer> getReportingEmployes(Integer empId) throws DynamicFormsServiceException {
 		List<String> empReportingIdList = new ArrayList<>();
 		log.debug("getReportingEmployes , Empid "+empId);
 		List<Integer> empReportingIdList_1 = new ArrayList<>();

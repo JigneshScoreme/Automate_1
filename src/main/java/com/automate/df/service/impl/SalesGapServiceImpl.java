@@ -90,6 +90,9 @@ public class SalesGapServiceImpl implements SalesGapService {
 
 	@Autowired
 	Gson gson;
+	
+	@Autowired
+	DashBoardServiceImplV2 dashBoardServiceImplV2; 
 
 	@Autowired
 	private EntityManager entityManager;
@@ -658,7 +661,95 @@ public class SalesGapServiceImpl implements SalesGapService {
 		 */
 		return list;
 	}
+	
+	@Override
+	public Map<String, Object> getTargetDataWithRole(TargetRoleReq req) throws DynamicFormsServiceException {
+		log.debug("calling getTargetDataWithRole ,given req "+req);
+		List<TargetSettingRes> outputList = new ArrayList<>();
+		Map<String, Object> map = new LinkedHashMap<>();
+		int pageNo = req.getPageNo();
+		int size = req.getSize();
+		//List<TargetSettingRes> outputList = new ArrayList<>();
+		try {
+			int empId = req.getEmpId();
 
+			List<Integer> empReportingIdList = new ArrayList<>();
+			empReportingIdList.add(empId);
+			empReportingIdList.addAll(dashBoardServiceImplV2.getReportingEmployes(empId)); 
+			
+			log.debug("empReportingIdList for emp "+empId);
+			log.debug(""+empReportingIdList);
+			
+			;
+
+			for(Integer id : empReportingIdList) {
+
+			String eId = String.valueOf(id);
+			log.debug("Executing for EMP ID " + eId);
+
+			String tmpQuery = roleMapQuery.replaceAll("<EMP_ID>", eId);
+			List<Object[]> tlData = entityManager.createNativeQuery(tmpQuery).getResultList();
+			List<TargetRoleRes> tlDataResList = new ArrayList<>();
+
+			for (Object[] arr : tlData) {
+				TargetRoleRes tlDataRole = new TargetRoleRes();
+				tlDataRole.setOrgId(String.valueOf(arr[0]));
+				tlDataRole.setBranchId(String.valueOf(arr[1]));
+				tlDataRole.setEmpId(String.valueOf(arr[2]));
+				tlDataRole.setRoleName(String.valueOf(arr[3]));
+				tlDataRole.setRoleId(String.valueOf(arr[4]));
+				tlDataResList.add(tlDataRole);
+				
+				String tEmpId = String.valueOf(arr[2]);
+				Integer emp = Integer.parseInt(tEmpId);
+				tlDataResList.add(getEmpRoleDataV3(emp));
+			}
+			if (null != tlDataResList) {
+				log.info("Size of tlDataResList " + tlDataResList.size() + " tlDataResList " + tlDataResList);
+
+				for (TargetRoleRes tr : tlDataResList) {
+					Optional<DmsEmployee> empOpt = dmsEmployeeRepo.findById(Integer.valueOf(tr.getEmpId()));
+					if (empOpt.isPresent()) {
+						DmsEmployee emp = empOpt.get();
+						// outputList.add(getTSDataForRole(buildTargetRoleRes(tr,
+						// emp),String.valueOf(empId),managerId,branchMgrId,generalMgrId));
+						outputList.addAll(getTSDataForRoleV2(buildTargetRoleRes(tr, emp), String.valueOf(empId),
+								"", "", ""));
+
+					}
+				}
+			}
+			}
+		
+			
+			outputList = outputList.stream().distinct().collect(Collectors.toList());
+			int totalCnt = outputList.size();
+			int fromIndex = size * (pageNo - 1);
+			int toIndex = size * pageNo;
+
+			if (toIndex > totalCnt) {
+				toIndex = totalCnt;
+			}
+			if (fromIndex > toIndex) {
+				fromIndex = toIndex;
+			}
+			log.debug("outputList ::"+outputList.size());
+			
+			if(outputList!=null && !outputList.isEmpty() && outputList.size()>toIndex) {
+			outputList = outputList.subList(fromIndex, toIndex);
+			}
+			map.put("totalCnt", totalCnt);
+			map.put("pageNo", pageNo);
+			map.put("size", size);
+			map.put("data", outputList);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return map;
+	}
+	
+	
+/*
 	@Override
 	public Map<String, Object> getTargetDataWithRole(TargetRoleReq req) throws DynamicFormsServiceException {
 		log.debug("calling getTargetDataWithRole ,given req "+req);
@@ -669,6 +760,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 		try {
 			int empId = req.getEmpId();
 
+			
 			TargetRoleRes trRoot = getEmpRoleData(empId);
 			log.debug("Givne Emp Designation "+trRoot.getDesignationName());
 
@@ -717,6 +809,8 @@ public class SalesGapServiceImpl implements SalesGapService {
 		}
 		return map;
 	}
+	
+	*/
 
 	/**
 	 * @param empId
@@ -829,14 +923,15 @@ public class SalesGapServiceImpl implements SalesGapService {
 
 	private List<TargetSettingRes> getTLData(String empId, List<TargetSettingRes> outputList, String managerId,
 			String branchMgrId, String generalMgrId) {
-
+		log.debug("getTLData(){},empId "+empId);
 		try {
 			List<Object> tlEmpIDData = entityManager
 					.createNativeQuery(getEmpUnderTLQuery.replaceAll("<ID>", String.valueOf(empId))).getResultList();
-
+			log.debug("tlEmpIDData size "+tlEmpIDData.size());
+			if(!tlEmpIDData.isEmpty()) {
 			for (Object id : tlEmpIDData) {
 				String eId = String.valueOf(id);
-				log.info("Executing for EMP ID " + eId);
+				log.debug("Executing for EMP ID " + eId);
 
 				String tmpQuery = roleMapQuery.replaceAll("<EMP_ID>", eId);
 				List<Object[]> tlData = entityManager.createNativeQuery(tmpQuery).getResultList();
@@ -870,6 +965,46 @@ public class SalesGapServiceImpl implements SalesGapService {
 						}
 					}
 				}
+			}
+			}else {
+				log.debug("tlEmpIDData is empty ");
+
+				String eId = String.valueOf(empId);
+				log.debug("Executing for EMP ID " + eId);
+
+				String tmpQuery = roleMapQuery.replaceAll("<EMP_ID>", eId);
+				List<Object[]> tlData = entityManager.createNativeQuery(tmpQuery).getResultList();
+				List<TargetRoleRes> tlDataResList = new ArrayList<>();
+
+				for (Object[] arr : tlData) {
+					TargetRoleRes tlDataRole = new TargetRoleRes();
+					tlDataRole.setOrgId(String.valueOf(arr[0]));
+					tlDataRole.setBranchId(String.valueOf(arr[1]));
+					tlDataRole.setEmpId(String.valueOf(arr[2]));
+					tlDataRole.setRoleName(String.valueOf(arr[3]));
+					tlDataRole.setRoleId(String.valueOf(arr[4]));
+					tlDataResList.add(tlDataRole);
+					
+					String tEmpId = String.valueOf(arr[2]);
+					Integer emp = Integer.parseInt(tEmpId);
+					tlDataResList.add(getEmpRoleDataV3(emp));
+				}
+				if (null != tlDataResList) {
+					log.info("Size of tlDataResList " + tlDataResList.size() + " tlDataResList " + tlDataResList);
+
+					for (TargetRoleRes tr : tlDataResList) {
+						Optional<DmsEmployee> empOpt = dmsEmployeeRepo.findById(Integer.valueOf(tr.getEmpId()));
+						if (empOpt.isPresent()) {
+							DmsEmployee emp = empOpt.get();
+							// outputList.add(getTSDataForRole(buildTargetRoleRes(tr,
+							// emp),String.valueOf(empId),managerId,branchMgrId,generalMgrId));
+							outputList.addAll(getTSDataForRoleV2(buildTargetRoleRes(tr, emp), String.valueOf(empId),
+									managerId, branchMgrId, generalMgrId));
+
+						}
+					}
+				}
+			
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1464,9 +1599,39 @@ public class SalesGapServiceImpl implements SalesGapService {
 			String empId = req.getEmployeeId();
 			log.debug("empId::"+empId);
 			Integer retailTarget = parseRetailTarget(req);
+			
+			String finalEmpId =null;
+			String managerId =req.getManagerId();
+			String teamLeadId = req.getTeamLeadId();
+			String generalManagerId = req.getGeneralManagerId();
+			String branchManagerId = req.getBranchmangerId();
+			
+			
+			System.out.println("Optional.of(managerId).isPresent() "+Optional.of(managerId).isPresent());
+			
+			if(empId!=null && Optional.of(empId).isPresent()) {
+				finalEmpId=empId;
+			}
+			
+			else if(teamLeadId!=null && Optional.of(teamLeadId).isPresent()) {
+				finalEmpId=teamLeadId;
+			}
+			else if(managerId!=null && Optional.of(managerId).isPresent()) {
+				finalEmpId=managerId;
+			
+			}
+			else if(generalManagerId!=null && Optional.of(generalManagerId).isPresent()) {
+				
+				finalEmpId=generalManagerId;
+			}
+			else if(branchManagerId!=null && Optional.of(branchManagerId).isPresent()) {
+				
+				finalEmpId=branchManagerId;
+			}
+			log.debug("finalEmpId:::"+finalEmpId);
 
-			String tmpQuery = dmsEmpByidQuery.replaceAll("<EMP_ID>", String.valueOf(empId));
-			tmpQuery = roleMapQuery.replaceAll("<EMP_ID>", String.valueOf(empId));
+			String tmpQuery = dmsEmpByidQuery.replaceAll("<EMP_ID>", String.valueOf(finalEmpId));
+			tmpQuery = roleMapQuery.replaceAll("<EMP_ID>", String.valueOf(finalEmpId));
 			log.debug("tmpQuery  "+tmpQuery);
 			List<Object[]> data = entityManager.createNativeQuery(tmpQuery).getResultList();
 			TargetRoleRes trRoot = new TargetRoleRes();
@@ -1479,8 +1644,8 @@ public class SalesGapServiceImpl implements SalesGapService {
 			}
 			
 			TargetSettingRes userDefaultTsRes = null;
-			log.debug("addTargetDataWithRole::::"+empId);
-			Optional<DmsEmployee> empOpt = dmsEmployeeRepo.findById(Integer.valueOf(empId));
+			log.debug("addTargetDataWithRole::::"+finalEmpId);
+			Optional<DmsEmployee> empOpt = dmsEmployeeRepo.findById(Integer.valueOf(finalEmpId));
 			TargetRoleRes tRole = null;
 
 			if (empOpt.isPresent()) {
@@ -1489,7 +1654,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 				tRole = buildTargetRoleRes(trRoot, emp);
 
 			}
-			String adminTargets = getAdminTargetString(Integer.parseInt(req.getEmployeeId()));
+			String adminTargets = getAdminTargetString(Integer.parseInt(finalEmpId));
 			log.debug("adminTargets :" + adminTargets);
 			String calculatedTargetString = calculateTargets(adminTargets, retailTarget);
 			log.debug("calculatedTargetString in add " + calculatedTargetString);
@@ -1502,7 +1667,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 				teUser.setStartDate(req.getStartDate());
 				teUser.setEndDate(req.getEndDate());
 
-				teUser.setEmployeeId(req.getEmployeeId());
+				teUser.setEmployeeId(finalEmpId);
 
 				modelMapper.getConfiguration().setAmbiguityIgnored(true);
 				teUser.setTeamLeadId(req.getTeamLeadId());
@@ -1540,7 +1705,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 				teUser.setEndDate(req.getEndDate());
 				teUser.setRetailTarget(retailTarget);
 
-				List<TargetEntityUser> list = targetUserRepo.findAllQ3(empId);
+				List<TargetEntityUser> list = targetUserRepo.findAllQ3(finalEmpId);
 				log.debug("Data list for emp id " + list.size());
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -2434,8 +2599,8 @@ public class SalesGapServiceImpl implements SalesGapService {
 				log.debug("tRole.getLocationId()::" + tRole.getLocationId());
 				
 				
-				List<TargetEntityUser> userTargetList = targetUserRepo.getUserTargetData(tRole.getOrgId(),
-						tRole.getDeptId(), tRole.getDesignationId(), orgMapBranchID);
+				List<TargetEntityUser> userTargetList = targetUserRepo.getUserTargetDataV2(tRole.getOrgId(),
+						tRole.getDeptId(), tRole.getDesignationId(), orgMapBranchID,String.valueOf(empId));
 				tRole.setBranchId(orgMapBranchID);
 				tRole.setLocationId(orgMapBranchID);
 				log.info("userTargetListis not empty " + userTargetList.size());
@@ -2466,7 +2631,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 				}
 
 			}
-			System.out.println("list in getTSDataForRoleV2  " + list);
+
 
 		} catch (Exception e) {
 			log.error("getTargetSettingData() ", e);
