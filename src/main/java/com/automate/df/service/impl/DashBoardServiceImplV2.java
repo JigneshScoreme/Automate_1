@@ -160,6 +160,15 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	public static final String EXCHANGE = "Exchange";
 	public static final String ACCCESSORIES = "Accessories";
 	public static final String EVENTS = "Events";
+	
+	
+	
+	public static final String enqCompStatus = "ENQUIRYCOMPLETED";
+	public static final String preBookCompStatus = "PREBOOKINGCOMPLETED";
+	public static final String bookCompStatus = "BOOKINGCOMPLETED";
+	public static final String invCompStatus = "INVOICECOMPLETED";
+	public static final String preDelCompStatus = "PREDELIVERYCOMPLETED";
+	public static final String delCompStatus="DELIVERYCOMPLETED";
 
 	private static final String RETAIL_TARGET = "RETAIL_TARGET";
 	
@@ -367,12 +376,16 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		if(null!=leadRefList && !leadRefList.isEmpty()) {
 			
 			log.debug("Total leads in LeadReF table is ::"+leadRefList.size());
-			enqLeadCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY")).count();
+			//enqLeadCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY")).count();
+			enqLeadCnt = leadRefList.stream().filter(x->x.getLeadStatus().equalsIgnoreCase(enqCompStatus)).count();
 			preBookCount =leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREBOOKING")).count();
-			bookCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("BOOKING")).count();
-			invCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("INVOICE")).count();
+			//bookCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("BOOKING")).count();
+			bookCount = leadRefList.stream().filter(x->x.getLeadStatus().equalsIgnoreCase(bookCompStatus)).count();
+			//invCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("INVOICE")).count();
+			invCount = leadRefList.stream().filter(x->x.getLeadStatus().equalsIgnoreCase(invCompStatus)).count();
 			preDeliveryCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREDELIVERY")).count();
-			delCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("DELIVERY")).count();
+			//delCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("DELIVERY")).count();
+			delCnt = leadRefList.stream().filter(x->x.getLeadStatus().equalsIgnoreCase(delCompStatus)).count();
 		}
 		
 		List<DmsWFTask> wfTaskList = dmsWfTaskDao.getWfTaskByAssigneeIdList(empIdsUnderReporting, startDate, endDate);
