@@ -13,8 +13,9 @@ public interface LeadStageRefDao extends JpaRepository<LeadStageRefEntity, Integ
 	@Query(value="select * from dms_lead_stage_ref where stage_name=:stage and start_date in (select max(start_date) from dms_lead_stage_ref)",nativeQuery = true)
 	List<LeadStageRefEntity> getRecentRefByStage(@Param(value="stage") String stage);
 	
-	@Query(value="SELECT * FROM dms_lead_stage_ref WHERE lead_id IN (:leadIdList) AND start_date>=:startDate and start_date<=:endDate",nativeQuery = true)
+	@Query(value="SELECT * FROM dms_lead_stage_ref WHERE org_id=:orgId and lead_id IN (:leadIdList) AND start_date>=:startDate and start_date<=:endDate",nativeQuery = true)
 	List<LeadStageRefEntity> getLeadsByStageandDate(
+			@Param(value="orgId") String orgId,
 			@Param(value="leadIdList") List<Integer> leadIdList,
 			@Param(value="startDate") String startDate,@Param(value="endDate") String endDate
 			);

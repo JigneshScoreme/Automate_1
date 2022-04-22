@@ -189,7 +189,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			List<Integer> selectedEmpIdList = req.getEmpSelected();
 			List<Integer> selectedNodeList = req.getLevelSelected();
 			TargetRoleRes tRole = salesGapServiceImpl.getEmpRoleDataV2(empId);
-		
+			String orgId = tRole.getOrgId();
 			log.debug("tRole getTargetAchivementParams "+tRole);
 			if(null!=selectedEmpIdList && !selectedEmpIdList.isEmpty()) {
 				log.debug("Fetching empReportingIdList for selected employees,selectedEmpIdList"+selectedEmpIdList);
@@ -201,7 +201,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 					empReportingIdList.addAll(getReportingEmployes(eId)); 
 					log.debug("empReportingIdList for given selectedEmpIdList "+empReportingIdList);
 					List<TargetAchivement> targetList = getTargetAchivementParamsForMultipleEmp(empReportingIdList,
-							req);
+							req,orgId);
 					log.debug("targetList::::::"+targetList);
 					allTargets.add(targetList);
 				}
@@ -228,7 +228,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 									.collect(Collectors.toList()));
 						});
 					});
-					List<TargetAchivement> targetList = getTargetAchivementParamsForMultipleEmp(empReportingIdList,req);
+					List<TargetAchivement> targetList = getTargetAchivementParamsForMultipleEmp(empReportingIdList,req,orgId);
 					allTargets.add(targetList);
 					
 				}
@@ -240,7 +240,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 				empReportingIdList.add(req.getLoggedInEmpId());
 				log.debug("empReportingIdList for emp "+req.getLoggedInEmpId());
 				log.debug("Calling getTargetAchivemetns in else" +empReportingIdList);
-				resList = getTargetAchivementParamsForMultipleEmp(empReportingIdList,req);
+				resList = getTargetAchivementParamsForMultipleEmp(empReportingIdList,req,orgId);
 			}
 			log.debug("Fetching empReportingIdList for logged in emp outside:"+req.getLoggedInEmpId());
 				}catch(Exception e) {
@@ -321,7 +321,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 	
 	private List<TargetAchivement> getTargetAchivementParamsForMultipleEmp(
-			List<Integer> empIdsUnderReporting, DashBoardReqV2 req) throws ParseException, DynamicFormsServiceException {
+			List<Integer> empIdsUnderReporting, DashBoardReqV2 req,String orgId) throws ParseException, DynamicFormsServiceException {
 		List<TargetAchivement> resList = new ArrayList<>();
 		List<String> empNamesList = dmsEmployeeRepo.findEmpNamesById(empIdsUnderReporting);
 		log.info("empNamesList::" + empNamesList);
@@ -372,20 +372,20 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		
 		
 		
-		List<LeadStageRefEntity> leadRefList  =  leadStageRefDao.getLeadsByStageandDate(dmsLeadList,startDate,endDate);
+		List<LeadStageRefEntity> leadRefList  =  leadStageRefDao.getLeadsByStageandDate(orgId,dmsLeadList,startDate,endDate);
 		if(null!=leadRefList && !leadRefList.isEmpty()) {
 			
 			log.debug("Total leads in LeadReF table is ::"+leadRefList.size());
 			//enqLeadCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY")).count();
-			enqLeadCnt = leadRefList.stream().filter(x->x.getLeadStatus().equalsIgnoreCase(enqCompStatus)).count();
+			enqLeadCnt = leadRefList.stream().filter(x-> x.getLeadStatus()!=null &&  x.getLeadStatus().equalsIgnoreCase(enqCompStatus)).count();
 			preBookCount =leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREBOOKING")).count();
 			//bookCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("BOOKING")).count();
-			bookCount = leadRefList.stream().filter(x->x.getLeadStatus().equalsIgnoreCase(bookCompStatus)).count();
+			bookCount = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(bookCompStatus)).count();
 			//invCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("INVOICE")).count();
-			invCount = leadRefList.stream().filter(x->x.getLeadStatus().equalsIgnoreCase(invCompStatus)).count();
+			invCount = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(invCompStatus)).count();
 			preDeliveryCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREDELIVERY")).count();
 			//delCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("DELIVERY")).count();
-			delCnt = leadRefList.stream().filter(x->x.getLeadStatus().equalsIgnoreCase(delCompStatus)).count();
+			delCnt = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(delCompStatus)).count();
 		}
 		
 		List<DmsWFTask> wfTaskList = dmsWfTaskDao.getWfTaskByAssigneeIdList(empIdsUnderReporting, startDate, endDate);
@@ -1025,7 +1025,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			
 				List<Integer> dmsLeadIdList = dmsLeadList.stream().map(DmsLead::getId).collect(Collectors.toList());
 				log.debug("dmsLeadList::"+dmsLeadList);
-				List<LeadStageRefEntity> leadRefList  =  leadStageRefDao.getLeadsByStageandDate(dmsLeadIdList,startDate,endDate);
+				List<LeadStageRefEntity> leadRefList  =  leadStageRefDao.getLeadsByStageandDate(orgId,dmsLeadIdList,startDate,endDate);
 				if(null!=leadRefList && !leadRefList.isEmpty()) {
 					log.debug("Total leads in LeadReF table is ::"+leadRefList.size());
 					enqLeadCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY")).count();
@@ -1187,17 +1187,24 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			List<Integer> dmsLeadList = dmsAllLeadList.stream().map(DmsLead::getId).collect(Collectors.toList());
 			log.debug("dmsLeadList::"+dmsLeadList);
 				
-			List<LeadStageRefEntity> leadRefList  =  leadStageRefDao.getLeadsByStageandDate(dmsLeadList,startDate,endDate);
+			List<LeadStageRefEntity> leadRefList  =  leadStageRefDao.getLeadsByStageandDate(orgId,dmsLeadList,startDate,endDate);
 			log.debug("leadRefList size "+leadRefList.size());
 			if(null!=leadRefList && !leadRefList.isEmpty()) {
 				
 				log.debug("Total leads in LeadReF table is ::"+leadRefList.size());
-				enqLeadCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY")).count();
+/*				enqLeadCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY")).count();
 				preBookCount =leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREBOOKING")).count();
 				bookCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("BOOKING")).count();
 				invCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("INVOICE")).count();
 				preDeliveryCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREDELIVERY")).count();
-				delCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("DELIVERY")).count();
+				delCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("DELIVERY")).count();*/
+				
+				enqLeadCnt = leadRefList.stream().filter(x-> x.getLeadStatus()!=null &&  x.getLeadStatus().equalsIgnoreCase(enqCompStatus)).count();
+				preBookCount =leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREBOOKING")).count();
+				bookCount = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(bookCompStatus)).count();
+				invCount = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(invCompStatus)).count();
+				preDeliveryCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREDELIVERY")).count();
+				delCnt = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(delCompStatus)).count();
 			}
 
 			log.debug("enqLeadCnt:"+enqLeadCnt);
@@ -1325,16 +1332,23 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			Long delCnt = 0L;
 			Long droppedCnt =0L;
 			List<Integer> dmsLeadIdList = dmsLeadList.stream().map(y->y.getId()).collect(Collectors.toList());
-			List<LeadStageRefEntity> leadRefList  =  leadStageRefDao.getLeadsByStageandDate(dmsLeadIdList,startDate,endDate);
+			List<LeadStageRefEntity> leadRefList  =  leadStageRefDao.getLeadsByStageandDate(orgId,dmsLeadIdList,startDate,endDate);
 			log.debug("leadRefList size "+leadRefList.size());
 			if(null!=leadRefList && !leadRefList.isEmpty()) {
 				
 				log.debug("Total leads in LeadReF table is ::"+leadRefList.size());
-				enqLeadCnt = leadRefList.stream().filter(k->k.getStageName().equalsIgnoreCase("ENQUIRY")).count();
+				/*enqLeadCnt = leadRefList.stream().filter(k->k.getStageName().equalsIgnoreCase("ENQUIRY")).count();
 				bookCount = leadRefList.stream().filter(k->k.getStageName().equalsIgnoreCase("BOOKING")).count();
 				invCount = leadRefList.stream().filter(k->k.getStageName().equalsIgnoreCase("INVOICE")).count();
 				preDeliveryCnt = leadRefList.stream().filter(k->k.getStageName().equalsIgnoreCase("PREDELIVERY")).count();
-				delCnt = leadRefList.stream().filter(k->k.getStageName().equalsIgnoreCase("DELIVERY")).count();
+				delCnt = leadRefList.stream().filter(k->k.getStageName().equalsIgnoreCase("DELIVERY")).count();*/
+				
+				enqLeadCnt = leadRefList.stream().filter(k-> k.getLeadStatus()!=null &&  k.getLeadStatus().equalsIgnoreCase(enqCompStatus)).count();
+				preBookCount =leadRefList.stream().filter(k->k.getStageName().equalsIgnoreCase("PREBOOKING")).count();
+				bookCount = leadRefList.stream().filter(k->k.getLeadStatus()!=null && k.getLeadStatus().equalsIgnoreCase(bookCompStatus)).count();
+				invCount = leadRefList.stream().filter(k->k.getLeadStatus()!=null && k.getLeadStatus().equalsIgnoreCase(invCompStatus)).count();
+				preDeliveryCnt = leadRefList.stream().filter(k->k.getStageName().equalsIgnoreCase("PREDELIVERY")).count();
+				delCnt = leadRefList.stream().filter(k->k.getLeadStatus()!=null && k.getLeadStatus().equalsIgnoreCase(delCompStatus)).count();
 			}
 
 			
