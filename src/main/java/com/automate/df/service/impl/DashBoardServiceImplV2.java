@@ -4,6 +4,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,8 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
@@ -45,7 +47,6 @@ import com.automate.df.entity.dashboard.DmsWFTask;
 import com.automate.df.entity.salesgap.DmsEmployee;
 import com.automate.df.entity.salesgap.TargetRoleReq;
 import com.automate.df.exception.DynamicFormsServiceException;
-import com.automate.df.model.DMSResponse;
 import com.automate.df.model.df.dashboard.DashBoardReqV2;
 import com.automate.df.model.df.dashboard.DropRes;
 import com.automate.df.model.df.dashboard.EventDataRes;
@@ -53,6 +54,7 @@ import com.automate.df.model.df.dashboard.LeadSourceRes;
 import com.automate.df.model.df.dashboard.LostRes;
 import com.automate.df.model.df.dashboard.SalesDataRes;
 import com.automate.df.model.df.dashboard.TargetAchivement;
+import com.automate.df.model.df.dashboard.TargetRankingRes;
 import com.automate.df.model.df.dashboard.TodaysRes;
 import com.automate.df.model.df.dashboard.VehicleModelRes;
 import com.automate.df.model.salesgap.TargetDropDownV2;
@@ -63,7 +65,6 @@ import com.automate.df.util.DashBoardUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -251,7 +252,85 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	}
 
 
+	@Override
+	public List<TargetRankingRes> getEmployeeTargetRankingByOrg(Integer orgId) throws DynamicFormsServiceException {
+		return getEmployeeTargetRanking(dmsEmployeeRepo.findAllByOrgId(orgId));
+	}
+	
+	@Override
+	public List<TargetRankingRes> getEmployeeTargetRankingByOrgAndBranch(Integer orgId,Integer branchId) throws DynamicFormsServiceException {
+		return getEmployeeTargetRanking(dmsEmployeeRepo.getEmployeesByOrgBranch(orgId,branchId));
+	}
 
+	private List<TargetRankingRes> getEmployeeTargetRanking(List<DmsEmployee> empList) throws DynamicFormsServiceException {
+		// TODO Auto-generated method stub
+		List<TargetRankingRes> targetRankingList = new ArrayList<>();
+		Set<Integer> targetAchievementsSet = new HashSet<>();
+		empList.stream().forEach(employee->{
+		try {
+			TargetRankingRes targetRankingResponse = new TargetRankingRes();
+			DashBoardReqV2 req = new DashBoardReqV2();
+			req.setLoggedInEmpId(employee.getEmp_id());
+			Integer totalAchievements = 0;
+			//List<TargetAchivement> achivementList = getTargetAchivementParamsForMultipleEmp(Arrays.asList(employee.getEmp_id()), req, employee.getOrg());
+			List<TargetAchivement> achivementList = getTargetAchivementParamsForEmp(employee.getEmp_id(), req, employee.getOrg());
+//			Optional<Integer> allAchievements = achivementList.stream().filter(x->x.getParamName().equalsIgnoreCase("INVOICE")).map(y->{
+//				return Integer.parseInt(y.getAchievment());
+//			}).reduce((a,b)->{
+//				return a+b;	
+//			});
+			Optional<Integer> allAchievements = achivementList.stream().map(y->{
+				return Integer.parseInt(y.getAchievment());
+			}).reduce((a,b)->{
+				return a+b;	
+			});
+			if(allAchievements.isPresent()) {
+				totalAchievements=allAchievements.get();
+			}
+			targetRankingResponse.setEmpId(employee.getEmp_id());
+			targetRankingResponse.setEmpName(employee.getEmpName());
+			targetRankingResponse.setOrgId(Integer.parseInt(employee.getOrg()));
+			targetRankingResponse.setBranchId(Integer.parseInt(employee.getBranch()));
+			targetRankingResponse.setTargetAchivements(totalAchievements);
+			targetRankingList.add(targetRankingResponse);
+			targetAchievementsSet.add(totalAchievements);
+			
+		} catch (ParseException | DynamicFormsServiceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		});
+		
+//		Collections.sort(targetRankingList,(targetRanking1,targetRanking2)->{
+//			 if (targetRanking1.getTargetAchivements() == targetRanking2.getTargetAchivements()) {
+//		            return 0;
+//			 }
+//		       else if (targetRanking1.getTargetAchivements() < targetRanking2.getTargetAchivements()) {
+//		            return 1;
+//		       }
+//		        else {
+//		            return -1;
+//		        }
+//		});
+		List<Integer> targetAchievementList = targetAchievementsSet.stream().collect(Collectors.toList());
+		Collections.sort(targetAchievementList,Collections.reverseOrder());
+		AtomicInteger rank= new AtomicInteger(0);
+		targetAchievementList.stream().forEach(targetAchivement->{
+			rank.set(rank.addAndGet(1));
+			List<TargetRankingRes> filteredList = targetRankingList.stream().filter(z->z.getTargetAchivements().equals(targetAchivement)).collect(Collectors.toList());
+			filteredList.stream().forEach(y->{
+				y.setRank(rank.get());
+			});
+			//			targetRankingList.stream().filter(z->z.getTargetAchivements().equals(targetAchivement)).map(y->{
+//				y.setRank(rank.get());
+//				return y;
+//			});
+			
+		});
+//		Map<Integer,Integer> sortedEmployeeAchievementsMap = Collections.sortemployeeAchievementsMap
+		
+		return targetRankingList;
+	}
 
 	public List<Integer> getReportingEmployes(Integer empId) throws DynamicFormsServiceException {
 		List<String> empReportingIdList = new ArrayList<>();
@@ -389,6 +468,82 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		}
 		
 		List<DmsWFTask> wfTaskList = dmsWfTaskDao.getWfTaskByAssigneeIdList(empIdsUnderReporting, startDate, endDate);
+		//return buildTargetAchivements(resList, map, finalEnqLeadCnt,finalBookCnt, finalInvCount,wfTaskList);
+		return buildTargetAchivements(resList, map, enqLeadCnt,preBookCount, bookCount,invCount,preDeliveryCnt,delCnt,wfTaskList,leadRefList);
+	}
+
+
+	private List<TargetAchivement> getTargetAchivementParamsForEmp(
+			Integer empId, DashBoardReqV2 req,String orgId) throws ParseException, DynamicFormsServiceException {
+		List<TargetAchivement> resList = new ArrayList<>();
+//		List<String> empNamesList = dmsEmployeeRepo.findEmpNamesById(empIdsUnderReporting);
+//		log.info("empNamesList::" + empNamesList);
+		log.info("Calling getTargetAchivementParamsForEmp");
+		String startDate = null;
+		String endDate = null;
+		if (null == req.getStartDate() && null == req.getEndDate()) {
+			startDate = getFirstDayOfMonth();
+			endDate = getLastDayOfMonth();
+		} else {
+			startDate = req.getStartDate()+" 00:00:00";
+			endDate = req.getEndDate()+" 23:59:59";
+		}
+
+		log.info("StartDate " + startDate + ", EndDate " + endDate);
+		Map<String, Integer> map = new LinkedHashMap<>();
+		//for(Integer empId : empIdsUnderReporting) {
+			log.debug("Getting target params for user "+empId);
+			Map<String, Integer> innerMap = getTargetParams(String.valueOf(empId), startDate, endDate);
+			log.debug("innerMap::"+innerMap);
+			map = validateAndUpdateMapData(ENQUIRY,innerMap,map);
+			map = validateAndUpdateMapData(TEST_DRIVE,innerMap,map);
+			map = validateAndUpdateMapData(HOME_VISIT,innerMap,map);
+			map = validateAndUpdateMapData(VIDEO_CONFERENCE,innerMap,map);
+			map = validateAndUpdateMapData(BOOKING,innerMap,map);
+			map = validateAndUpdateMapData(EXCHANGE,innerMap,map);
+			map = validateAndUpdateMapData(FINANCE,innerMap,map);
+			map = validateAndUpdateMapData(INSURANCE,innerMap,map);
+			map = validateAndUpdateMapData(ACCCESSORIES,innerMap,map);
+			map = validateAndUpdateMapData(EVENTS,innerMap,map);
+			map = validateAndUpdateMapData(INVOICE,innerMap,map);
+			
+		//}
+		
+		//List<DmsLead> dmsLeadList = dmsLeadDao.getAllEmployeeLeads(empNamesList, startDate, endDate, ENQUIRY);
+	
+		
+		
+		Long enqLeadCnt = 0L;
+		Long preBookCount = 0L;
+		Long bookCount = 0L;
+		Long invCount = 0L;
+		Long preDeliveryCnt = 0L;
+		Long delCnt = 0L;
+		
+//		List<Integer> dmsLeadList = dmsLeadDao.getLeadIdsByEmpNames(empNamesList);
+		List<Integer> dmsLeadList = dmsLeadDao.getLeadIdsByEmpNames(Arrays.asList(empId+""));
+		log.debug("dmsLeadList::"+dmsLeadList);
+		
+		
+		
+		List<LeadStageRefEntity> leadRefList  =  leadStageRefDao.getLeadsByStageandDate(orgId,dmsLeadList,startDate,endDate);
+		if(null!=leadRefList && !leadRefList.isEmpty()) {
+			
+			log.debug("Total leads in LeadReF table is ::"+leadRefList.size());
+			//enqLeadCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY")).count();
+			enqLeadCnt = leadRefList.stream().filter(x-> x.getLeadStatus()!=null &&  x.getLeadStatus().equalsIgnoreCase(enqCompStatus)).count();
+			preBookCount =leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREBOOKING")).count();
+			//bookCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("BOOKING")).count();
+			bookCount = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(bookCompStatus)).count();
+			//invCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("INVOICE")).count();
+			invCount = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(invCompStatus)).count();
+			preDeliveryCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREDELIVERY")).count();
+			//delCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("DELIVERY")).count();
+			delCnt = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(delCompStatus)).count();
+		}
+		
+//		List<DmsWFTask> wfTaskList = dmsWfTaskDao.getWfTaskByAssigneeIdList(empIdsUnderReporting, startDate, endDate);
+		List<DmsWFTask> wfTaskList = dmsWfTaskDao.getWfTaskByAssigneeIdList(Arrays.asList(empId), startDate, endDate);
 		//return buildTargetAchivements(resList, map, finalEnqLeadCnt,finalBookCnt, finalInvCount,wfTaskList);
 		return buildTargetAchivements(resList, map, enqLeadCnt,preBookCount, bookCount,invCount,preDeliveryCnt,delCnt,wfTaskList,leadRefList);
 	}
@@ -2710,4 +2865,5 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		}
 		
 	}
+
 }

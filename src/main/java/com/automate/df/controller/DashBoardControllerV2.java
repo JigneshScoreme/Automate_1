@@ -9,6 +9,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +22,7 @@ import com.automate.df.model.df.dashboard.EventDataRes;
 import com.automate.df.model.df.dashboard.LeadSourceRes;
 import com.automate.df.model.df.dashboard.SalesDataRes;
 import com.automate.df.model.df.dashboard.TargetAchivement;
+import com.automate.df.model.df.dashboard.TargetRankingRes;
 import com.automate.df.model.df.dashboard.VehicleModelRes;
 import com.automate.df.service.DashBoardServiceV2;
 
@@ -48,6 +51,32 @@ public class DashBoardControllerV2 {
 		List<TargetAchivement> response = null;
 		if (Optional.of(req).isPresent()) {
 			response = dashBoardService.getTargetAchivementParams(req);
+		} else {
+			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	@CrossOrigin
+	@GetMapping(value = "v2/get_emp_target_ranking/org/{orgId}")
+	public ResponseEntity<List<TargetRankingRes>> getEmployeeTargetRankingsByOrg(@PathVariable(name="orgId") Integer orgId)
+			throws DynamicFormsServiceException {
+		List<TargetRankingRes> response = null;
+		if (Optional.of(orgId).isPresent()) {
+			response = dashBoardService.getEmployeeTargetRankingByOrg(orgId);
+		} else {
+			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	@CrossOrigin
+	@GetMapping(value = "v2/get_emp_target_ranking/org/{orgId}/branch/{branchId}")
+	public ResponseEntity<List<TargetRankingRes>> getEmployeeTargetRankingsByOrgAndBranch(@PathVariable(name="orgId") Integer orgId,@PathVariable(name="branchId") Integer branchId)
+			throws DynamicFormsServiceException {
+		List<TargetRankingRes> response = null;
+		if (Optional.of(orgId).isPresent() && Optional.of(branchId).isPresent()) {
+			response = dashBoardService.getEmployeeTargetRankingByOrgAndBranch(orgId, branchId);
 		} else {
 			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
 		}

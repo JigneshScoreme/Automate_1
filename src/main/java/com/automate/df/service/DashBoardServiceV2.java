@@ -10,6 +10,7 @@ import com.automate.df.model.df.dashboard.EventDataRes;
 import com.automate.df.model.df.dashboard.LeadSourceRes;
 import com.automate.df.model.df.dashboard.SalesDataRes;
 import com.automate.df.model.df.dashboard.TargetAchivement;
+import com.automate.df.model.df.dashboard.TargetRankingRes;
 import com.automate.df.model.df.dashboard.VehicleModelRes;
 
 public interface DashBoardServiceV2 {
@@ -37,5 +38,8 @@ public interface DashBoardServiceV2 {
 	SalesDataRes getSalesData(DashBoardReqV2 req) throws DynamicFormsServiceException;
 
 	List<Map<String, Long>> getSalesComparsionData(DashBoardReqV2 req) throws DynamicFormsServiceException;
-
+	
+	List<TargetRankingRes> getEmployeeTargetRankingByOrg(Integer orgId) throws DynamicFormsServiceException;
+	
+	List<TargetRankingRes> getEmployeeTargetRankingByOrgAndBranch(Integer orgId,Integer branchId) throws DynamicFormsServiceException;
 }
