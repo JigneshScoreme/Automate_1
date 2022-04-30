@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.automate.df.exception.DynamicFormsServiceException;
+import com.automate.df.model.MyTaskReq;
 import com.automate.df.model.df.dashboard.DashBoardReqV2;
 import com.automate.df.model.df.dashboard.EventDataRes;
 import com.automate.df.model.df.dashboard.LeadSourceRes;
@@ -233,6 +234,20 @@ public class DashBoardControllerV2 {
 			response = dashBoardService.getSalesComparsionData(req);
 		} else {
 			throw new DynamicFormsServiceException("LoggedInEmpId is mandatory params",
+					HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	@CrossOrigin
+	@PostMapping(value = "v2/get_todays_datav2")
+	public ResponseEntity<Map<String,Object>> getTodaysDataV2(@RequestBody MyTaskReq req)
+			throws DynamicFormsServiceException {
+		Map<String, Object> response = null;
+		if (req.getLoggedInEmpId() != null) {
+			response = dashBoardService.getTodaysPendingUpcomingDataV2(req);
+		} else {
+			throw new DynamicFormsServiceException("LoggedInEmpId,PageNo and Size are mandatory params",
 					HttpStatus.BAD_REQUEST);
 		}
 		return new ResponseEntity<>(response, HttpStatus.OK);
