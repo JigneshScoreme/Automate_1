@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.automate.df.exception.DynamicFormsServiceException;
+import com.automate.df.model.MyTaskReq;
 import com.automate.df.model.df.dashboard.DashBoardReq;
 import com.automate.df.model.df.dashboard.DashBoardReqV2;
 import com.automate.df.model.df.dashboard.EventDataRes;
@@ -43,8 +44,14 @@ public interface DashBoardServiceV2 {
 	SalesDataRes getSalesData(DashBoardReqV2 req) throws DynamicFormsServiceException;
 
 	List<Map<String, Long>> getSalesComparsionData(DashBoardReqV2 req) throws DynamicFormsServiceException;
+
+
+	Map<String, Object> getTodaysPendingUpcomingDataV2(MyTaskReq req) throws DynamicFormsServiceException;
+
+
 	
 	List<TargetRankingRes> getEmployeeTargetRankingByOrg(Integer orgId) throws DynamicFormsServiceException;
 	
 	List<TargetRankingRes> getEmployeeTargetRankingByOrgAndBranch(Integer orgId,Integer branchId) throws DynamicFormsServiceException;
+
 }

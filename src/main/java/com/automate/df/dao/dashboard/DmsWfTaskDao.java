@@ -2,10 +2,13 @@ package com.automate.df.dao.dashboard;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import com.automate.df.entity.dashboard.DmsWFTask;
+
 
 /**
  * 
@@ -49,7 +52,29 @@ public interface DmsWfTaskDao extends JpaRepository<DmsWFTask, Integer> {
 			//@Param(value = "universalIdList") List<String> universalIdList,
 			@Param(value = "startTime") String startTime,
 			@Param(value = "endTime") String endTime);
+	
+	@Query(value = "SELECT * FROM dms_workflow_task where assignee_id =:assigneeId \r\n"
+			+ "	and task_status != 'CLOSED' \r\n"
+			+ "	and task_created_time>= :startTime", nativeQuery = true)
+	List<DmsWFTask> getTodaysUpcomingTasksV2(
+			@Param(value = "assigneeId") Integer assigneeId,
+			//@Param(value = "universalIdList") List<String> universalIdList,
+			@Param(value = "startTime") String startTime);
 
+	@Query(value = "SELECT * FROM dms_workflow_task where assignee_id =:assigneeId \r\n"
+			+ "	and task_status != 'CLOSED' \r\n"
+			+ "	and task_created_time<= :startTime", nativeQuery = true)
+	List<DmsWFTask> getTodaysUpcomingTasksV3(
+			@Param(value = "assigneeId") Integer assigneeId,
+			//@Param(value = "universalIdList") List<String> universalIdList,
+			@Param(value = "startTime") String startTime);
+
+	
+	   @Query(value = "SELECT * FROM dms_workflow_task where dms_workflow_task.assignee_id=?1 and  DATE" +
+	            "(`task_updated_time`) != CURDATE() and dms_workflow_task.task_status != 'ASSIGNED'and dms_workflow_task.task_status != 'CLOSED'and dms_workflow_task.task_status != 'IN_PROGRESS' and dms_workflow_task.task_status != 'CANCELLED'and dms_workflow_task.task_status != 'SYSTEM_ERROR' and dms_workflow_task.task_status != 'SENT_FOR_APPROVAL' and dms_workflow_task.task_status != 'APPROVED' order by "+ " task_created_time desc", nativeQuery = true)
+	    List<DmsWFTask> findAllByRescheduledStatus(String empId);
+	
+	
 	@Query(value = "SELECT * FROM dms_workflow_task  where universal_id=:universalId and task_name=:taskName", nativeQuery = true)
 	List<DmsWFTask> getWfTaskByUniversalIdandTask(@Param(value = "universalId") String crmUniversalId, 
 			@Param(value = "taskName") String hOME_VISIT);

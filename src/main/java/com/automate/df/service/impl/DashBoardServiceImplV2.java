@@ -47,6 +47,9 @@ import com.automate.df.entity.dashboard.DmsWFTask;
 import com.automate.df.entity.salesgap.DmsEmployee;
 import com.automate.df.entity.salesgap.TargetRoleReq;
 import com.automate.df.exception.DynamicFormsServiceException;
+
+import com.automate.df.model.MyTaskReq;
+
 import com.automate.df.model.df.dashboard.DashBoardReqV2;
 import com.automate.df.model.df.dashboard.DropRes;
 import com.automate.df.model.df.dashboard.EmployeeTargetAchievement;
@@ -59,6 +62,8 @@ import com.automate.df.model.df.dashboard.TargetAchivement;
 import com.automate.df.model.df.dashboard.TargetRankingRes;
 import com.automate.df.model.df.dashboard.TodaysRes;
 import com.automate.df.model.df.dashboard.VehicleModelRes;
+import com.automate.df.model.oh.MyTask;
+import com.automate.df.model.oh.TodaysTaskRes;
 import com.automate.df.model.salesgap.TargetDropDownV2;
 import com.automate.df.model.salesgap.TargetRoleRes;
 import com.automate.df.model.salesgap.TargetSettingRes;
@@ -2973,6 +2978,160 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			salesData.put("percentage", salesPercentage(totalSalesCount, value));
 		}
 		
+	}
+
+
+
+
+	@Override
+	public Map<String, Object> getTodaysPendingUpcomingDataV2(MyTaskReq req) throws DynamicFormsServiceException {
+		log.info("Inside getTodaysPendingUpcomingDataV2(){},empId " + req.getLoggedInEmpId() + " and IsOnlyForEmp "
+				+ req.isOnlyForEmp());
+		Map<String, Object> list = new LinkedHashMap<>();
+
+		try {
+			/// TargetRoleRes tRole =
+			/// salesGapServiceImpl.getEmpRoleDataV2(req.getLoggedInEmpId());
+			boolean isOnlyForEmp =req.isOnlyForEmp();
+			List<Integer> empIdList = new ArrayList<>();
+			if(isOnlyForEmp) {
+				empIdList.add(req.getLoggedInEmpId());
+				list = getTodaysDataV2(empIdList, req);
+			}
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new DynamicFormsServiceException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return list;
+
+	}
+
+
+
+
+	private Map<String, Object> getTodaysDataV2(List<Integer> empIdsUnderReporting, MyTaskReq req) {
+
+		Map<String, Object> map = new LinkedHashMap<>();
+		try {
+			int totalCnt = empIdsUnderReporting.size();
+			log.debug("empIdsUnderReporting in getTodaysData before pagination"+empIdsUnderReporting.size());
+			//empIdsUnderReporting = dashBoardUtil.getPaginatedList(empIdsUnderReporting, req.getPageNo(), req.getSize());
+			//log.debug("empIdsUnderReporting in getTodaysData "+empIdsUnderReporting.size());
+			//Map<String, Integer> paginationMap = new LinkedHashMap<>();
+			//paginationMap.put("totalCnt", totalCnt);
+			//paginationMap.put("pageNo", req.getPageNo());
+			//paginationMap.put("size", req.getSize());
+			
+			//map.put("paginationData", paginationMap);
+			map.put("todaysData", getTodayDataV2(req,empIdsUnderReporting));
+			map.put("upcomingData", getUpcomingDataV2(req,empIdsUnderReporting));
+			map.put("pendingData", getPendingDataV2(req,empIdsUnderReporting));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return map;
+	
+	}
+
+
+
+	
+
+	private Object getPendingDataV2(MyTaskReq req, List<Integer> empIdsUnderReporting) {
+		log.debug("Inside getUpcomingDataV2::()");
+		TodaysTaskRes todaysRes = new TodaysTaskRes();
+		for (Integer empId : empIdsUnderReporting) {
+			String empName = salesGapServiceImpl.getEmpName(String.valueOf(empId));
+			log.debug("generating data for empId " + empId + " and empName:" + empName);
+			String todaysDate = getTodaysDate();
+			log.debug("todaysDate::"+todaysDate);
+			List<DmsWFTask> wfTaskList = dmsWfTaskDao.findAllByRescheduledStatus(String.valueOf(empId));
+			log.debug("wfTaskList size ingetPendingDataV2 "+wfTaskList.size());
+			//wfTaskList = wfTaskList.stream().filter(wfTask->validatePendingTask(wfTask.getTaskUpdatedTime(), wfTask.getTaskCreatedTime())).collect(Collectors.toList());
+			todaysRes = buildMyTaskObj(wfTaskList,todaysRes,empId,empName);
+		}
+		return todaysRes;
+	}
+
+
+
+
+	private Object getUpcomingDataV2(MyTaskReq req, List<Integer> empIdsUnderReporting) {
+		log.debug("Inside getUpcomingDataV2::()");
+		TodaysTaskRes todaysRes = new TodaysTaskRes();
+		for (Integer empId : empIdsUnderReporting) {
+			String empName = salesGapServiceImpl.getEmpName(String.valueOf(empId));
+			log.debug("generating data for empId " + empId + " and empName:" + empName);
+			String todaysDate = getTodaysDate();
+			log.debug("todaysDate::"+todaysDate);
+			List<DmsWFTask> wfTaskList = dmsWfTaskDao.getTodaysUpcomingTasksV2(empId, todaysDate+" 00:00:00");
+			List<DmsWFTask> upcomingWfTaskList = wfTaskList.stream().filter(wfTask->validateUpcomingTask(wfTask.getTaskUpdatedTime(), wfTask.getTaskCreatedTime())).collect(Collectors.toList());
+			todaysRes = buildMyTaskObj(upcomingWfTaskList,todaysRes,empId,empName);
+		}
+		return todaysRes;
+	}
+
+
+
+
+	private TodaysTaskRes getTodayDataV2(MyTaskReq req, List<Integer> empIdsUnderReporting) {
+
+		log.debug("Inside getTodayDataV2::()");
+		TodaysTaskRes todaysRes = new TodaysTaskRes();
+		
+		for (Integer empId : empIdsUnderReporting) {
+			String empName = salesGapServiceImpl.getEmpName(String.valueOf(empId));
+			log.debug("generating data for empId " + empId + " and empName:" + empName);
+			String startDate = getStartDate(req.getStartDate());
+			String endDate = getEndDate(req.getEndDate());
+			String todaysDate = getTodaysDate();
+			log.debug("todaysDate::"+todaysDate);
+			List<DmsWFTask> todayWfTaskList = dmsWfTaskDao.getTodaysUpcomingTasks(empId, todaysDate+" 00:00:00", todaysDate+" 23:59:59");
+			
+			todaysRes = buildMyTaskObj(todayWfTaskList,todaysRes,empId,empName);
+			
+		}
+		return todaysRes;
+	}
+
+
+
+
+	private TodaysTaskRes buildMyTaskObj(List<DmsWFTask> todayWfTaskList, TodaysTaskRes todaysRes, Integer empId, String empName) {
+		try {
+			List<MyTask> myTaskList = new ArrayList<>();
+			Set<String> uniqueTastSet = todayWfTaskList.stream().map(x->x.getTaskName()).collect(Collectors.toSet());
+			log.debug("uniqueTastSet:::"+uniqueTastSet);
+			Integer uniqueTaskcnt = uniqueTastSet.size();
+			log.debug("uniqueTaskcnt:::"+uniqueTaskcnt);
+			todaysRes.setEmpId(empId);
+			todaysRes.setEmpName(empName);
+			todaysRes.setTasksAvilable(uniqueTastSet);
+			todaysRes.setTaskCnt(uniqueTaskcnt);
+			
+			if (null != todayWfTaskList) {
+				for (DmsWFTask wf : todayWfTaskList) {
+					MyTask task = new MyTask();
+					task.setTaskName(wf.getTaskName());
+					task.setTaskStatus(wf.getTaskStatus());
+					task.setCreatedOn(wf.getTaskCreatedTime());
+					List<DmsLead> tmpList = dmsLeadDao.getLeadByUniversalId(wf.getUniversalId());
+					if (tmpList != null && !tmpList.isEmpty()) {
+						DmsLead lead = tmpList.get(0);
+						task.setCustomerName(lead.getFirstName() + " " + lead.getLastName());
+						task.setPhoneNo(lead.getPhone());
+					}
+					myTaskList.add(task);
+				}
+			}
+			todaysRes.setMyTaskList(myTaskList);
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return todaysRes;
 	}
 
 }
