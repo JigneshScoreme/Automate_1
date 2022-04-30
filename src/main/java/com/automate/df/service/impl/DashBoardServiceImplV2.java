@@ -49,9 +49,11 @@ import com.automate.df.entity.salesgap.TargetRoleReq;
 import com.automate.df.exception.DynamicFormsServiceException;
 import com.automate.df.model.df.dashboard.DashBoardReqV2;
 import com.automate.df.model.df.dashboard.DropRes;
+import com.automate.df.model.df.dashboard.EmployeeTargetAchievement;
 import com.automate.df.model.df.dashboard.EventDataRes;
 import com.automate.df.model.df.dashboard.LeadSourceRes;
 import com.automate.df.model.df.dashboard.LostRes;
+import com.automate.df.model.df.dashboard.OverAllTargetAchivements;
 import com.automate.df.model.df.dashboard.SalesDataRes;
 import com.automate.df.model.df.dashboard.TargetAchivement;
 import com.automate.df.model.df.dashboard.TargetRankingRes;
@@ -179,9 +181,11 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	String getEmpUnderTLQuery = "SELECT emp_id FROM dms_employee where reporting_to=<ID>";
 
 	@Override
-	public List<TargetAchivement> getTargetAchivementParams(DashBoardReqV2 req) throws DynamicFormsServiceException {
+	public OverAllTargetAchivements getTargetAchivementParams(DashBoardReqV2 req) throws DynamicFormsServiceException {
 		log.info("Inside getTargetAchivementParams(){}");
+		OverAllTargetAchivements overallAchievements = new OverAllTargetAchivements();
 		List<TargetAchivement> resList = new ArrayList<>();
+		List<EmployeeTargetAchievement> employeeTargetAchievements = new ArrayList<>();
 		try {
 			List<List<TargetAchivement>> allTargets = new ArrayList<>();
 			Integer empId = req.getLoggedInEmpId();
@@ -248,7 +252,9 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			e.printStackTrace();
 			throw new DynamicFormsServiceException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-		return resList;
+		overallAchievements.setOverallTargetAchivements(resList);
+		overallAchievements.setEmployeeTargetAchievements(employeeTargetAchievements);
+		return overallAchievements;
 	}
 	
 	@Override
@@ -285,13 +291,13 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	private List<TargetRankingRes> getEmployeeTargetRanking(List<DmsEmployee> empList) throws DynamicFormsServiceException {
 		// TODO Auto-generated method stub
 		List<TargetRankingRes> targetRankingList = new ArrayList<>();
-		Set<Integer> targetAchievementsSet = new HashSet<>();
+		Set<Double> targetAchievementPercentSet = new HashSet<>();
 		empList.stream().forEach(employee->{
 		try {
 			TargetRankingRes targetRankingResponse = new TargetRankingRes();
 			DashBoardReqV2 req = new DashBoardReqV2();
 			req.setLoggedInEmpId(employee.getEmp_id());
-			Integer totalAchievements = 0;
+//			Integer totalAchievements = 0;
 //			String startDate = null;
 //			String endDate = null;
 //			if (null == req.getStartDate() && null == req.getEndDate()) {
@@ -299,21 +305,31 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 //				endDate = getLastDayOfMonth();
 //			} 
 			List<TargetAchivement> retailAchivementList = getTargetAchivementParamsForEmp(employee.getEmp_id(), req, employee.getOrg()).stream().filter(x->x.getParamName().equalsIgnoreCase(INVOICE)).collect(Collectors.toList());
-			Optional<Integer> allAchievements = retailAchivementList.stream().map(y->{
-				return Integer.parseInt(y.getAchievment());
-			}).reduce((a,b)->{
-				return a+b;	
-			});
-			if(allAchievements.isPresent()) {
-				totalAchievements=allAchievements.get();
+			if(retailAchivementList.size()>0) {
+				TargetAchivement invoiceTarrgetAchievement = retailAchivementList.get(0);
+				targetRankingResponse.setAchivementPerc(Double.parseDouble(invoiceTarrgetAchievement.getAchivementPerc().replace("%", "")));
+				targetRankingResponse.setTargetAchivements(Integer.parseInt(invoiceTarrgetAchievement.getAchievment()));
 			}
+			
+//			retailAchivementList.stream().forEach(retailAchievement->{
+//				totalAchievements=totalAchievements+Integer.parseInt(retailAchievement.getAchievment());
+//			});
+//			
+			//			Optional<Integer> allAchievements = retailAchivementList.stream().map(y->{
+//				return Integer.parseInt(y.getAchievment());
+//			}).reduce((a,b)->{
+//				return a+b;	
+//			});
+//			if(allAchievements.isPresent()) {
+//				totalAchievements=allAchievements.get();
+//			}
 			targetRankingResponse.setEmpId(employee.getEmp_id());
 			targetRankingResponse.setEmpName(employee.getEmpName());
 			targetRankingResponse.setOrgId(Integer.parseInt(employee.getOrg()));
 			targetRankingResponse.setBranchId(Integer.parseInt(employee.getBranch()));
-			targetRankingResponse.setTargetAchivements(totalAchievements);
+//			targetRankingResponse.setTargetAchivements(totalAchievements);
 			targetRankingList.add(targetRankingResponse);
-			targetAchievementsSet.add(totalAchievements);
+			targetAchievementPercentSet.add(targetRankingResponse.getAchivementPerc());
 			
 		} catch (ParseException | DynamicFormsServiceException e) {
 			// TODO Auto-generated catch block
@@ -321,12 +337,12 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		}
 		});
 		
-		List<Integer> targetAchievementList = targetAchievementsSet.stream().collect(Collectors.toList());
-		Collections.sort(targetAchievementList,Collections.reverseOrder());
+		List<Double> targetAchievementPercentList = targetAchievementPercentSet.stream().collect(Collectors.toList());
+		Collections.sort(targetAchievementPercentList,Collections.reverseOrder());
 		AtomicInteger rank= new AtomicInteger(0);
-		targetAchievementList.stream().forEach(targetAchivement->{
+		targetAchievementPercentList.stream().forEach(targetAchivementPercent->{
 			rank.set(rank.addAndGet(1));
-			List<TargetRankingRes> filteredList = targetRankingList.stream().filter(z->z.getTargetAchivements().equals(targetAchivement)).collect(Collectors.toList());
+			List<TargetRankingRes> filteredList = targetRankingList.stream().filter(z->z.getAchivementPerc().equals(targetAchivementPercent)).collect(Collectors.toList());
 			filteredList.stream().forEach(y->{
 				y.setRank(rank.get());
 			});

@@ -12,4 +12,5 @@ public class TargetRankingRes {
 	Integer targetAchivements;
 	Integer branchId;
 	String empName;
+	Double achivementPerc;
 }
