@@ -1,6 +1,7 @@
 package com.automate.df.model.df.dashboard;
 
 import java.util.List;
+import java.util.Map;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,4 +14,5 @@ public class EmployeeTargetAchievement {
 	private String orgId;
 	private String branchId;
 	private List<TargetAchivement> targetAchievements;
+	Map<String, Integer> targetAchievementsMap;
 }

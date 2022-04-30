@@ -254,6 +254,105 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	}
 	
 	@Override
+	public OverAllTargetAchivements getTargetAchivementParamsWithEmps(DashBoardReqV2 req) throws DynamicFormsServiceException {
+		log.info("Inside getTargetAchivementParams(){}");
+		OverAllTargetAchivements overAllTargetAchivements = new OverAllTargetAchivements();
+		List<EmployeeTargetAchievement> empTargetAchievements = new ArrayList<>();
+		
+		List<TargetAchivement> resList = new ArrayList<>();
+		try {
+			List<List<TargetAchivement>> allTargets = new ArrayList<>();
+			Integer empId = req.getLoggedInEmpId();
+			log.debug("Getting Target Data, LoggedIn emp id "+empId );
+			String startDate = null;
+			String endDate = null;
+			if (null == req.getStartDate() && null == req.getEndDate()) {
+				startDate = getFirstDayOfMonth();
+				endDate = getLastDayOfMonth();
+			} else {
+				startDate = req.getStartDate()+" 00:00:00";
+				endDate = req.getEndDate()+" 23:59:59";
+			}
+
+			List<Integer> selectedEmpIdList = req.getEmpSelected();
+			List<Integer> selectedNodeList = req.getLevelSelected();
+			TargetRoleRes tRole = salesGapServiceImpl.getEmpRoleDataV2(empId);
+			String orgId = tRole.getOrgId();
+			log.debug("tRole getTargetAchivementParams "+tRole);
+			if(null!=selectedEmpIdList && !selectedEmpIdList.isEmpty()) {
+				log.debug("Fetching empReportingIdList for selected employees,selectedEmpIdList"+selectedEmpIdList);
+				
+			
+								for(Integer eId : selectedEmpIdList) {
+					List<Integer> empReportingIdList = new ArrayList<>();
+					empReportingIdList.add(eId);
+					empReportingIdList.addAll(getReportingEmployes(eId)); 
+					log.debug("empReportingIdList for given selectedEmpIdList "+empReportingIdList);
+					List<TargetAchivement> targetList = getTargetAchivementParamsForMultipleEmpAndEmps(empReportingIdList,
+							req,orgId,empTargetAchievements,startDate,endDate);
+					log.debug("targetList::::::"+targetList);
+					allTargets.add(targetList);
+				}
+				
+			
+				resList = buildFinalTargets(allTargets);
+			}
+			else if(null!=selectedNodeList && !selectedNodeList.isEmpty()) {
+				log.debug("Fetching empReportingIdList for selected LEVEL NODES");
+				
+				for (Integer node : selectedNodeList) {
+					List<Integer> empReportingIdList = new ArrayList<>();
+					empReportingIdList.add(req.getLoggedInEmpId());
+					List<Integer> nodeList = new ArrayList<>();
+					nodeList.add(node);
+
+					Map<String, Object> datamap = ohServiceImpl.getActiveDropdownsV2(nodeList,
+							Integer.parseInt(tRole.getOrgId()), empId);
+					datamap.forEach((k, v) -> {
+						Map<String, Object> innerMap = (Map<String, Object>) v;
+						innerMap.forEach((x, y) -> {
+							List<TargetDropDownV2> dd = (List<TargetDropDownV2>) y;
+							empReportingIdList.addAll(dd.stream().map(z -> z.getCode()).map(Integer::parseInt)
+									.collect(Collectors.toList()));
+						});
+					});
+					List<TargetAchivement> targetList = getTargetAchivementParamsForMultipleEmpAndEmps(empReportingIdList,req,orgId,empTargetAchievements,startDate,endDate);
+					allTargets.add(targetList);
+					
+				}
+				resList = buildFinalTargets(allTargets);
+			}
+			else {
+				log.debug("Fetching empReportingIdList for logged in emp in else :"+req.getLoggedInEmpId());
+				List<Integer> empReportingIdList =  getReportingEmployes(req.getLoggedInEmpId());
+				empReportingIdList.add(req.getLoggedInEmpId());
+				log.debug("empReportingIdList for emp "+req.getLoggedInEmpId());
+				log.debug("Calling getTargetAchivemetns in else" +empReportingIdList);
+				resList = getTargetAchivementParamsForMultipleEmpAndEmps(empReportingIdList,req,orgId,empTargetAchievements,startDate,endDate);
+			}
+			log.debug("Fetching empReportingIdList for logged in emp outside:"+req.getLoggedInEmpId());
+			if(empTargetAchievements.size()>1) {
+			final String startDt = startDate;
+			final String endDt = endDate;
+			empTargetAchievements.stream().forEach(employeeTarget->{
+				List<TargetAchivement> responseList = new ArrayList();
+				employeeTarget.setTargetAchievements(getTaskAndBuildTargetAchievements(Arrays.asList(employeeTarget.getEmpId()), employeeTarget.getOrgId(), responseList, Arrays.asList(employeeTarget.getEmpName()), startDt,endDt, 
+						employeeTarget.getTargetAchievementsMap()));
+			});
+			}else if(empTargetAchievements.size()==1){
+				empTargetAchievements.get(0).setTargetAchievements(resList);
+			}
+		
+		}catch(Exception e) {
+			e.printStackTrace();
+			throw new DynamicFormsServiceException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		overAllTargetAchivements.setOverallTargetAchivements(resList);
+		overAllTargetAchivements.setEmployeeTargetAchievements(empTargetAchievements);
+		return overAllTargetAchivements;
+	}
+	
+	@Override
 	public List<TargetAchivement> getTargetAchivementParamsForSingleEmp(DashBoardReqV2 req) throws DynamicFormsServiceException {
 		log.info("Inside getTargetAchivementParams(){}");
 		List<TargetAchivement> resList = new ArrayList<>();
@@ -293,13 +392,6 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			TargetRankingRes targetRankingResponse = new TargetRankingRes();
 			DashBoardReqV2 req = new DashBoardReqV2();
 			req.setLoggedInEmpId(employee.getEmp_id());
-//			Integer totalAchievements = 0;
-//			String startDate = null;
-//			String endDate = null;
-//			if (null == req.getStartDate() && null == req.getEndDate()) {
-//				startDate = getFirstDayOfMonth();
-//				endDate = getLastDayOfMonth();
-//			} 
 			List<TargetAchivement> retailAchivementList = getTargetAchivementParamsForEmp(employee.getEmp_id(), req, employee.getOrg()).stream().filter(x->x.getParamName().equalsIgnoreCase(INVOICE)).collect(Collectors.toList());
 			if(retailAchivementList.size()>0) {
 				TargetAchivement invoiceTarrgetAchievement = retailAchivementList.get(0);
@@ -307,23 +399,10 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 				targetRankingResponse.setTargetAchivements(Integer.parseInt(invoiceTarrgetAchievement.getAchievment()));
 			}
 			
-//			retailAchivementList.stream().forEach(retailAchievement->{
-//				totalAchievements=totalAchievements+Integer.parseInt(retailAchievement.getAchievment());
-//			});
-//			
-			//			Optional<Integer> allAchievements = retailAchivementList.stream().map(y->{
-//				return Integer.parseInt(y.getAchievment());
-//			}).reduce((a,b)->{
-//				return a+b;	
-//			});
-//			if(allAchievements.isPresent()) {
-//				totalAchievements=allAchievements.get();
-//			}
 			targetRankingResponse.setEmpId(employee.getEmp_id());
 			targetRankingResponse.setEmpName(employee.getEmpName());
 			targetRankingResponse.setOrgId(Integer.parseInt(employee.getOrg()));
 			targetRankingResponse.setBranchId(Integer.parseInt(employee.getBranch()));
-//			targetRankingResponse.setTargetAchivements(totalAchievements);
 			targetRankingList.add(targetRankingResponse);
 			targetAchievementPercentSet.add(targetRankingResponse.getAchivementPerc());
 			
@@ -332,7 +411,6 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			e.printStackTrace();
 		}
 		});
-		
 		List<Double> targetAchievementPercentList = targetAchievementPercentSet.stream().collect(Collectors.toList());
 		Collections.sort(targetAchievementPercentList,Collections.reverseOrder());
 		AtomicInteger rank= new AtomicInteger(0);
@@ -343,7 +421,6 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 				y.setRank(rank.get());
 			});
 		});
-		
 		return targetRankingList;
 	}
 
@@ -454,6 +531,62 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	
 		
 		
+		return getTaskAndBuildTargetAchievements(empIdsUnderReporting, orgId, resList, empNamesList, startDate, endDate,
+				map);
+	}
+
+	private List<TargetAchivement> getTargetAchivementParamsForMultipleEmpAndEmps(
+			List<Integer> empIdsUnderReporting, DashBoardReqV2 req,String orgId,List<EmployeeTargetAchievement> empTargetAchievements,String startDate,String endDate) throws ParseException, DynamicFormsServiceException {
+		List<TargetAchivement> resList = new ArrayList<>();
+//		List<String> empNamesList = dmsEmployeeRepo.findEmpNamesById(empIdsUnderReporting);
+		List<DmsEmployee> employees = dmsEmployeeRepo.findAllById(empIdsUnderReporting);
+		List<String> empNamesList = employees.stream().map(x->x.getEmpName()).collect(Collectors.toList());
+		log.info("empNamesList::" + empNamesList);
+		log.info("Calling getTargetAchivementParamsForMultipleEmp");
+//		String startDate = null;
+//		String endDate = null;
+//		if (null == req.getStartDate() && null == req.getEndDate()) {
+//			startDate = getFirstDayOfMonth();
+//			endDate = getLastDayOfMonth();
+//		} else {
+//			startDate = req.getStartDate()+" 00:00:00";
+//			endDate = req.getEndDate()+" 23:59:59";
+//		}
+
+		log.info("StartDate " + startDate + ", EndDate " + endDate);
+		Map<String, Integer> map = new LinkedHashMap<>();
+		for(DmsEmployee employee : employees) {
+			EmployeeTargetAchievement employeeTargetAchievement = new EmployeeTargetAchievement();
+			log.debug("Getting target params for user "+employee.getEmp_id());
+			Map<String, Integer> innerMap = getTargetParams(String.valueOf(employee.getEmp_id()), startDate, endDate);
+			log.debug("innerMap::"+innerMap);
+			employeeTargetAchievement.setEmpId(employee.getEmp_id());
+			employeeTargetAchievement.setEmpName(employee.getEmpName());
+			employeeTargetAchievement.setBranchId(employee.getBranch());
+			employeeTargetAchievement.setOrgId(employee.getOrg());
+			employeeTargetAchievement.setTargetAchievementsMap(innerMap);
+			empTargetAchievements.add(employeeTargetAchievement);
+			map = validateAndUpdateMapData(ENQUIRY,innerMap,map);
+			map = validateAndUpdateMapData(TEST_DRIVE,innerMap,map);
+			map = validateAndUpdateMapData(HOME_VISIT,innerMap,map);
+			map = validateAndUpdateMapData(VIDEO_CONFERENCE,innerMap,map);
+			map = validateAndUpdateMapData(BOOKING,innerMap,map);
+			map = validateAndUpdateMapData(EXCHANGE,innerMap,map);
+			map = validateAndUpdateMapData(FINANCE,innerMap,map);
+			map = validateAndUpdateMapData(INSURANCE,innerMap,map);
+			map = validateAndUpdateMapData(ACCCESSORIES,innerMap,map);
+			map = validateAndUpdateMapData(EVENTS,innerMap,map);
+			map = validateAndUpdateMapData(INVOICE,innerMap,map);
+			
+		}
+		
+		return getTaskAndBuildTargetAchievements(empIdsUnderReporting, orgId, resList, empNamesList, startDate, endDate,
+				map);
+	}
+
+	private List<TargetAchivement> getTaskAndBuildTargetAchievements(List<Integer> empIdsUnderReporting, String orgId,
+			List<TargetAchivement> resList, List<String> empNamesList, String startDate, String endDate,
+			Map<String, Integer> map) {
 		Long enqLeadCnt = 0L;
 		Long preBookCount = 0L;
 		Long bookCount = 0L;
@@ -491,6 +624,11 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	private List<TargetAchivement> getTargetAchivementParamsForEmp(
 			Integer empId, DashBoardReqV2 req,String orgId) throws ParseException, DynamicFormsServiceException {
 		List<TargetAchivement> resList = new ArrayList<>();
+		Optional<DmsEmployee> dmsEmployee = dmsEmployeeRepo.findById(empId);
+		String empName="";
+		if(dmsEmployee.isPresent()) {
+			empName = dmsEmployee.get().getEmpName();
+		}
 		log.info("Calling getTargetAchivementParamsForEmp");
 		String startDate = null;
 		String endDate = null;
@@ -517,26 +655,8 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		map = validateAndUpdateMapData(ACCCESSORIES,innerMap,map);
 		map = validateAndUpdateMapData(EVENTS,innerMap,map);
 		map = validateAndUpdateMapData(INVOICE,innerMap,map);
-		Long enqLeadCnt = 0L;
-		Long preBookCount = 0L;
-		Long bookCount = 0L;
-		Long invCount = 0L;
-		Long preDeliveryCnt = 0L;
-		Long delCnt = 0L;
-		List<Integer> dmsLeadList = dmsLeadDao.getLeadIdsByEmpNames(Arrays.asList(empId+""));
-		log.debug("dmsLeadList::"+dmsLeadList);
-		List<LeadStageRefEntity> leadRefList  =  leadStageRefDao.getLeadsByStageandDate(orgId,dmsLeadList,startDate,endDate);
-		if(null!=leadRefList && !leadRefList.isEmpty()) {
-			log.debug("Total leads in LeadReF table is ::"+leadRefList.size());
-			enqLeadCnt = leadRefList.stream().filter(x-> x.getLeadStatus()!=null &&  x.getLeadStatus().equalsIgnoreCase(enqCompStatus)).count();
-			preBookCount =leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREBOOKING")).count();
-			bookCount = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(bookCompStatus)).count();
-			invCount = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(invCompStatus)).count();
-			preDeliveryCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREDELIVERY")).count();
-			delCnt = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(delCompStatus)).count();
-		}
-		List<DmsWFTask> wfTaskList = dmsWfTaskDao.getWfTaskByAssigneeIdList(Arrays.asList(empId), startDate, endDate);
-		return buildTargetAchivements(resList, map, enqLeadCnt,preBookCount, bookCount,invCount,preDeliveryCnt,delCnt,wfTaskList,leadRefList);
+		return getTaskAndBuildTargetAchievements(Arrays.asList(empId), orgId, resList, Arrays.asList(empName), startDate, endDate,
+				map);
 	}
 
 
