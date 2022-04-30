@@ -9,13 +9,17 @@ import com.automate.df.model.df.dashboard.DashBoardReq;
 import com.automate.df.model.df.dashboard.DashBoardReqV2;
 import com.automate.df.model.df.dashboard.EventDataRes;
 import com.automate.df.model.df.dashboard.LeadSourceRes;
+import com.automate.df.model.df.dashboard.OverAllTargetAchivements;
 import com.automate.df.model.df.dashboard.SalesDataRes;
 import com.automate.df.model.df.dashboard.TargetAchivement;
+import com.automate.df.model.df.dashboard.TargetRankingRes;
 import com.automate.df.model.df.dashboard.VehicleModelRes;
 
 public interface DashBoardServiceV2 {
 
 	List<TargetAchivement> getTargetAchivementParams(DashBoardReqV2 req) throws DynamicFormsServiceException;
+	
+	List<TargetAchivement> getTargetAchivementParamsForSingleEmp(DashBoardReqV2 req) throws DynamicFormsServiceException;
 
 	List<VehicleModelRes> getVehicleModelData(DashBoardReqV2 req) throws DynamicFormsServiceException;
 
@@ -39,6 +43,13 @@ public interface DashBoardServiceV2 {
 
 	List<Map<String, Long>> getSalesComparsionData(DashBoardReqV2 req) throws DynamicFormsServiceException;
 
+
 	Map<String, Object> getTodaysPendingUpcomingDataV2(MyTaskReq req) throws DynamicFormsServiceException;
+
+
+	
+	List<TargetRankingRes> getEmployeeTargetRankingByOrg(Integer orgId) throws DynamicFormsServiceException;
+	
+	List<TargetRankingRes> getEmployeeTargetRankingByOrgAndBranch(Integer orgId,Integer branchId) throws DynamicFormsServiceException;
 
 }

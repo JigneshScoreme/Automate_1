@@ -37,5 +37,8 @@ public interface DmsEmployeeRepo extends JpaRepository<DmsEmployee, Integer> {
 
 	@Query(value = "SELECT * FROM dms_employee where reporting_to =:to", nativeQuery = true)
 	Optional<DmsEmployee> findByReportingId(@Param(value = "to") String reportingTo);
+	
+	@Query(value = "SELECT * FROM dms_employee where org =:orgId", nativeQuery = true)
+	List<DmsEmployee> findAllByOrgId(@Param(value = "orgId") Integer orgId);
 
 }
