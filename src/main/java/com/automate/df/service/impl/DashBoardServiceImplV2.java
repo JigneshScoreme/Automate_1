@@ -272,14 +272,14 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			DashBoardReqV2 req = new DashBoardReqV2();
 			req.setLoggedInEmpId(employee.getEmp_id());
 			Integer totalAchievements = 0;
-			//List<TargetAchivement> achivementList = getTargetAchivementParamsForMultipleEmp(Arrays.asList(employee.getEmp_id()), req, employee.getOrg());
-			List<TargetAchivement> achivementList = getTargetAchivementParamsForEmp(employee.getEmp_id(), req, employee.getOrg());
-//			Optional<Integer> allAchievements = achivementList.stream().filter(x->x.getParamName().equalsIgnoreCase("INVOICE")).map(y->{
-//				return Integer.parseInt(y.getAchievment());
-//			}).reduce((a,b)->{
-//				return a+b;	
-//			});
-			Optional<Integer> allAchievements = achivementList.stream().map(y->{
+//			String startDate = null;
+//			String endDate = null;
+//			if (null == req.getStartDate() && null == req.getEndDate()) {
+//				startDate = getFirstDayOfMonth();
+//				endDate = getLastDayOfMonth();
+//			} 
+			List<TargetAchivement> retailAchivementList = getTargetAchivementParamsForEmp(employee.getEmp_id(), req, employee.getOrg()).stream().filter(x->x.getParamName().equalsIgnoreCase(INVOICE)).collect(Collectors.toList());
+			Optional<Integer> allAchievements = retailAchivementList.stream().map(y->{
 				return Integer.parseInt(y.getAchievment());
 			}).reduce((a,b)->{
 				return a+b;	
@@ -301,17 +301,6 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		}
 		});
 		
-//		Collections.sort(targetRankingList,(targetRanking1,targetRanking2)->{
-//			 if (targetRanking1.getTargetAchivements() == targetRanking2.getTargetAchivements()) {
-//		            return 0;
-//			 }
-//		       else if (targetRanking1.getTargetAchivements() < targetRanking2.getTargetAchivements()) {
-//		            return 1;
-//		       }
-//		        else {
-//		            return -1;
-//		        }
-//		});
 		List<Integer> targetAchievementList = targetAchievementsSet.stream().collect(Collectors.toList());
 		Collections.sort(targetAchievementList,Collections.reverseOrder());
 		AtomicInteger rank= new AtomicInteger(0);
@@ -321,13 +310,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			filteredList.stream().forEach(y->{
 				y.setRank(rank.get());
 			});
-			//			targetRankingList.stream().filter(z->z.getTargetAchivements().equals(targetAchivement)).map(y->{
-//				y.setRank(rank.get());
-//				return y;
-//			});
-			
 		});
-//		Map<Integer,Integer> sortedEmployeeAchievementsMap = Collections.sortemployeeAchievementsMap
 		
 		return targetRankingList;
 	}
@@ -476,8 +459,6 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	private List<TargetAchivement> getTargetAchivementParamsForEmp(
 			Integer empId, DashBoardReqV2 req,String orgId) throws ParseException, DynamicFormsServiceException {
 		List<TargetAchivement> resList = new ArrayList<>();
-//		List<String> empNamesList = dmsEmployeeRepo.findEmpNamesById(empIdsUnderReporting);
-//		log.info("empNamesList::" + empNamesList);
 		log.info("Calling getTargetAchivementParamsForEmp");
 		String startDate = null;
 		String endDate = null;
