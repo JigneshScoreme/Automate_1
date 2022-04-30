@@ -16,6 +16,8 @@ import com.automate.df.model.df.dashboard.VehicleModelRes;
 public interface DashBoardServiceV2 {
 
 	List<TargetAchivement> getTargetAchivementParams(DashBoardReqV2 req) throws DynamicFormsServiceException;
+	
+	List<TargetAchivement> getTargetAchivementParamsForSingleEmp(DashBoardReqV2 req) throws DynamicFormsServiceException;
 
 	List<VehicleModelRes> getVehicleModelData(DashBoardReqV2 req) throws DynamicFormsServiceException;
 

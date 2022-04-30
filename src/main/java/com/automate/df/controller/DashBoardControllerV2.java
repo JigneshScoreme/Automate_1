@@ -58,6 +58,19 @@ public class DashBoardControllerV2 {
 	}
 	
 	@CrossOrigin
+	@PostMapping(value = "v2/get_target_params_for_emp")
+	public ResponseEntity<List<TargetAchivement>> getTargetAchivementParamsForEmp(@RequestBody DashBoardReqV2 req)
+			throws DynamicFormsServiceException {
+		List<TargetAchivement> response = null;
+		if (Optional.of(req).isPresent()) {
+			response = dashBoardService.getTargetAchivementParamsForSingleEmp(req);
+		} else {
+			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	@CrossOrigin
 	@GetMapping(value = "v2/get_emp_target_ranking/org/{orgId}")
 	public ResponseEntity<List<TargetRankingRes>> getEmployeeTargetRankingsByOrg(@PathVariable(name="orgId") Integer orgId)
 			throws DynamicFormsServiceException {

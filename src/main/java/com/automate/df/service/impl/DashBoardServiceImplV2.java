@@ -250,6 +250,26 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		}
 		return resList;
 	}
+	
+	@Override
+	public List<TargetAchivement> getTargetAchivementParamsForSingleEmp(DashBoardReqV2 req) throws DynamicFormsServiceException {
+		log.info("Inside getTargetAchivementParams(){}");
+		List<TargetAchivement> resList = new ArrayList<>();
+		try {
+			List<List<TargetAchivement>> allTargets = new ArrayList<>();
+			Integer empId = req.getLoggedInEmpId();
+			log.debug("Getting Target Data, LoggedIn emp id "+empId );
+			TargetRoleRes tRole = salesGapServiceImpl.getEmpRoleDataV2(empId);
+			String orgId = tRole.getOrgId();
+			log.debug("Fetching empReportingIdList for logged in emp in else :"+req.getLoggedInEmpId());
+			log.debug("empReportingIdList for emp "+req.getLoggedInEmpId());
+			resList = getTargetAchivementParamsForEmp(req.getLoggedInEmpId(),req,orgId);
+			}catch(Exception e) {
+			e.printStackTrace();
+			throw new DynamicFormsServiceException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return resList;
+	}
 
 
 	@Override
@@ -469,67 +489,43 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			startDate = req.getStartDate()+" 00:00:00";
 			endDate = req.getEndDate()+" 23:59:59";
 		}
-
 		log.info("StartDate " + startDate + ", EndDate " + endDate);
 		Map<String, Integer> map = new LinkedHashMap<>();
-		//for(Integer empId : empIdsUnderReporting) {
-			log.debug("Getting target params for user "+empId);
-			Map<String, Integer> innerMap = getTargetParams(String.valueOf(empId), startDate, endDate);
-			log.debug("innerMap::"+innerMap);
-			map = validateAndUpdateMapData(ENQUIRY,innerMap,map);
-			map = validateAndUpdateMapData(TEST_DRIVE,innerMap,map);
-			map = validateAndUpdateMapData(HOME_VISIT,innerMap,map);
-			map = validateAndUpdateMapData(VIDEO_CONFERENCE,innerMap,map);
-			map = validateAndUpdateMapData(BOOKING,innerMap,map);
-			map = validateAndUpdateMapData(EXCHANGE,innerMap,map);
-			map = validateAndUpdateMapData(FINANCE,innerMap,map);
-			map = validateAndUpdateMapData(INSURANCE,innerMap,map);
-			map = validateAndUpdateMapData(ACCCESSORIES,innerMap,map);
-			map = validateAndUpdateMapData(EVENTS,innerMap,map);
-			map = validateAndUpdateMapData(INVOICE,innerMap,map);
-			
-		//}
-		
-		//List<DmsLead> dmsLeadList = dmsLeadDao.getAllEmployeeLeads(empNamesList, startDate, endDate, ENQUIRY);
-	
-		
-		
+		log.debug("Getting target params for user "+empId);
+		Map<String, Integer> innerMap = getTargetParams(String.valueOf(empId), startDate, endDate);
+		log.debug("innerMap::"+innerMap);
+		map = validateAndUpdateMapData(ENQUIRY,innerMap,map);
+		map = validateAndUpdateMapData(TEST_DRIVE,innerMap,map);
+		map = validateAndUpdateMapData(HOME_VISIT,innerMap,map);
+		map = validateAndUpdateMapData(VIDEO_CONFERENCE,innerMap,map);
+		map = validateAndUpdateMapData(BOOKING,innerMap,map);
+		map = validateAndUpdateMapData(EXCHANGE,innerMap,map);
+		map = validateAndUpdateMapData(FINANCE,innerMap,map);
+		map = validateAndUpdateMapData(INSURANCE,innerMap,map);
+		map = validateAndUpdateMapData(ACCCESSORIES,innerMap,map);
+		map = validateAndUpdateMapData(EVENTS,innerMap,map);
+		map = validateAndUpdateMapData(INVOICE,innerMap,map);
 		Long enqLeadCnt = 0L;
 		Long preBookCount = 0L;
 		Long bookCount = 0L;
 		Long invCount = 0L;
 		Long preDeliveryCnt = 0L;
 		Long delCnt = 0L;
-		
-//		List<Integer> dmsLeadList = dmsLeadDao.getLeadIdsByEmpNames(empNamesList);
 		List<Integer> dmsLeadList = dmsLeadDao.getLeadIdsByEmpNames(Arrays.asList(empId+""));
 		log.debug("dmsLeadList::"+dmsLeadList);
-		
-		
-		
 		List<LeadStageRefEntity> leadRefList  =  leadStageRefDao.getLeadsByStageandDate(orgId,dmsLeadList,startDate,endDate);
 		if(null!=leadRefList && !leadRefList.isEmpty()) {
-			
 			log.debug("Total leads in LeadReF table is ::"+leadRefList.size());
-			//enqLeadCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY")).count();
 			enqLeadCnt = leadRefList.stream().filter(x-> x.getLeadStatus()!=null &&  x.getLeadStatus().equalsIgnoreCase(enqCompStatus)).count();
 			preBookCount =leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREBOOKING")).count();
-			//bookCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("BOOKING")).count();
 			bookCount = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(bookCompStatus)).count();
-			//invCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("INVOICE")).count();
 			invCount = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(invCompStatus)).count();
 			preDeliveryCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREDELIVERY")).count();
-			//delCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("DELIVERY")).count();
 			delCnt = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(delCompStatus)).count();
 		}
-		
-//		List<DmsWFTask> wfTaskList = dmsWfTaskDao.getWfTaskByAssigneeIdList(empIdsUnderReporting, startDate, endDate);
 		List<DmsWFTask> wfTaskList = dmsWfTaskDao.getWfTaskByAssigneeIdList(Arrays.asList(empId), startDate, endDate);
-		//return buildTargetAchivements(resList, map, finalEnqLeadCnt,finalBookCnt, finalInvCount,wfTaskList);
 		return buildTargetAchivements(resList, map, enqLeadCnt,preBookCount, bookCount,invCount,preDeliveryCnt,delCnt,wfTaskList,leadRefList);
 	}
-
-
 
 
 	private Map<String, Integer> validateAndUpdateMapData(String targetParmType, Map<String, Integer> innerMap,
