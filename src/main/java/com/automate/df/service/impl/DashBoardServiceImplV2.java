@@ -181,11 +181,9 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	String getEmpUnderTLQuery = "SELECT emp_id FROM dms_employee where reporting_to=<ID>";
 
 	@Override
-	public OverAllTargetAchivements getTargetAchivementParams(DashBoardReqV2 req) throws DynamicFormsServiceException {
+	public List<TargetAchivement> getTargetAchivementParams(DashBoardReqV2 req) throws DynamicFormsServiceException {
 		log.info("Inside getTargetAchivementParams(){}");
-		OverAllTargetAchivements overallAchievements = new OverAllTargetAchivements();
 		List<TargetAchivement> resList = new ArrayList<>();
-		List<EmployeeTargetAchievement> employeeTargetAchievements = new ArrayList<>();
 		try {
 			List<List<TargetAchivement>> allTargets = new ArrayList<>();
 			Integer empId = req.getLoggedInEmpId();
@@ -252,9 +250,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			e.printStackTrace();
 			throw new DynamicFormsServiceException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-		overallAchievements.setOverallTargetAchivements(resList);
-		overallAchievements.setEmployeeTargetAchievements(employeeTargetAchievements);
-		return overallAchievements;
+		return resList;
 	}
 	
 	@Override

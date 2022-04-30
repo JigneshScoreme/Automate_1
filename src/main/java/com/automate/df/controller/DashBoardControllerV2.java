@@ -47,9 +47,9 @@ public class DashBoardControllerV2 {
 	
 	@CrossOrigin
 	@PostMapping(value = "v2/get_target_params")
-	public ResponseEntity<OverAllTargetAchivements> getTargetAchivementParams(@RequestBody DashBoardReqV2 req)
+	public ResponseEntity<List<TargetAchivement>> getTargetAchivementParams(@RequestBody DashBoardReqV2 req)
 			throws DynamicFormsServiceException {
-		OverAllTargetAchivements response = null;
+		List<TargetAchivement> response = null;
 		if (Optional.of(req).isPresent()) {
 			response = dashBoardService.getTargetAchivementParams(req);
 		} else {
