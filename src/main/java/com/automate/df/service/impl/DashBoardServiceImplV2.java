@@ -379,23 +379,22 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 
 	@Override
-	public List<TargetRankingRes> getEmployeeTargetRankingByOrg(Integer orgId) throws DynamicFormsServiceException {
-		return getEmployeeTargetRanking(dmsEmployeeRepo.findAllByOrgId(orgId));
+	public List<TargetRankingRes> getEmployeeTargetRankingByOrg(Integer orgId,DashBoardReqV2 req) throws DynamicFormsServiceException {
+		return getEmployeeTargetRanking(dmsEmployeeRepo.findAllByOrgId(orgId),req);
 	}
 	
 	@Override
-	public List<TargetRankingRes> getEmployeeTargetRankingByOrgAndBranch(Integer orgId,Integer branchId) throws DynamicFormsServiceException {
-		return getEmployeeTargetRanking(dmsEmployeeRepo.getEmployeesByOrgBranch(orgId,branchId));
+	public List<TargetRankingRes> getEmployeeTargetRankingByOrgAndBranch(Integer orgId,Integer branchId,DashBoardReqV2 req) throws DynamicFormsServiceException {
+		return getEmployeeTargetRanking(dmsEmployeeRepo.getEmployeesByOrgBranch(orgId,branchId),req);
 	}
 
-	private List<TargetRankingRes> getEmployeeTargetRanking(List<DmsEmployee> empList) throws DynamicFormsServiceException {
+	private List<TargetRankingRes> getEmployeeTargetRanking(List<DmsEmployee> empList,DashBoardReqV2 req) throws DynamicFormsServiceException {
 		// TODO Auto-generated method stub
 		List<TargetRankingRes> targetRankingList = new ArrayList<>();
 		Set<Double> targetAchievementPercentSet = new HashSet<>();
 		empList.stream().forEach(employee->{
 		try {
 			TargetRankingRes targetRankingResponse = new TargetRankingRes();
-			DashBoardReqV2 req = new DashBoardReqV2();
 			req.setLoggedInEmpId(employee.getEmp_id());
 			List<TargetAchivement> retailAchivementList = getTargetAchivementParamsForEmp(employee.getEmp_id(), req, employee.getOrg()).stream().filter(x->x.getParamName().equalsIgnoreCase(INVOICE)).collect(Collectors.toList());
 			if(retailAchivementList.size()>0) {

@@ -50,8 +50,8 @@ public interface DashBoardServiceV2 {
 
 
 	
-	List<TargetRankingRes> getEmployeeTargetRankingByOrg(Integer orgId) throws DynamicFormsServiceException;
+	List<TargetRankingRes> getEmployeeTargetRankingByOrg(Integer orgId,DashBoardReqV2 req) throws DynamicFormsServiceException;
 	
-	List<TargetRankingRes> getEmployeeTargetRankingByOrgAndBranch(Integer orgId,Integer branchId) throws DynamicFormsServiceException;
+	List<TargetRankingRes> getEmployeeTargetRankingByOrgAndBranch(Integer orgId,Integer branchId,DashBoardReqV2 req) throws DynamicFormsServiceException;
 
 }

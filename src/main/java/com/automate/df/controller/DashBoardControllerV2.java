@@ -86,12 +86,12 @@ public class DashBoardControllerV2 {
 	}
 	
 	@CrossOrigin
-	@GetMapping(value = "v2/get_emp_target_ranking/org/{orgId}")
-	public ResponseEntity<List<TargetRankingRes>> getEmployeeTargetRankingsByOrg(@PathVariable(name="orgId") Integer orgId)
+	@PostMapping(value = "v2/get_emp_target_ranking/org/{orgId}")
+	public ResponseEntity<List<TargetRankingRes>> getEmployeeTargetRankingsByOrg(@PathVariable(name="orgId") Integer orgId,@RequestBody DashBoardReqV2 req)
 			throws DynamicFormsServiceException {
 		List<TargetRankingRes> response = null;
-		if (Optional.of(orgId).isPresent()) {
-			response = dashBoardService.getEmployeeTargetRankingByOrg(orgId);
+		if (Optional.of(orgId).isPresent() && Optional.of(req).isPresent()) {
+			response = dashBoardService.getEmployeeTargetRankingByOrg(orgId,req);
 		} else {
 			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
 		}
@@ -99,12 +99,12 @@ public class DashBoardControllerV2 {
 	}
 	
 	@CrossOrigin
-	@GetMapping(value = "v2/get_emp_target_ranking/org/{orgId}/branch/{branchId}")
-	public ResponseEntity<List<TargetRankingRes>> getEmployeeTargetRankingsByOrgAndBranch(@PathVariable(name="orgId") Integer orgId,@PathVariable(name="branchId") Integer branchId)
+	@PostMapping(value = "v2/get_emp_target_ranking/org/{orgId}/branch/{branchId}")
+	public ResponseEntity<List<TargetRankingRes>> getEmployeeTargetRankingsByOrgAndBranch(@PathVariable(name="orgId") Integer orgId,@PathVariable(name="branchId") Integer branchId,@RequestBody DashBoardReqV2 req)
 			throws DynamicFormsServiceException {
 		List<TargetRankingRes> response = null;
-		if (Optional.of(orgId).isPresent() && Optional.of(branchId).isPresent()) {
-			response = dashBoardService.getEmployeeTargetRankingByOrgAndBranch(orgId, branchId);
+		if (Optional.of(orgId).isPresent() && Optional.of(branchId).isPresent() && Optional.of(req).isPresent()) {
+			response = dashBoardService.getEmployeeTargetRankingByOrgAndBranch(orgId, branchId,req);
 		} else {
 			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
 		}
