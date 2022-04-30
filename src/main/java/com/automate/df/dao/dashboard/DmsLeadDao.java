@@ -93,6 +93,9 @@ public interface DmsLeadDao extends JpaRepository<DmsLead, Integer> {
 	List<DmsLead> verifyFirstName(@Param(value = "firstName") String firstName,@Param(value = "lastName") String lastName);
 
 	
+	@Query(value="SELECT * FROM dms_lead WHERE crm_universal_id=:unversalId", nativeQuery = true)
+	List<DmsLead> getLeadByUniversalId(@Param(value = "unversalId") String unversalId);
+	
 	@Query(value = "SELECT * FROM dms_lead where sales_consultant in(:empNamesList) and createddatetime>=:startDate\r\n"
 			+ "and createddatetime<=:endDate and lead_stage in (:leadStages) and organization_id=:orgId", nativeQuery = true)
 	List<DmsLead> getLeadsBasedonStage(@Param(value = "empNamesList") List<String> empNamesList,
