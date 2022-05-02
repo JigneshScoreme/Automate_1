@@ -58,6 +58,7 @@ import com.automate.df.model.df.dashboard.TargetAchivement;
 import com.automate.df.model.df.dashboard.TargetRankingRes;
 import com.automate.df.model.df.dashboard.TodaysRes;
 import com.automate.df.model.df.dashboard.VehicleModelRes;
+import com.automate.df.model.df.dashboard.OverAllTargetAchivements;
 import com.automate.df.model.oh.EmpTask;
 import com.automate.df.model.oh.MyTask;
 import com.automate.df.model.oh.TodaysTaskRes;
