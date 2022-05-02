@@ -62,6 +62,7 @@ import com.automate.df.model.df.dashboard.TargetAchivement;
 import com.automate.df.model.df.dashboard.TargetRankingRes;
 import com.automate.df.model.df.dashboard.TodaysRes;
 import com.automate.df.model.df.dashboard.VehicleModelRes;
+import com.automate.df.model.oh.EmpTask;
 import com.automate.df.model.oh.MyTask;
 import com.automate.df.model.oh.TodaysTaskRes;
 import com.automate.df.model.salesgap.TargetDropDownV2;
@@ -2964,8 +2965,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		for (Integer empId : empIdsUnderReporting) {
 			String empName = salesGapServiceImpl.getEmpName(String.valueOf(empId));
 			log.debug("generating data for empId " + empId + " and empName:" + empName);
-			String startDate = getStartDate(req.getStartDate());
-			String endDate = getEndDate(req.getEndDate());
+		
 			String todaysDate = getTodaysDate();
 			log.debug("todaysDate::"+todaysDate);
 			List<DmsWFTask> todayWfTaskList = dmsWfTaskDao.getTodaysUpcomingTasks(empId, todaysDate+" 00:00:00", todaysDate+" 23:59:59");
@@ -2988,8 +2988,8 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			log.debug("uniqueTaskcnt:::"+uniqueTaskcnt);
 			todaysRes.setEmpId(empId);
 			todaysRes.setEmpName(empName);
-			todaysRes.setTasksAvilable(uniqueTastSet);
-			todaysRes.setTaskCnt(uniqueTaskcnt);
+			todaysRes.setTasksAvailable(uniqueTastSet);
+			todaysRes.setTaskAvailableCnt(uniqueTaskcnt);
 			
 			if (null != todayWfTaskList) {
 				for (DmsWFTask wf : todayWfTaskList) {
@@ -3006,7 +3006,22 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 					myTaskList.add(task);
 				}
 			}
-			todaysRes.setMyTaskList(myTaskList);
+			Map<String,List<MyTask>> map=   myTaskList.stream().collect(Collectors.groupingBy(MyTask::getTaskName));
+			
+			List<EmpTask> tasksList = new ArrayList<>();
+			
+			map.forEach((k,v)->{
+				EmpTask t = new EmpTask();
+				t.setTaskName(k);
+				if(v!=null && !v.isEmpty()) {
+					t.setTaskCnt(v.size());
+					t.setMyTaskList(v);
+				}
+				tasksList.add(t);
+				
+			});
+			
+			todaysRes.setTasksList(tasksList);
 			
 		}catch(Exception e) {
 			e.printStackTrace();
