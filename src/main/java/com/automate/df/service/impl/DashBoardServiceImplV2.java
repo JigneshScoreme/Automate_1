@@ -47,16 +47,12 @@ import com.automate.df.entity.dashboard.DmsWFTask;
 import com.automate.df.entity.salesgap.DmsEmployee;
 import com.automate.df.entity.salesgap.TargetRoleReq;
 import com.automate.df.exception.DynamicFormsServiceException;
-
 import com.automate.df.model.MyTaskReq;
-
 import com.automate.df.model.df.dashboard.DashBoardReqV2;
 import com.automate.df.model.df.dashboard.DropRes;
-import com.automate.df.model.df.dashboard.EmployeeTargetAchievement;
 import com.automate.df.model.df.dashboard.EventDataRes;
 import com.automate.df.model.df.dashboard.LeadSourceRes;
 import com.automate.df.model.df.dashboard.LostRes;
-import com.automate.df.model.df.dashboard.OverAllTargetAchivements;
 import com.automate.df.model.df.dashboard.SalesDataRes;
 import com.automate.df.model.df.dashboard.TargetAchivement;
 import com.automate.df.model.df.dashboard.TargetRankingRes;
@@ -2875,11 +2871,14 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			/// salesGapServiceImpl.getEmpRoleDataV2(req.getLoggedInEmpId());
 			boolean isOnlyForEmp =req.isOnlyForEmp();
 			List<Integer> empIdList = new ArrayList<>();
+			log.debug("isOnlyForEmp::"+isOnlyForEmp);
 			if(isOnlyForEmp) {
 				empIdList.add(req.getLoggedInEmpId());
-				list = getTodaysDataV2(empIdList, req);
+				
+			}else {
+				empIdList = getReportingEmployes(req.getLoggedInEmpId());
 			}
-			
+			list = getTodaysDataV2(empIdList, req);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -2896,7 +2895,6 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 		Map<String, Object> map = new LinkedHashMap<>();
 		try {
-			int totalCnt = empIdsUnderReporting.size();
 			log.debug("empIdsUnderReporting in getTodaysData before pagination"+empIdsUnderReporting.size());
 			//empIdsUnderReporting = dashBoardUtil.getPaginatedList(empIdsUnderReporting, req.getPageNo(), req.getSize());
 			//log.debug("empIdsUnderReporting in getTodaysData "+empIdsUnderReporting.size());
@@ -2920,9 +2918,9 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 	
 
-	private Object getPendingDataV2(MyTaskReq req, List<Integer> empIdsUnderReporting) {
+	private List<TodaysTaskRes> getPendingDataV2(MyTaskReq req, List<Integer> empIdsUnderReporting) {
 		log.debug("Inside getUpcomingDataV2::()");
-		TodaysTaskRes todaysRes = new TodaysTaskRes();
+		List<TodaysTaskRes> todaysRes = new ArrayList<>();
 		for (Integer empId : empIdsUnderReporting) {
 			String empName = salesGapServiceImpl.getEmpName(String.valueOf(empId));
 			log.debug("generating data for empId " + empId + " and empName:" + empName);
@@ -2931,7 +2929,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			List<DmsWFTask> wfTaskList = dmsWfTaskDao.findAllByRescheduledStatus(String.valueOf(empId));
 			log.debug("wfTaskList size ingetPendingDataV2 "+wfTaskList.size());
 			//wfTaskList = wfTaskList.stream().filter(wfTask->validatePendingTask(wfTask.getTaskUpdatedTime(), wfTask.getTaskCreatedTime())).collect(Collectors.toList());
-			todaysRes = buildMyTaskObj(wfTaskList,todaysRes,empId,empName);
+			todaysRes.add(buildMyTaskObj(wfTaskList,empId,empName));    
 		}
 		return todaysRes;
 	}
@@ -2939,9 +2937,9 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 
 
-	private Object getUpcomingDataV2(MyTaskReq req, List<Integer> empIdsUnderReporting) {
+	private List<TodaysTaskRes> getUpcomingDataV2(MyTaskReq req, List<Integer> empIdsUnderReporting) {
 		log.debug("Inside getUpcomingDataV2::()");
-		TodaysTaskRes todaysRes = new TodaysTaskRes();
+		List<TodaysTaskRes> todaysRes = new ArrayList<>();
 		for (Integer empId : empIdsUnderReporting) {
 			String empName = salesGapServiceImpl.getEmpName(String.valueOf(empId));
 			log.debug("generating data for empId " + empId + " and empName:" + empName);
@@ -2949,7 +2947,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			log.debug("todaysDate::"+todaysDate);
 			List<DmsWFTask> wfTaskList = dmsWfTaskDao.getTodaysUpcomingTasksV2(empId, todaysDate+" 00:00:00");
 			List<DmsWFTask> upcomingWfTaskList = wfTaskList.stream().filter(wfTask->validateUpcomingTask(wfTask.getTaskUpdatedTime(), wfTask.getTaskCreatedTime())).collect(Collectors.toList());
-			todaysRes = buildMyTaskObj(upcomingWfTaskList,todaysRes,empId,empName);
+			todaysRes.add(buildMyTaskObj(upcomingWfTaskList,empId,empName));          
 		}
 		return todaysRes;
 	}
@@ -2957,10 +2955,10 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 
 
-	private TodaysTaskRes getTodayDataV2(MyTaskReq req, List<Integer> empIdsUnderReporting) {
+	private List<TodaysTaskRes> getTodayDataV2(MyTaskReq req, List<Integer> empIdsUnderReporting) {
 
 		log.debug("Inside getTodayDataV2::()");
-		TodaysTaskRes todaysRes = new TodaysTaskRes();
+		List<TodaysTaskRes> todaysRes = new ArrayList<>();
 		
 		for (Integer empId : empIdsUnderReporting) {
 			String empName = salesGapServiceImpl.getEmpName(String.valueOf(empId));
@@ -2968,9 +2966,9 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		
 			String todaysDate = getTodaysDate();
 			log.debug("todaysDate::"+todaysDate);
-			List<DmsWFTask> todayWfTaskList = dmsWfTaskDao.getTodaysUpcomingTasks(empId, todaysDate+" 00:00:00", todaysDate+" 23:59:59");
+			List<DmsWFTask> todayWfTaskList = dmsWfTaskDao.getTodaysUpcomingTasks(empId, "2022-04-30"+" 00:00:00", todaysDate+" 23:59:59");
 			
-			todaysRes = buildMyTaskObj(todayWfTaskList,todaysRes,empId,empName);
+			todaysRes.add(buildMyTaskObj(todayWfTaskList,empId,empName));  
 			
 		}
 		return todaysRes;
@@ -2979,7 +2977,8 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 
 
-	private TodaysTaskRes buildMyTaskObj(List<DmsWFTask> todayWfTaskList, TodaysTaskRes todaysRes, Integer empId, String empName) {
+	private TodaysTaskRes buildMyTaskObj(List<DmsWFTask> todayWfTaskList,Integer empId, String empName) {
+		TodaysTaskRes todaysRes = new TodaysTaskRes();
 		try {
 			List<MyTask> myTaskList = new ArrayList<>();
 			Set<String> uniqueTastSet = todayWfTaskList.stream().map(x->x.getTaskName()).collect(Collectors.toSet());
