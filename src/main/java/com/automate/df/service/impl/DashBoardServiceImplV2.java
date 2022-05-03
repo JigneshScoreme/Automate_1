@@ -30,6 +30,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.automate.df.dao.DmsSourceOfEnquiryDao;
 import com.automate.df.dao.LeadStageRefDao;
 import com.automate.df.dao.dashboard.ComplaintTrackerDao;
 import com.automate.df.dao.dashboard.DmsLeadDao;
@@ -44,6 +45,7 @@ import com.automate.df.entity.LeadStageRefEntity;
 import com.automate.df.entity.dashboard.ComplaintsTracker;
 import com.automate.df.entity.dashboard.DmsLead;
 import com.automate.df.entity.dashboard.DmsWFTask;
+import com.automate.df.entity.sales.master.DmsSourceOfEnquiry;
 import com.automate.df.entity.salesgap.DmsEmployee;
 import com.automate.df.entity.salesgap.TargetRoleReq;
 import com.automate.df.exception.DynamicFormsServiceException;
@@ -54,12 +56,12 @@ import com.automate.df.model.df.dashboard.EmployeeTargetAchievement;
 import com.automate.df.model.df.dashboard.EventDataRes;
 import com.automate.df.model.df.dashboard.LeadSourceRes;
 import com.automate.df.model.df.dashboard.LostRes;
+import com.automate.df.model.df.dashboard.OverAllTargetAchivements;
 import com.automate.df.model.df.dashboard.SalesDataRes;
 import com.automate.df.model.df.dashboard.TargetAchivement;
 import com.automate.df.model.df.dashboard.TargetRankingRes;
 import com.automate.df.model.df.dashboard.TodaysRes;
 import com.automate.df.model.df.dashboard.VehicleModelRes;
-import com.automate.df.model.df.dashboard.OverAllTargetAchivements;
 import com.automate.df.model.oh.EmpTask;
 import com.automate.df.model.oh.MyTask;
 import com.automate.df.model.oh.TodaysTaskRes;
@@ -85,6 +87,9 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	
 	@Autowired
 	Environment env;
+	
+	@Autowired
+	DmsSourceOfEnquiryDao dmsSourceOfEnquiryDao;
 	
 	@Autowired
 	TargetSettingRepo targetSettingRepo;
@@ -127,6 +132,8 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	
 	@Autowired
 	RestTemplate restTemplate;
+	
+	
 	
 	@Autowired
 	ObjectMapper om;
@@ -3123,6 +3130,16 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 						task.setCustomerName(lead.getFirstName() + " " + lead.getLastName());
 						task.setPhoneNo(lead.getPhone());
 					}
+					task.setSalesExecutive(dmsEmployeeRepo.getEmpName(wf.getAssigneeId()));
+					task.setUniversalId(wf.getUniversalId());
+					
+					DmsLead l = dmsLeadDao.getDMSLead(wf.getUniversalId());
+					task.setModel(l.getModel());
+					
+					task.setTaskId(wf.getTaskId());
+					
+					String source = getSource(l.getDmsSourceOfEnquiry().getId());	
+					task.setSourceType(source);					
 					myTaskList.add(task);
 				}
 			}
@@ -3147,6 +3164,19 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			e.printStackTrace();
 		}
 		return todaysRes;
+	}
+	
+	private String getSource(int source) {
+		log.info("Within the getSource method");
+		String description = "";
+		Optional<DmsSourceOfEnquiry> optional = dmsSourceOfEnquiryDao.findById(source);
+		if (optional.isPresent()) {
+			DmsSourceOfEnquiry dmsSourceOfEnquiry = optional.get();
+			description = dmsSourceOfEnquiry.getDescription();
+		}
+		log.info("sourceOfEnquiry description:{}", description);
+		return description;
+
 	}
 
 }

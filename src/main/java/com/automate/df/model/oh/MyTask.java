@@ -12,5 +12,11 @@ public class MyTask {
 	String customerName;
 	String createdOn;
 	String phoneNo;
+	String universalId;
+	String model;
+	String sourceType;
+	Integer taskId;
+	String salesExecutive;
+	
 
 }

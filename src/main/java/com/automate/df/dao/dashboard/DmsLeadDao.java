@@ -129,6 +129,13 @@ public interface DmsLeadDao extends JpaRepository<DmsLead, Integer> {
 			@Param(value = "endDate") String endDate,
 			@Param(value = "orgId") String orgId);
 	//Lost Ddrop query ends
+
+
+	@Query(value="SELECT model FROM dms_lead WHERE crm_universal_id=:unversalId", nativeQuery = true)
+	String getModelWithUniversalId(@Param(value = "unversalId") String unversalId);
+
+	@Query(value="SELECT * FROM dms_lead WHERE crm_universal_id=:unversalId", nativeQuery = true)
+	DmsLead getDMSLead(@Param(value = "unversalId") String unversalId);
 	
 	
 }
