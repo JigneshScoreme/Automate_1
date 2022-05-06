@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.automate.df.dao.DmsTargetParamSchedularRepository;
+import com.automate.df.entity.DmsTargetParamSchedular;
 import com.automate.df.exception.DynamicFormsServiceException;
 import com.automate.df.model.MyTaskReq;
 import com.automate.df.model.df.dashboard.DashBoardReqV2;
@@ -43,8 +45,8 @@ public class DashBoardControllerV2 {
 
 	@Autowired
 	DashBoardServiceV2 dashBoardService;
-	
-	
+	@Autowired
+	DmsTargetParamSchedularRepository targetparamschedularRepo;
 	
 	@CrossOrigin
 	@PostMapping(value = "v2/get_target_params")
@@ -265,4 +267,9 @@ public class DashBoardControllerV2 {
 		}
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
+	 @GetMapping("/get_target_param/{orgId}/{empId}")
+	    public List<DmsTargetParamSchedular> getById(@PathVariable("orgId") String orgId,@PathVariable("empId") String empId) {
+
+	        return targetparamschedularRepo.getbyOrgIdAndEmpId(orgId,empId);
+	    }
 }
