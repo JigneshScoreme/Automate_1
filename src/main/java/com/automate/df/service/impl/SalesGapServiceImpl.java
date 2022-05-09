@@ -2071,7 +2071,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 				param.setTarget(calculateBooking(enquiry, param.getTarget(), param.getUnit()));
 			}
 			if (param.getParameter().equalsIgnoreCase("booking")) {
-				param.setTarget(calculateBooking(String.valueOf(retailTarget), param.getTarget(), param.getUnit()));
+				param.setTarget(calculateBooking(enquiry, param.getTarget(), param.getUnit()));
 			}
 			if (param.getParameter().equalsIgnoreCase("exchange")) {
 				param.setTarget(calculateEnquiry(retailTarget, param.getTarget(), param.getUnit()));
