@@ -184,11 +184,11 @@ public class SalesGapServiceImpl implements SalesGapService {
 			if (obj.has("target"))
 				res.setEnquiry(obj.get("target").getAsString());
 		}
-		if (null != paramName && paramName.equalsIgnoreCase("Test Drive")) {
+		if (null != paramName && paramName.equalsIgnoreCase("testDrive")) {
 			if (obj.has("target"))
 				res.setTestDrive(obj.get("target").getAsString());
 		}
-		if (null != paramName && paramName.equalsIgnoreCase("Home Visit")) {
+		if (null != paramName && paramName.equalsIgnoreCase("homeVisit")) {
 			if (obj.has("target"))
 				res.setHomeVisit(obj.get("target").getAsString());
 		}
@@ -218,7 +218,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 			if (obj.has("target"))
 				res.setExWarranty(obj.get("target").getAsString());
 		}
-		if (null != paramName && paramName.equalsIgnoreCase("Accessories Per/car")) {
+		if (null != paramName && paramName.equalsIgnoreCase("accessories")) {
 			if (obj.has("target"))
 				res.setAccessories(obj.get("target").getAsString());
 		}
