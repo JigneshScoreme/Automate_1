@@ -1607,7 +1607,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 			String branchManagerId = req.getBranchmangerId();
 			
 			
-			System.out.println("Optional.of(managerId).isPresent() "+Optional.of(managerId).isPresent());
+			
 			
 			if(empId!=null && Optional.of(empId).isPresent()) {
 				finalEmpId=empId;
@@ -1727,7 +1727,8 @@ public class SalesGapServiceImpl implements SalesGapService {
 
 					startFlag = dateoverlapvalidation(inputStartDate, dbStartDate, dbEndDate);
 					endFlag = dateoverlapvalidation(inputEndDate, dbStartDate, dbEndDate);
-					if (startFlag || endFlag)
+				
+					if (startFlag && endFlag && dbStartDate.equals(inputStartDate) && dbEndDate.equals(inputEndDate))
 						break;
 					// log.debug("startFlag "+startFlag+", endFlag:"+endFlag);
 
@@ -2032,8 +2033,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 			
 		}
 		if(orgMapBranchList!=null) {
-			tRole.setBranchId(orgMapBranchList.get(0))
-			;
+			tRole.setBranchId(orgMapBranchList.get(0));
 		}
 
 		log.debug("tRole in getAdminTargets:::" + tRole);
