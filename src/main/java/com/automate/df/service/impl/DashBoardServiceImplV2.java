@@ -2388,15 +2388,15 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 			List<String> leadStages = new ArrayList<>();
 			//leadStages.add("DELIVERYCOMPLETED");
-			leadStages.add("BOOKING");
+			leadStages.add("INVOICE");
 			List<Integer> dmsAllLeadList = dmsLeadDao.getLeadsBasedonEmpNames(empNamesList, startDate, endDate, orgId);
 			
 			List<LeadStageRefEntity> dmsLeadStageIdList = new ArrayList<>();
-			List<LeadStageRefEntity> leadRefList  =  leadStageRefDao.getLeadsByBookingStage(dmsAllLeadList,"BOOKING",startDate,endDate);
+			List<LeadStageRefEntity> leadRefList  =  leadStageRefDao.getLeadsByBookingStage(dmsAllLeadList,"INVOICE",startDate,endDate);
 			if(null!=leadRefList && !leadRefList.isEmpty()) {
 				
 				log.debug("Total leads in LeadReF table is ::"+leadRefList.size());
-				dmsLeadStageIdList = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("BOOKING")).collect(Collectors.toList());
+				dmsLeadStageIdList = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("INVOICE")).collect(Collectors.toList());
 			}
 			
 			List<DmsLead> dmsLeadList = dmsLeadDao.getLeadsBasedonId(dmsLeadStageIdList.stream().map(x->x.getLeadId()).collect(Collectors.toList()));
