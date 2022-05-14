@@ -738,7 +738,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			enqTargetAchivement.setShortfall(String.valueOf("0"));
 			enqTargetAchivement.setShortFallPerc(String.valueOf("0"));
 		}
-		enqTargetAchivement.setData(buildDataList(leadRefList,ENQUIRY));
+		//enqTargetAchivement.setData(buildDataList(leadRefList,ENQUIRY));
 	
 		resList.add(enqTargetAchivement);
 		
@@ -758,7 +758,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			testDriveTA.setShortfall(String.valueOf("0"));
 			testDriveTA.setShortFallPerc(String.valueOf("0"));
 		}
-		testDriveTA.setData(buildDataList(leadRefList,TEST_DRIVE));
+		//testDriveTA.setData(buildDataList(leadRefList,TEST_DRIVE));
 		resList.add(testDriveTA);
 		
 		
@@ -778,7 +778,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			financeTA.setShortfall(String.valueOf("0"));
 			financeTA.setShortFallPerc(String.valueOf("0"));
 		}
-		financeTA.setData(buildDataList(leadRefList,FINANCE));
+		//financeTA.setData(buildDataList(leadRefList,FINANCE));
 		resList.add(financeTA);
 		
 		TargetAchivement insuranceTA = new TargetAchivement();
@@ -797,7 +797,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			insuranceTA.setShortfall(String.valueOf("0"));
 			insuranceTA.setShortFallPerc(String.valueOf("0"));
 		}
-		insuranceTA.setData(buildDataList(leadRefList,INSURANCE));
+		//insuranceTA.setData(buildDataList(leadRefList,INSURANCE));
 		resList.add(insuranceTA);
 		
 		
@@ -817,7 +817,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			accessoriesTA.setShortfall(String.valueOf("0"));
 			accessoriesTA.setShortFallPerc(String.valueOf("0"));
 		}
-		accessoriesTA.setData(buildDataList(leadRefList,ACCCESSORIES));
+		//accessoriesTA.setData(buildDataList(leadRefList,ACCCESSORIES));
 		resList.add(accessoriesTA);
 		
 		
@@ -837,7 +837,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			bookingTA.setShortfall(String.valueOf("0"));
 			bookingTA.setShortFallPerc(String.valueOf("0"));
 		}
-		bookingTA.setData(buildDataList(leadRefList,BOOKING));
+		//bookingTA.setData(buildDataList(leadRefList,BOOKING));
 		resList.add(bookingTA);
 		
 		TargetAchivement homeVisitTA = new TargetAchivement();
@@ -856,7 +856,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			homeVisitTA.setShortfall(String.valueOf("0"));
 			homeVisitTA.setShortFallPerc(String.valueOf("0"));
 		}
-		homeVisitTA.setData(buildDataList(leadRefList,HOME_VISIT));
+		//homeVisitTA.setData(buildDataList(leadRefList,HOME_VISIT));
 		resList.add(homeVisitTA);
 		
 		TargetAchivement exchangeTA = new TargetAchivement();
@@ -875,7 +875,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			exchangeTA.setShortfall(String.valueOf("0"));
 			exchangeTA.setShortFallPerc(String.valueOf("0"));
 		}
-		exchangeTA.setData(buildDataList(leadRefList,EXCHANGE));
+		//exchangeTA.setData(buildDataList(leadRefList,EXCHANGE));
 		resList.add(exchangeTA);
 		
 		/*
@@ -905,7 +905,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			rTa.setShortfall(String.valueOf("0"));
 			rTa.setShortFallPerc(String.valueOf("0"));
 		}
-		rTa.setData(buildDataList(leadRefList,INVOICE));
+		//rTa.setData(buildDataList(leadRefList,INVOICE));
 		resList.add(rTa);
 		return resList;
 	}
