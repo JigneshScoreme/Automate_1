@@ -426,7 +426,7 @@ public class DashBoardServiceImpl implements DashBoardService{
 		TargetAchivement enqTargetAchivement = new TargetAchivement();
 		enqTargetAchivement.setTarget(String.valueOf(targetParamMap.get(ENQUIRY)));
 		enqTargetAchivement.setParamName(ENQUIRY);
-		enqTargetAchivement.setParamShortName("E");
+		enqTargetAchivement.setParamShortName("Enq");
 		enqTargetAchivement.setAchievment(String.valueOf(enqLeadCnt));;
 		enqTargetAchivement.setAchivementPerc(getAchievmentPercentage(enqLeadCnt,targetParamMap.get(ENQUIRY)));
 		enqTargetAchivement.setShortfall(getShortFallCount(enqLeadCnt,targetParamMap.get(ENQUIRY)));
@@ -436,7 +436,7 @@ public class DashBoardServiceImpl implements DashBoardService{
 		TargetAchivement testDriveTA = new TargetAchivement();
 		testDriveTA.setTarget(String.valueOf(targetParamMap.get(TEST_DRIVE)));
 		testDriveTA.setParamName(TEST_DRIVE);
-		testDriveTA.setParamShortName("TD");
+		testDriveTA.setParamShortName("Tdr");
 		testDriveTA.setAchievment(String.valueOf(testDriveCnt));
 		testDriveTA.setAchivementPerc(getAchievmentPercentage(testDriveCnt,targetParamMap.get(TEST_DRIVE)));
 		testDriveTA.setShortfall(getShortFallCount(testDriveCnt,targetParamMap.get(TEST_DRIVE)));
@@ -447,7 +447,7 @@ public class DashBoardServiceImpl implements DashBoardService{
 		TargetAchivement financeTA = new TargetAchivement();
 		financeTA.setTarget(String.valueOf(targetParamMap.get(FINANCE)));
 		financeTA.setParamName(FINANCE);
-		financeTA.setParamShortName("F");
+		financeTA.setParamShortName("Fin");
 		financeTA.setAchievment(String.valueOf(financeCnt));
 		financeTA.setAchivementPerc(getAchievmentPercentage(financeCnt,targetParamMap.get(FINANCE)));
 		financeTA.setShortfall(getShortFallCount(financeCnt,targetParamMap.get(FINANCE)));
@@ -457,7 +457,7 @@ public class DashBoardServiceImpl implements DashBoardService{
 		TargetAchivement insuranceTA = new TargetAchivement();
 		insuranceTA.setTarget(String.valueOf(targetParamMap.get(INSURANCE)));
 		insuranceTA.setParamName(INSURANCE);
-		insuranceTA.setParamShortName("I");
+		insuranceTA.setParamShortName("Ins");
 		insuranceTA.setAchievment(String.valueOf(insuranceCnt));
 		insuranceTA.setAchivementPerc(getAchievmentPercentage(insuranceCnt,targetParamMap.get(FINANCE)));
 		insuranceTA.setShortfall(getShortFallCount(insuranceCnt,targetParamMap.get(FINANCE)));
@@ -468,7 +468,7 @@ public class DashBoardServiceImpl implements DashBoardService{
 		TargetAchivement accessoriesTA = new TargetAchivement();
 		accessoriesTA.setTarget(String.valueOf(targetParamMap.get(ACCCESSORIES)));
 		accessoriesTA.setParamName(ACCCESSORIES);
-		accessoriesTA.setParamShortName("Acc.");
+		accessoriesTA.setParamShortName("Acc");
 		accessoriesTA.setAchievment(String.valueOf(accessoriesCnt));
 		accessoriesTA.setAchivementPerc(getAchievmentPercentage(accessoriesCnt,targetParamMap.get(ACCCESSORIES)));
 		accessoriesTA.setShortfall(getShortFallCount(accessoriesCnt,targetParamMap.get(ACCCESSORIES)));
@@ -479,7 +479,7 @@ public class DashBoardServiceImpl implements DashBoardService{
 		TargetAchivement bookingTA = new TargetAchivement();
 		bookingTA.setTarget(String.valueOf(targetParamMap.get(BOOKING)));
 		bookingTA.setParamName(BOOKING);
-		bookingTA.setParamShortName("B");
+		bookingTA.setParamShortName("Bkg");
 		bookingTA.setAchievment(String.valueOf(bookingCnt));
 		bookingTA.setAchivementPerc(getAchievmentPercentage(bookingCnt,targetParamMap.get(BOOKING)));
 		bookingTA.setShortfall(getShortFallCount(bookingCnt,targetParamMap.get(BOOKING)));
@@ -489,7 +489,7 @@ public class DashBoardServiceImpl implements DashBoardService{
 		TargetAchivement homeVisitTA = new TargetAchivement();
 		homeVisitTA.setTarget(String.valueOf(targetParamMap.get(HOME_VISIT)));
 		homeVisitTA.setParamName(HOME_VISIT);
-		homeVisitTA.setParamShortName("HV");
+		homeVisitTA.setParamShortName("Hvt");
 		homeVisitTA.setAchievment(String.valueOf(homeVistCnt));
 		homeVisitTA.setAchivementPerc(getAchievmentPercentage(homeVistCnt,targetParamMap.get(HOME_VISIT)));
 		homeVisitTA.setShortfall(getShortFallCount(homeVistCnt,targetParamMap.get(HOME_VISIT)));
@@ -499,7 +499,7 @@ public class DashBoardServiceImpl implements DashBoardService{
 		TargetAchivement exchangeTA = new TargetAchivement();
 		exchangeTA.setTarget(String.valueOf(targetParamMap.get(EXCHANGE)));
 		exchangeTA.setParamName(EXCHANGE);
-		exchangeTA.setParamShortName("Ex");
+		exchangeTA.setParamShortName("Exg");
 		exchangeTA.setAchievment(String.valueOf(exchangeCnt));
 		exchangeTA.setAchivementPerc(getAchievmentPercentage(exchangeCnt,targetParamMap.get(EXCHANGE)));
 		exchangeTA.setShortfall(getShortFallCount(exchangeCnt,targetParamMap.get(EXCHANGE)));
@@ -520,7 +520,7 @@ public class DashBoardServiceImpl implements DashBoardService{
 		TargetAchivement rTa = new TargetAchivement();
 		rTa.setTarget(String.valueOf(targetParamMap.get(INVOICE)));
 		rTa.setParamName(INVOICE);
-		rTa.setParamShortName("R");
+		rTa.setParamShortName("Ret");
 		rTa.setAchievment(String.valueOf(invoceCnt));
 		rTa.setAchivementPerc(getAchievmentPercentage(invoceCnt,targetParamMap.get(INVOICE)));
 		rTa.setShortfall(getShortFallCount(invoceCnt,targetParamMap.get(INVOICE)));

@@ -725,7 +725,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 
 		enqTargetAchivement.setParamName(ENQUIRY);
-		enqTargetAchivement.setParamShortName("E");
+		enqTargetAchivement.setParamShortName("Enq");
 		enqTargetAchivement.setAchievment(String.valueOf(enqLeadCnt));;
 		if(targetParamMap.containsKey(ENQUIRY)) {
 			enqTargetAchivement.setTarget(String.valueOf(targetParamMap.get(ENQUIRY)));
@@ -745,7 +745,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		TargetAchivement testDriveTA = new TargetAchivement();
 	
 		testDriveTA.setParamName(TEST_DRIVE);
-		testDriveTA.setParamShortName("TD");
+		testDriveTA.setParamShortName("Tdr");
 		testDriveTA.setAchievment(String.valueOf(testDriveCnt));
 		if(targetParamMap.containsKey(TEST_DRIVE)) {
 			testDriveTA.setTarget(String.valueOf(targetParamMap.get(TEST_DRIVE)));
@@ -765,7 +765,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		TargetAchivement financeTA = new TargetAchivement();
 		
 		financeTA.setParamName(FINANCE);
-		financeTA.setParamShortName("F");
+		financeTA.setParamShortName("Fin");
 		financeTA.setAchievment(String.valueOf(financeCnt));
 		if(targetParamMap.containsKey(FINANCE)) {
 			financeTA.setTarget(String.valueOf(targetParamMap.get(FINANCE)));
@@ -784,7 +784,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		TargetAchivement insuranceTA = new TargetAchivement();
 		
 		insuranceTA.setParamName(INSURANCE);
-		insuranceTA.setParamShortName("I");
+		insuranceTA.setParamShortName("Ins");
 		insuranceTA.setAchievment(String.valueOf(insuranceCnt));
 		if(targetParamMap.containsKey(INSURANCE)) {
 			insuranceTA.setTarget(String.valueOf(targetParamMap.get(INSURANCE)));
@@ -804,7 +804,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		TargetAchivement accessoriesTA = new TargetAchivement();
 		
 		accessoriesTA.setParamName(ACCCESSORIES);
-		accessoriesTA.setParamShortName("Acc.");
+		accessoriesTA.setParamShortName("Acc");
 		accessoriesTA.setAchievment(String.valueOf(accessoriesCnt));
 		if(targetParamMap.containsKey(ACCCESSORIES)) {
 			accessoriesTA.setTarget(String.valueOf(targetParamMap.get(ACCCESSORIES)));
@@ -824,7 +824,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		TargetAchivement bookingTA = new TargetAchivement();
 
 		bookingTA.setParamName(BOOKING);
-		bookingTA.setParamShortName("B");
+		bookingTA.setParamShortName("Bkg");
 		bookingTA.setAchievment(String.valueOf(bookingCnt));
 		if(targetParamMap.containsKey(BOOKING)) {
 			bookingTA.setTarget(String.valueOf(targetParamMap.get(BOOKING)));
@@ -843,7 +843,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		TargetAchivement homeVisitTA = new TargetAchivement();
 		
 		homeVisitTA.setParamName(HOME_VISIT);
-		homeVisitTA.setParamShortName("HV");
+		homeVisitTA.setParamShortName("Hvt");
 		homeVisitTA.setAchievment(String.valueOf(homeVistCnt));
 		if(targetParamMap.containsKey(BOOKING)) {
 			homeVisitTA.setTarget(String.valueOf(targetParamMap.get(HOME_VISIT)));
@@ -862,7 +862,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		TargetAchivement exchangeTA = new TargetAchivement();
 		
 		exchangeTA.setParamName(EXCHANGE);
-		exchangeTA.setParamShortName("Ex");
+		exchangeTA.setParamShortName("Exg");
 		exchangeTA.setAchievment(String.valueOf(exchangeCnt));
 		if(targetParamMap.containsKey(EXCHANGE)) {
 			exchangeTA.setTarget(String.valueOf(targetParamMap.get(EXCHANGE)));
@@ -892,7 +892,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		TargetAchivement rTa = new TargetAchivement();
 	
 		rTa.setParamName(INVOICE);
-		rTa.setParamShortName("R");
+		rTa.setParamShortName("Ret");
 		rTa.setAchievment(String.valueOf(invoceCnt));
 		if(targetParamMap.containsKey(INVOICE)) {
 			rTa.setTarget(String.valueOf(targetParamMap.get(INVOICE)));
@@ -2432,7 +2432,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			
 			*/
 			for (Map<String, Long> m : resList) {
-				if (cnt <= 5) {
+				if (cnt <= 20) {
 					subList.add(m);
 				} else {
 					m.forEach((k, v) -> {
@@ -2873,7 +2873,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 		TargetAchivement targetEnq = new TargetAchivement();
 		targetEnq.setParamName(ENQUIRY);
-		targetEnq.setParamShortName("E");
+		targetEnq.setParamShortName("Enq");
 		targetEnq.setAchievment(String.valueOf(finalEnq));
 		targetEnq.setTarget(String.valueOf(finalEnqTarget));
 		targetEnq.setAchivementPerc(String.valueOf(finalEnqAchivePerc));
@@ -2882,7 +2882,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 		TargetAchivement targetTD = new TargetAchivement();
 		targetTD.setParamName(TEST_DRIVE);
-		targetTD.setParamShortName("TD");
+		targetTD.setParamShortName("Tdr");
 		targetTD.setAchievment(String.valueOf(finalTD));
 		targetTD.setTarget(String.valueOf(finalTDTarget));
 		targetTD.setAchivementPerc(String.valueOf(finalTDAchivePerc));
@@ -2893,7 +2893,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		resList.add(targetTD);
 
 		TargetAchivement targetFIN = new TargetAchivement();
-		targetFIN.setParamName(FINANCE);targetTD.setParamShortName("F");
+		targetFIN.setParamName(FINANCE);targetTD.setParamShortName("Fin");
 		targetFIN.setAchievment(String.valueOf(finalFIN));
 		targetFIN.setTarget(String.valueOf(finalFINTarget));
 		targetFIN.setAchivementPerc(String.valueOf(finalFINAchivePerc));
@@ -2903,7 +2903,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		resList.add(targetFIN);
 
 		TargetAchivement targetINS = new TargetAchivement();
-		targetINS.setParamName(INSURANCE);targetTD.setParamShortName("I");
+		targetINS.setParamName(INSURANCE);targetTD.setParamShortName("Ins");
 		targetINS.setAchievment(String.valueOf(finalINS));
 		targetINS.setTarget(String.valueOf(finalINSTarget));
 		targetINS.setAchivementPerc(String.valueOf(finalINSAchivePerc));
@@ -2913,7 +2913,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		resList.add(targetINS);
 
 		TargetAchivement targetHV = new TargetAchivement();
-		targetHV.setParamName(HOME_VISIT);targetTD.setParamShortName("HV");
+		targetHV.setParamName(HOME_VISIT);targetTD.setParamShortName("Hvt");
 		targetHV.setAchievment(String.valueOf(finalHV));
 		targetHV.setTarget(String.valueOf(finalHVTarget));
 		targetHV.setAchivementPerc(String.valueOf(finalHVAchivePerc));
@@ -2924,7 +2924,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 		TargetAchivement targetBOOK = new TargetAchivement();
 		targetBOOK.setParamName(BOOKING);
-		targetTD.setParamShortName("B");
+		targetTD.setParamShortName("Bkg");
 		targetBOOK.setAchievment(String.valueOf(finalBOOK));
 		targetBOOK.setTarget(String.valueOf(finalBOOKTarget));
 		targetBOOK.setAchivementPerc(String.valueOf(finalBOOKAchivePerc));
@@ -2935,7 +2935,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 		TargetAchivement targetEXC = new TargetAchivement();
 		targetEXC.setParamName(EXCHANGE);
-		targetTD.setParamShortName("Ex");
+		targetTD.setParamShortName("Exg");
 		targetEXC.setAchievment(String.valueOf(finalEXC));
 		targetEXC.setTarget(String.valueOf(finalEXCTarget));
 		targetEXC.setAchivementPerc(String.valueOf(finalEXCAchivePerc));
@@ -2947,7 +2947,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 		TargetAchivement targetRETAIL = new TargetAchivement();
 		targetRETAIL.setParamName(INVOICE);
-		targetTD.setParamShortName("R");
+		targetTD.setParamShortName("Ret");
 		targetRETAIL.setAchievment(String.valueOf(finalRETAIL));
 		targetRETAIL.setTarget(String.valueOf(finalRETAILTarget));
 		targetRETAIL.setAchivementPerc(String.valueOf(finalRETAILAchivePerc));
@@ -2958,7 +2958,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 		TargetAchivement targetACC = new TargetAchivement();
 		targetACC.setParamName(ACCCESSORIES);
-		targetTD.setParamShortName("Acc.");
+		targetTD.setParamShortName("Acc");
 		targetACC.setAchievment(String.valueOf(finalACC));
 		targetACC.setTarget(String.valueOf(finalACCTarget));
 		targetACC.setAchivementPerc(String.valueOf(finalACCAchivePerc));
