@@ -37,21 +37,21 @@ public interface TargetSettingRepo extends JpaRepository<TargetEntity, Integer> 
 			@Param(value = "departmentId") String department, @Param(value = "experience") String experience,
 			@Param(value = "designation") String designation);
 
-	@Query(value = "SELECT * FROM dms_target_setting where org_id=:orgId and branch=:branchId and department=:departmentId and salary_range =:salary and designation=:designation and experience is null", nativeQuery = true)
+	@Query(value = "SELECT * FROM dms_target_setting where org_id=:orgId and branch=:branchId and department=:departmentId and salary_range =:salary and designation=:designation and experience is null and is_active='Y'", nativeQuery = true)
 	List<TargetEntity> getTargetmappingDataWithOutExp(@Param(value = "orgId") String orgId,
 			@Param(value = "branchId") String branchId,
 			@Param(value = "departmentId") String department,
 			@Param(value = "salary") String salary,
 			@Param(value = "designation") String designation);
 
-	@Query(value = "SELECT * FROM dms_target_setting where org_id=:orgId and branch=:branchId and department=:departmentId and experience=:experience and designation=:designation  and salary_range is null", nativeQuery = true)
+	@Query(value = "SELECT * FROM dms_target_setting where org_id=:orgId and branch=:branchId and department=:departmentId and experience=:experience and designation=:designation  and salary_range is null and is_active='Y'", nativeQuery = true)
 	List<TargetEntity> getTargetmappingDataWithOutSal(@Param(value = "orgId") String orgId,
 			@Param(value = "branchId") String branchId,
 			@Param(value = "departmentId") String department,
 			@Param(value = "experience") String experience
 			,@Param(value = "designation") String designation);
 
-	@Query(value = "SELECT * FROM dms_target_setting where org_id=:orgId and branch=:branchId  and department=:departmentId and designation=:designation and salary_range is null and experience is null", nativeQuery = true)
+	@Query(value = "SELECT * FROM dms_target_setting where org_id=:orgId and branch=:branchId  and department=:departmentId and designation=:designation and salary_range is null and experience is null and is_active='Y'", nativeQuery = true)
 	List<TargetEntity> getTargetmappingDataWithOutExpSal(@Param(value = "orgId") String orgId,
 			@Param(value = "branchId") String branchId,
 			@Param(value = "departmentId") String department,
@@ -66,7 +66,7 @@ public interface TargetSettingRepo extends JpaRepository<TargetEntity, Integer> 
 			);
 	
 	
-	@Query(value = "SELECT * FROM dms_target_setting where org_id=:orgId and branch=:branchId and department=:departmentId and experience=:experience and salary_range =:salary and designation=:designation", nativeQuery = true)
+	@Query(value = "SELECT * FROM dms_target_setting where org_id=:orgId and branch=:branchId and department=:departmentId and experience=:experience and salary_range =:salary and designation=:designation and is_active='Y'", nativeQuery = true)
 	List<TargetEntity> getTargetmappingData(@Param(value = "orgId") String orgId,
 			@Param(value = "branchId") String branchId,
 			@Param(value = "departmentId") String department, @Param(value = "experience") String experience,
