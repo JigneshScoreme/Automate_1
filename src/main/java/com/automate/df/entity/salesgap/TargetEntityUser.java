@@ -100,5 +100,9 @@ public class TargetEntityUser {
 		
 		@Column(name="type")
 		String type;
+		@Column(name="target_type")
+		String targetType;
+		@Column(name="target_name")
+		String targetName;
 }
 

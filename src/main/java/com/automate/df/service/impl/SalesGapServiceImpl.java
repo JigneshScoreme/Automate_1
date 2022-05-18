@@ -29,6 +29,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import com.automate.df.constants.DynamicFormConstants;
 import com.automate.df.constants.GsAppConstants;
 import com.automate.df.dao.oh.DmsBranchDao;
 import com.automate.df.dao.oh.DmsDesignationRepo;
@@ -702,19 +703,17 @@ public class SalesGapServiceImpl implements SalesGapService {
 				
 				String tEmpId = String.valueOf(arr[2]);
 				Integer emp = Integer.parseInt(tEmpId);
-				tlDataResList.add(getEmpRoleDataV3(emp));
+				//tlDataResList.add(getEmpRoleDataV3(emp));
 			}
 			if (null != tlDataResList) {
-				log.info("Size of tlDataResList " + tlDataResList.size() + " tlDataResList " + tlDataResList);
+				log.debug("Size of tlDataResList " + tlDataResList.size() + " tlDataResList " + tlDataResList);
 
 				for (TargetRoleRes tr : tlDataResList) {
+					log.debug("Inside tr loop "+tr);
 					Optional<DmsEmployee> empOpt = dmsEmployeeRepo.findById(Integer.valueOf(tr.getEmpId()));
 					if (empOpt.isPresent()) {
 						DmsEmployee emp = empOpt.get();
-						// outputList.add(getTSDataForRole(buildTargetRoleRes(tr,
-						// emp),String.valueOf(empId),managerId,branchMgrId,generalMgrId));
-						outputList.addAll(getTSDataForRoleV2(buildTargetRoleRes(tr, emp), String.valueOf(empId),
-								"", "", ""));
+						outputList.addAll(getTSDataForRoleV2(buildTargetRoleRes(tr, emp), String.valueOf(empId),"", "", ""));
 
 					}
 				}
@@ -1121,9 +1120,10 @@ public class SalesGapServiceImpl implements SalesGapService {
 		try {
 
 			for (TargetEntity te : getTargetSettingMasterDataForGivenRole(tRole)) {
-				List<TargetEntityUser> tesUserList = targetUserRepo.findAllEmpIds(tRole.getEmpId());
+				//List<TargetEntityUser> tesUserList = targetUserRepo.findAllEmpIds(tRole.getEmpId());
+				List<TargetEntityUser> tesUserList = targetUserRepo.findAllEmpIdsWithNoDefault(tRole.getEmpId());
 				if (null != tesUserList && !tesUserList.isEmpty()) {
-					log.info("tesUserList is not empty " + tesUserList.size());
+					log.debug("tesUserList is not empty " + tesUserList.size());
 					for (TargetEntityUser teUser : tesUserList) {
 						modelMapper.getConfiguration().setAmbiguityIgnored(true);
 						TargetSettingRes tsRes = modelMapper.map(teUser, TargetSettingRes.class);
@@ -1131,6 +1131,8 @@ public class SalesGapServiceImpl implements SalesGapService {
 						tsRes.setEmpName(getEmpName(tRole.getEmpId()));
 						tsRes.setEmployeeId(tRole.getEmpId());
 						tsRes.setId(teUser.getGeneratedId());
+						tsRes.setTargetName(teUser.getTargetName());		
+						tsRes.setTargetType(teUser.getTargetType());
 						if (null != teamLeadId) {
 							tsRes.setTeamLead(getTeamLeadName(teamLeadId));
 							tsRes.setTeamLeadId(teamLeadId);
@@ -1175,11 +1177,14 @@ public class SalesGapServiceImpl implements SalesGapService {
 
 					TargetEntityUser teUserToSave = modelMapper.map(res, TargetEntityUser.class);
 					teUserToSave.setEmployeeId(tRole.getEmpId());
+				
+					//String tmp ="[{\"unit\": \"percentage\", \"target\": \"100\", \"parameter\": \"enquiry\"}, {\"unit\": \"percentage\", \"target\": \"100\", \"parameter\": \"testDrive\"}, {\"unit\": \"percentage\", \"target\": \"100\", \"parameter\": \"homeVisit\"}, {\"unit\": \"percentage\", \"target\": \"100\", \"parameter\": \"booking\"}, {\"unit\": \"percentage\", \"target\": \"100\", \"parameter\": \"exchange\"}, {\"unit\": \"percentage\", \"target\": \"100\", \"parameter\": \"finance\"}, {\"unit\": \"percentage\", \"target\": \"100\", \"parameter\": \"insurance\"}, {\"unit\": \"percentage\", \"target\": \"100\", \"parameter\": \"exWarranty\"}, {\"unit\": \"percentage\", \"target\": \"0\", \"parameter\": \"events\"}, {\"unit\": \"number\", \"target\": \"0\", \"parameter\": \"accessories\"}]";
 					teUserToSave.setTargets(te.getTargets());
 					teUserToSave.setType("default");
 					teUserToSave.setActive(GsAppConstants.ACTIVE);
 					teUserToSave.setExperience(tRole.getExperience());
-
+					teUserToSave.setTargetName("DEFAULT");		
+					teUserToSave.setTargetType(DynamicFormConstants.TARGET_MONTHLY_TYPE);
 					Optional<TargetEntityUser> defaultTeUserOpt = targetUserRepo
 							.checkDefaultDataInTargetUser(tRole.getEmpId());
 
@@ -1192,6 +1197,8 @@ public class SalesGapServiceImpl implements SalesGapService {
 					res = convertTargetStrToObjV3(te.getTargets(), res);
 					res.setEmpName(getEmpName(tRole.getEmpId()));
 					res.setEmployeeId(tRole.getEmpId());
+					res.setTargetName("DEFAULT");		
+					res.setTargetType(DynamicFormConstants.TARGET_MONTHLY_TYPE);
 					res.setExperience(tRole.getExperience() != null ? tRole.getExperience() : "");
 					if (null != teamLeadId) {
 						res.setTeamLead(getTeamLeadName(teamLeadId));
@@ -1226,7 +1233,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 
 				}
 			}
-			System.out.println("list in getTSDataForRoleV2  " + list);
+			log.debug("list in getTSDataForRoleV2  " + list);
 
 		} catch (Exception e) {
 			log.error("getTargetSettingData() ", e);
@@ -1593,6 +1600,194 @@ public class SalesGapServiceImpl implements SalesGapService {
 	@Override
 	public TargetSettingRes addTargetDataWithRole(TargetMappingAddReq req) throws DynamicFormsServiceException {
 		log.info("Inside addTargetDataWithRole()");
+		log.debug("Inside addTargetDataWithRole()");
+
+		String targetType = req.getTargetType();
+		String targetName = req.getTargetName();
+		TargetSettingRes res = null;
+
+		if (targetType.equalsIgnoreCase(DynamicFormConstants.TARGET_MONTHLY_TYPE)
+				|| targetType.equalsIgnoreCase(DynamicFormConstants.TARGET_SPEICAL_TYPE)) {
+			
+			if (targetType.equalsIgnoreCase(DynamicFormConstants.TARGET_MONTHLY_TYPE)) {
+				res = addTargetDataWithRoleToDB(req);
+			}else if (targetType.equalsIgnoreCase(DynamicFormConstants.TARGET_SPEICAL_TYPE)) {
+				res = addTargetDataWithRoleToDBSpecial(req);
+			}
+			
+			
+
+		} else {
+			throw new DynamicFormsServiceException("Invalid Target Type", HttpStatus.BAD_REQUEST);
+		}
+
+		
+
+		return res;
+
+	}
+	
+	
+	private TargetSettingRes addTargetDataWithRoleToDBSpecial(TargetMappingAddReq req)
+			throws DynamicFormsServiceException {
+
+		log.info("Inside addTargetDataWithRoleToDBSpecial()");
+		TargetSettingRes res = null;
+
+		try {
+			String empId = req.getEmployeeId();
+			log.debug("empId::" + empId);
+			Integer retailTarget = parseRetailTarget(req);
+
+			String finalEmpId = null;
+			String managerId = req.getManagerId();
+			String teamLeadId = req.getTeamLeadId();
+			String generalManagerId = req.getGeneralManagerId();
+			String branchManagerId = req.getBranchmangerId();
+
+			if (empId != null && Optional.of(empId).isPresent()) {
+				finalEmpId = empId;
+			}
+
+			else if (teamLeadId != null && Optional.of(teamLeadId).isPresent()) {
+				finalEmpId = teamLeadId;
+			} else if (managerId != null && Optional.of(managerId).isPresent()) {
+				finalEmpId = managerId;
+
+			} else if (generalManagerId != null && Optional.of(generalManagerId).isPresent()) {
+
+				finalEmpId = generalManagerId;
+			} else if (branchManagerId != null && Optional.of(branchManagerId).isPresent()) {
+
+				finalEmpId = branchManagerId;
+			}
+			log.debug("finalEmpId:::" + finalEmpId);
+
+			String tmpQuery = dmsEmpByidQuery.replaceAll("<EMP_ID>", String.valueOf(finalEmpId));
+			tmpQuery = roleMapQuery.replaceAll("<EMP_ID>", String.valueOf(finalEmpId));
+			log.debug("tmpQuery  " + tmpQuery);
+			List<Object[]> data = entityManager.createNativeQuery(tmpQuery).getResultList();
+			TargetRoleRes trRoot = new TargetRoleRes();
+			for (Object[] arr : data) {
+				trRoot.setOrgId(String.valueOf(arr[0]));
+				trRoot.setBranchId(String.valueOf(arr[1]));
+				trRoot.setEmpId(String.valueOf(arr[2]));
+				trRoot.setRoleName(String.valueOf(arr[3]));
+				trRoot.setRoleId(String.valueOf(arr[4]));
+			}
+
+			TargetSettingRes userDefaultTsRes = null;
+			log.debug("addTargetDataWithRole::::" + finalEmpId);
+			Optional<DmsEmployee> empOpt = dmsEmployeeRepo.findById(Integer.valueOf(finalEmpId));
+			TargetRoleRes tRole = null;
+
+			if (empOpt.isPresent()) {
+				userDefaultTsRes = new TargetSettingRes();
+				DmsEmployee emp = empOpt.get();
+				tRole = buildTargetRoleRes(trRoot, emp);
+
+			}
+			String adminTargets = getAdminTargetString(Integer.parseInt(finalEmpId));
+			log.debug("adminTargets :" + adminTargets);
+			String calculatedTargetString = calculateTargets(adminTargets, retailTarget);
+			log.debug("calculatedTargetString in add " + calculatedTargetString);
+
+			if (null != calculatedTargetString) {
+				TargetEntityUser teUser = new TargetEntityUser();
+				teUser.setTargets(calculatedTargetString);
+				teUser.setOrgId(trRoot.getOrgId());
+
+				teUser.setStartDate(req.getStartDate());
+				teUser.setEndDate(req.getEndDate());
+
+				teUser.setEmployeeId(finalEmpId);
+
+				modelMapper.getConfiguration().setAmbiguityIgnored(true);
+				teUser.setTeamLeadId(req.getTeamLeadId());
+				teUser.setManagerId(req.getManagerId());
+
+				String branchId = req.getBranch();
+				log.debug("Input branch ID ,orgmapid " + branchId);
+				if (null != branchId) {
+					// DmsBranch branch =
+					// dmsBranchDao.getBranchByOrgMpId(Integer.parseInt(branchId));
+					DmsBranch branch = dmsBranchDao.findById(Integer.parseInt(branchId)).get();
+					log.debug("branch:::" + branch);
+					if (branch != null) {
+						branchId = String.valueOf(branch.getBranchId());
+					} else {
+
+						throw new DynamicFormsServiceException("NO VALID BRANCH EXISTS IN DB",
+								HttpStatus.INTERNAL_SERVER_ERROR);
+					}
+					log.debug("branchId::::" + branchId);
+					teUser.setBranch(branchId);
+				} else {
+					throw new DynamicFormsServiceException("NO VALID BRANCH EXISTS IN DB",
+							HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+
+				teUser.setLocation(tRole.getLocationId());
+				teUser.setDesignation(tRole.getDesignationId());
+				teUser.setDepartment(tRole.getDeptId());
+				teUser.setExperience(tRole.getExperience());
+				teUser.setBranchmangerId(req.getBranchmangerId());
+				teUser.setGeneralManager(getEmpName(req.getGeneralManagerId()));
+				teUser.setStartDate(req.getStartDate());
+				teUser.setEndDate(req.getEndDate());
+				teUser.setRetailTarget(retailTarget);
+				teUser.setType("");
+				teUser.setTargetName(req.getTargetName());
+				teUser.setTargetType(req.getTargetType());
+
+				List<TargetEntityUser> list = targetUserRepo.findAllQ3(finalEmpId);
+				log.debug("Data list for emp id " + list.size());
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+				Date inputStartDate = dateFormat.parse(req.getStartDate());
+				Date inputEndDate = dateFormat.parse(req.getEndDate());
+				if (inputEndDate.before(inputStartDate)) {
+					throw new DynamicFormsServiceException(
+							"Date Validation Fails, please verify start date and end date",
+							HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+
+				log.debug("TARGET ROLE DATA DOESNOT EXISTS IN DB");
+				teUser.setActive(GsAppConstants.ACTIVE);
+				res = modelMapper.map(targetUserRepo.save(teUser), TargetSettingRes.class);
+
+				res.setEmpName(getEmpName(res.getEmployeeId()));
+				res.setTeamLead(getEmpName(res.getTeamLeadId()));
+				res.setManager(getEmpName(res.getManagerId()));
+				res.setBranchmanger(getEmpName(req.getBranchmangerId()));
+				res.setGeneralManager(getEmpName(req.getGeneralManagerId()));
+				res.setBranchManagerId(req.getBranchmangerId());
+				// res.setLocation(tRole.getLocationId());
+				res.setBranchName(getBranchName(res.getBranch()));
+				res.setLocationName(getLocationName(trRoot.getLocationId()));
+				res.setDepartmentName(getDeptName(res.getDepartment()));
+				res.setDesignationName(getDesignationName(res.getDesignation()));
+				res.setExperience(res.getExperience());
+				res.setSalrayRange(res.getSalrayRange());
+				res = convertTargetStrToObj(teUser.getTargets(), res);
+
+			}
+
+		} catch (DynamicFormsServiceException e) {
+			log.error("saveTargetSettingData() ", e);
+			throw e;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new DynamicFormsServiceException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		return res;
+
+	}
+
+	public TargetSettingRes addTargetDataWithRoleToDB(TargetMappingAddReq req) throws DynamicFormsServiceException {
+		log.info("Inside addTargetDataWithRoleToDB()");
 		TargetSettingRes res = null;
 
 		try {
@@ -1704,6 +1899,9 @@ public class SalesGapServiceImpl implements SalesGapService {
 				teUser.setStartDate(req.getStartDate());
 				teUser.setEndDate(req.getEndDate());
 				teUser.setRetailTarget(retailTarget);
+				teUser.setType("");
+				teUser.setTargetName(req.getTargetName());
+				teUser.setTargetType(req.getTargetType());
 
 				List<TargetEntityUser> list = targetUserRepo.findAllQ3(finalEmpId);
 				log.debug("Data list for emp id " + list.size());
@@ -1774,7 +1972,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new DynamicFormsServiceException(env.getProperty("INTERNAL_SERVER_ERROR"),
+			throw new DynamicFormsServiceException(e.getMessage(),
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
@@ -1965,6 +2163,9 @@ public class SalesGapServiceImpl implements SalesGapService {
 
 				te.setTargets(target);
 				te.setActive("Y");
+				te.setType("");
+				te.setTargetName(req.getTargetName());
+				te.setTargetType(req.getTargetType());
 				modelMapper.getConfiguration().setAmbiguityIgnored(true);
 				te.setTeamLeadId(req.getTeamLeadId());
 				if(req.getManagerId()!=null) {
@@ -2802,6 +3003,52 @@ public class SalesGapServiceImpl implements SalesGapService {
 		}
 
 		return res;
+	}
+
+	@Override
+	public Map<String,String> verifyTargetSettingData(TargetSettingReq request) throws DynamicFormsServiceException {
+
+		log.debug("Inside verifyTargetSettingData()");
+		TargetSettingRes ts = null;
+		Map<String,String> map = new HashMap<>();
+		try {
+		
+			TargetEntity te = new TargetEntity();
+			te.setBranch(request.getBranch());
+			te.setDepartment(request.getDepartment());
+			te.setDesignation(request.getDesignation());
+			te.setOrgId(request.getOrgId());		
+			te.setExperience(request.getExperience());
+					List<Target> list = request.getTargets();
+					te.setSalrayRange(null);
+					te.setExperience(null);
+			if (null != list) {
+				te.setTargets(gson.toJson(list));
+			}
+			if (validateTargetAdminData(te)) {
+				log.debug("TARGET ADMIN DATA  EXISTS IN DB");
+				map.put("msg", "TARGET ADMIN DATA  EXISTS IN DB");
+				throw new DynamicFormsServiceException("TARGET ADMIN DATA  EXISTS IN DB",
+						HttpStatus.INTERNAL_SERVER_ERROR);
+
+			}else {
+				map.put("msg", "TARGET ADMIN DATA DOES NOT EXISTS IN DB");
+			}
+
+		} catch (DynamicFormsServiceException e) {
+			log.error("verifyTargetSettingData() ", e);
+			e.printStackTrace();
+			throw new DynamicFormsServiceException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+
+		} catch (Exception e) {
+			log.error("verifyTargetSettingData() ", e);
+			e.printStackTrace();
+			throw new DynamicFormsServiceException(e.getMessage(),
+					HttpStatus.INTERNAL_SERVER_ERROR);
+
+		}
+		return map;
+	
 	}
 
 

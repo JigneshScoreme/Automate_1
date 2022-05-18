@@ -17,8 +17,11 @@ public interface TargetUserRepo extends JpaRepository<TargetEntityUser, Integer>
 	@Query(value="SELECT * FROM dms_target_setting_user where emp_id=:empId",nativeQuery = true)
 	public Optional<TargetEntityUser> findByEmpId(@Param(value="empId") String empId);
 	
-	@Query(value="SELECT * FROM dms_target_setting_user where emp_id=:empId and is_active='Y'",nativeQuery = true)
+	@Query(value="SELECT * FROM dms_target_setting_user where emp_id=:empId and is_active='Y' ",nativeQuery = true)
 	public List<TargetEntityUser> findAllEmpIds(@Param(value="empId") String empId);
+	
+	@Query(value="SELECT * FROM dms_target_setting_user where emp_id=:empId and is_active='Y' and type!='default'",nativeQuery = true)
+	public List<TargetEntityUser> findAllEmpIdsWithNoDefault(@Param(value="empId") String empId);
 	
 	
 	@Query(value = "SELECT * FROM dms_target_setting_user where org_id=:orgId  and department=:department and designation=:designation and branch=:branch and is_active='Y'", nativeQuery = true)

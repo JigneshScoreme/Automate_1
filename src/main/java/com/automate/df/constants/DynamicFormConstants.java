@@ -18,4 +18,6 @@ public class DynamicFormConstants {
 	public static final String SAVED = "saved";
 	public static final String COMMA_SEP = ",";
 	public static final String SPACE = " ";
+	public static final String TARGET_MONTHLY_TYPE = "MONTHLY";
+	public static final String TARGET_SPEICAL_TYPE = "SPECIAL";
 }

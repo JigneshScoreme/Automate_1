@@ -60,4 +60,7 @@ public class TargetSettingRes {
 	String generalManagerId;
 	String generalManager;
 	String userRole;
+	
+	String targetName;
+	String targetType;
 }

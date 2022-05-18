@@ -17,4 +17,8 @@ public class TargetMappingAddReq {
 	String managerId;
 	String teamLeadId;
 	String generalManagerId;
+	
+	String targetType;
+	String targetName;
+	
 }

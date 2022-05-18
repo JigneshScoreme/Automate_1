@@ -64,7 +64,9 @@ public interface SalesGapService {
 
 	TargetSettingRes updateTargetSettingDataV2(TSAdminUpdateReq request) throws DynamicFormsServiceException;
 
-	TSAdminUpdateReq getTargetSettingAdminById(int id)  throws DynamicFormsServiceException;;
+	TSAdminUpdateReq getTargetSettingAdminById(int id)  throws DynamicFormsServiceException;
+
+	Map<String, String> verifyTargetSettingData(TargetSettingReq request) throws DynamicFormsServiceException;
 
 	
 

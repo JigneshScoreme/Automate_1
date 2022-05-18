@@ -86,6 +86,18 @@ public class SalesGapController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 	
+	
+	@CrossOrigin
+	@PostMapping(value = "verify_target_mapping_admin")
+	public ResponseEntity<?> verifyTargetSettingData(@RequestBody TargetSettingReq request)
+			throws DynamicFormsServiceException {
+		Map<String,String> response = null;
+		if (Optional.of(request).isPresent()) {
+			response = salesGapService.verifyTargetSettingData(request);
+		} 
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
 	@CrossOrigin
 	@PutMapping(value = "update_target_mapping_admin")
 	public ResponseEntity<?> updateTargetSettingData(@RequestBody TargetSettingRes request)
