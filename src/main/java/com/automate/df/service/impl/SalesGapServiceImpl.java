@@ -1719,6 +1719,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 				boolean startFlag = false;
 				boolean endFlag = false;
 				log.debug("Inputstartdate " + inputStartDate + ",inputenddate:" + inputEndDate);
+				boolean insertFlag=false;
 				for (TargetEntityUser te : list) {
 
 					Date dbStartDate = dateFormat.parse(te.getStartDate());
@@ -1728,15 +1729,19 @@ public class SalesGapServiceImpl implements SalesGapService {
 					startFlag = dateoverlapvalidation(inputStartDate, dbStartDate, dbEndDate);
 					endFlag = dateoverlapvalidation(inputEndDate, dbStartDate, dbEndDate);
 				
-					if (startFlag && endFlag && dbStartDate.equals(inputStartDate) && dbEndDate.equals(inputEndDate))
+					if (startFlag && endFlag) {
+						insertFlag=true;
 						break;
+					}
+						
 					// log.debug("startFlag "+startFlag+", endFlag:"+endFlag);
 
 				}
-				;
+				
 				log.debug("startFlag:: " + startFlag + ", endFlag:" + endFlag);
+				log.debug("insertFlag ::"+insertFlag);
 				// if (!validateTargetMappingRole(teUser)) {
-				if (!startFlag && !endFlag) {
+				if (!insertFlag) {
 					log.debug("TARGET ROLE DATA DOESNOT EXISTS IN DB");
 					teUser.setActive(GsAppConstants.ACTIVE);
 					res = modelMapper.map(targetUserRepo.save(teUser), TargetSettingRes.class);
@@ -1778,7 +1783,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 
 	public static boolean dateoverlapvalidation(Date date, Date dateStart, Date dateEnd) {
 		if (date != null && dateStart != null && dateEnd != null) {
-			if (date.after(dateStart) && date.before(dateEnd)) {
+			if ((date.after(dateStart) && date.before(dateEnd)) || date.equals(dateStart) || date.equals(dateEnd)){
 				return true;
 			} else {
 				return false;
@@ -1919,9 +1924,6 @@ public class SalesGapServiceImpl implements SalesGapService {
 		TargetSettingRes res = null;
 		try {
 			Integer retailTarget = parseRetailTarget(req);
-
-			
-			
 			String finalEmpId =null;
 			
 			String empId = req.getEmployeeId();
@@ -1962,7 +1964,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 				String target = calculateTargets(adminTargets, retailTarget);
 
 				te.setTargets(target);
-
+				te.setActive("Y");
 				modelMapper.getConfiguration().setAmbiguityIgnored(true);
 				te.setTeamLeadId(req.getTeamLeadId());
 				if(req.getManagerId()!=null) {
