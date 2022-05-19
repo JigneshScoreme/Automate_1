@@ -1,6 +1,5 @@
 package com.automate.df.controller;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,9 +12,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.automate.df.entity.DmsTargetParamAllEmployeeSchedular;
-import com.automate.df.entity.DmsTargetParamEmployeeSchedular;
-import com.automate.df.entity.DmsTargetParamSchedular;
 import com.automate.df.exception.DynamicFormsServiceException;
 import com.automate.df.model.df.dashboard.DashBoardReqV3;
 import com.automate.df.service.DashBoardServiceV3;
@@ -36,9 +32,9 @@ public class DashBoardControllerV3 {
 	
 	@CrossOrigin
 	@PostMapping(value = "v2/get_target_params_scheduler")
-	public ResponseEntity< List<DmsTargetParamSchedular>> getTargetAchivementParams(@RequestBody DashBoardReqV3 req)
+	public ResponseEntity<?> getTargetAchivementParams(@RequestBody DashBoardReqV3 req)
 			throws DynamicFormsServiceException {
-		 List<DmsTargetParamSchedular>  response = null;
+		 String  response = null;
 		if (Optional.of(req).isPresent()) {
 			response = dashBoardService.getTargetAchivementParams(req.getEmpId());
 		} else {
@@ -49,9 +45,9 @@ public class DashBoardControllerV3 {
 	
 	@CrossOrigin
 	@PostMapping(value = "v2/get_target_params_for_emp_scheduler")
-	public ResponseEntity< List<DmsTargetParamEmployeeSchedular>> getTargetParamsForEmp(@RequestBody DashBoardReqV3 req)
+	public ResponseEntity<?> getTargetParamsForEmp(@RequestBody DashBoardReqV3 req)
 			throws DynamicFormsServiceException {
-		 List<DmsTargetParamEmployeeSchedular>  response = null;
+		 String  response = null;
 		if (Optional.of(req).isPresent()) {
 			response = dashBoardService.getTargetParamsForEmp(req.getEmpId());
 		} else {
@@ -62,9 +58,9 @@ public class DashBoardControllerV3 {
 	
 	@CrossOrigin
 	@PostMapping(value = "v2/get_target_params_for_all_emps_scheduler")
-	public ResponseEntity< List<DmsTargetParamAllEmployeeSchedular>> getTargetParamsForAllEmp(@RequestBody DashBoardReqV3 req)
+	public ResponseEntity<?> getTargetParamsForAllEmp(@RequestBody DashBoardReqV3 req)
 			throws DynamicFormsServiceException {
-		 List<DmsTargetParamAllEmployeeSchedular>  response = null;
+		 String response = null;
 		if (Optional.of(req).isPresent()) {
 			response = dashBoardService.getTargetParamsForAllEmp(req.getEmpId());
 		} else {
