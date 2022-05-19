@@ -104,5 +104,8 @@ public class TargetEntityUser {
 		String targetType;
 		@Column(name="target_name")
 		String targetName;
+		
+		@Column(name="user_hierarchy")
+		String userHierarchy;
 }
 

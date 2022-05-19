@@ -1739,7 +1739,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 				teUser.setType("");
 				teUser.setTargetName(req.getTargetName());
 				teUser.setTargetType(req.getTargetType());
-
+				teUser = setTargetSettingUserHierarchy(teUser,req);
 				List<TargetEntityUser> list = targetUserRepo.findAllQ3(finalEmpId);
 				log.debug("Data list for emp id " + list.size());
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -1903,6 +1903,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 				teUser.setTargetName(req.getTargetName());
 				teUser.setTargetType(req.getTargetType());
 
+				teUser = setTargetSettingUserHierarchy(teUser,req);
 				List<TargetEntityUser> list = targetUserRepo.findAllQ3(finalEmpId);
 				log.debug("Data list for emp id " + list.size());
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -1977,6 +1978,20 @@ public class SalesGapServiceImpl implements SalesGapService {
 		}
 
 		return res;
+	}
+
+	private TargetEntityUser setTargetSettingUserHierarchy(TargetEntityUser teUser, TargetMappingAddReq req) {
+		Map<String,String> userHiearchyMap = new HashMap<>();
+		userHiearchyMap.put("Level1",req.getGeneralManagerId()!=null?req.getGeneralManagerId():"");
+		userHiearchyMap.put("Level2",req.getBranchmangerId()!=null?req.getBranchmangerId():"");	
+		userHiearchyMap.put("Level3",req.getManagerId()!=null?req.getManagerId():"");	
+		userHiearchyMap.put("Level4",req.getTeamLeadId()!=null?req.getTeamLeadId():"");	
+		userHiearchyMap.put("Level5",req.getEmployeeId()!=null?req.getEmployeeId():"");	
+		
+		String userHiearchyStr = new Gson().toJson(userHiearchyMap);
+		log.debug("userHiearchyStr::"+userHiearchyStr);
+		teUser.setUserHierarchy(userHiearchyStr);	
+		return teUser;
 	}
 
 	public static boolean dateoverlapvalidation(Date date, Date dateStart, Date dateEnd) {
