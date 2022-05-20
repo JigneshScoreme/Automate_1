@@ -11,4 +11,5 @@ public class TargetRoleReq {
 	int size;
 	//int role;
 	int empId;
+	String targetType;
 }

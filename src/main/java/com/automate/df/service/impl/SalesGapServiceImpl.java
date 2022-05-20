@@ -1,5 +1,7 @@
 package com.automate.df.service.impl;
 
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
+
 import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -732,6 +734,16 @@ public class SalesGapServiceImpl implements SalesGapService {
 			if (fromIndex > toIndex) {
 				fromIndex = toIndex;
 			}
+			String targetType = req.getTargetType();
+			log.debug("targetType in get all api "+targetType);
+			
+			if(null!=targetType && targetType.equalsIgnoreCase(DynamicFormConstants.TARGET_MONTHLY_TYPE)) {
+				outputList = outputList.stream().filter(x->x.getTargetType().equalsIgnoreCase(DynamicFormConstants.TARGET_MONTHLY_TYPE)).collect(Collectors.toList());
+			}
+			else if(null!=targetType && targetType.equalsIgnoreCase(DynamicFormConstants.TARGET_SPEICAL_TYPE)) {
+				outputList = outputList.stream().filter(x->x.getTargetType().equalsIgnoreCase(DynamicFormConstants.TARGET_SPEICAL_TYPE)).collect(Collectors.toList());
+			}
+		
 			log.debug("outputList ::"+outputList.size());
 			
 			if(outputList!=null && !outputList.isEmpty() && outputList.size()>toIndex) {

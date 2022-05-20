@@ -131,7 +131,6 @@ public class SalesGapController {
 	public ResponseEntity<?> saveTargetMappingData(@RequestBody TargetMappingReq request)
 			throws DynamicFormsServiceException {
 		String response = null;
-		if (Optional.of(request).isPresent()) {
 			response = salesGapService.saveTargetMappingData(request);
 		} else {
 			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
