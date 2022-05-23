@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.automate.df.entity.oh.LocationNodeData;
 import com.automate.df.entity.oh.LocationNodeDef;
+import com.automate.df.entity.salesgap.DmsEmployee;
 import com.automate.df.exception.DynamicFormsServiceException;
 import com.automate.df.model.AcitveMappingOrgChartRes;
 import com.automate.df.model.DropDownRes;
@@ -287,6 +288,35 @@ public class OHController {
 		Map<String, Object> response = null;
 		if (Optional.of(pageNo).isPresent() && Optional.of(size).isPresent()) {
 			response = ohService.getEmployeesListWithMapping(pageNo,size,orgId);
+		} else {
+			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	@CrossOrigin
+	@PostMapping(value="/employees/create")
+	public ResponseEntity<DmsEmployee> createEmployee(@RequestBody DmsEmployee dmsEmployee)
+			throws DynamicFormsServiceException {
+		DmsEmployee response = null;
+		if (Optional.of(dmsEmployee).isPresent()) {
+			response=ohService.saveEmployee(dmsEmployee);
+		} else {
+			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	@CrossOrigin
+	@PostMapping(value="/employees/update")
+	public ResponseEntity<DmsEmployee> updateEmployee(@RequestBody DmsEmployee dmsEmployee)
+			throws DynamicFormsServiceException {
+		DmsEmployee response = null;
+		if (Optional.of(dmsEmployee).isPresent()) {
+			response=ohService.updateEmployee(dmsEmployee);
+			if(response==null) { // emp doesnt exist
+				throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
+			}
 		} else {
 			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
 		}

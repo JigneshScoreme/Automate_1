@@ -40,6 +40,7 @@ import com.automate.df.entity.oh.DmsGrade;
 import com.automate.df.entity.oh.EmpLocationMapping;
 import com.automate.df.entity.oh.LocationNodeData;
 import com.automate.df.entity.oh.LocationNodeDef;
+import com.automate.df.entity.sales.employee.DMSEmployee;
 import com.automate.df.entity.salesgap.DmsEmployee;
 import com.automate.df.exception.DynamicFormsServiceException;
 import com.automate.df.model.AcitveMappingOrgChartRes;
@@ -2169,4 +2170,28 @@ public class OHServiceImpl implements OHService {
 
 		return empDtaMap;
 	}
+	
+	@Override
+	public DmsEmployee saveEmployee(DmsEmployee dmsEmployee){
+		return dmsEmployeeRepo.save(dmsEmployee);
+	}
+	
+	@Override
+	public DmsEmployee updateEmployee(DmsEmployee dmsEmployee){
+		Optional<DmsEmployee> optionalPersistDmsEmployee = dmsEmployeeRepo.findEmpById(dmsEmployee.getEmp_id());
+	if(optionalPersistDmsEmployee.isPresent()) {
+		DmsEmployee dmsPersistentEmployee = optionalPersistDmsEmployee.get();
+		dmsPersistentEmployee.setAddress(dmsEmployee.getAddress());
+		dmsPersistentEmployee.setDeptId(dmsEmployee.getDeptId());
+		dmsPersistentEmployee.setDesignationId(dmsEmployee.getDesignationId());
+		dmsPersistentEmployee.setApprover(dmsEmployee.getApprover());
+		dmsPersistentEmployee.setReportingTo(dmsEmployee.getReportingTo());
+		dmsPersistentEmployee.setEmpName(dmsEmployee.getEmpName());
+		dmsPersistentEmployee.setEmail(dmsEmployee.getEmail());
+		dmsPersistentEmployee.setMobile(dmsEmployee.getMobile());
+		return dmsEmployeeRepo.save(dmsPersistentEmployee);
+	}
+	return null;
+	}
+	
 }

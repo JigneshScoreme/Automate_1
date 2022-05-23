@@ -5,6 +5,8 @@ import java.util.Map;
 
 import com.automate.df.entity.oh.LocationNodeData;
 import com.automate.df.entity.oh.LocationNodeDef;
+import com.automate.df.entity.sales.employee.DMSEmployee;
+import com.automate.df.entity.salesgap.DmsEmployee;
 import com.automate.df.exception.DynamicFormsServiceException;
 import com.automate.df.model.oh.EmployeeRootV2;
 import com.automate.df.model.oh.LevelDataReq;
@@ -69,6 +71,9 @@ public interface OHService {
 
 	Object getActiveBranches(Integer orgId, Integer empId) throws DynamicFormsServiceException;
 
-
+	DmsEmployee saveEmployee(DmsEmployee dmsEmployee);
+	
+	DmsEmployee updateEmployee(DmsEmployee dmsEmployee);
+	
 
 }

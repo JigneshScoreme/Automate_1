@@ -506,16 +506,16 @@ public class GenericServiceImpl implements GenericService {
 					DmsAddress address1 = new DmsAddress();
 					address1.setAddressType("Communication");
 					address1.setPincode(String.valueOf(pinCode));
-					address1.setCounty("India");
-					address1.setRural(false);
-					address1.setUrban(true);
+					address1.setCountry("India");
+					address1.setIsRural(null);
+					address1.setIsUrban("urban");
 
 					DmsAddress address2 = new DmsAddress();
 					address2.setAddressType("Permanent");
 					address2.setPincode(String.valueOf(pinCode));
-					address2.setCounty("India");
-					address2.setRural(false);
-					address2.setUrban(true);
+					address2.setCountry("India");
+					address2.setIsRural(null);
+					address2.setIsUrban("urban");
 
 					List<DmsAddress> addList = new ArrayList<>();
 					addList.add(address1);
