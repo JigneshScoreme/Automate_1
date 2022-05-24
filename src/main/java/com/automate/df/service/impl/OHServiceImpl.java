@@ -2181,9 +2181,12 @@ public class OHServiceImpl implements OHService {
 		Optional<DmsEmployee> optionalPersistDmsEmployee = dmsEmployeeRepo.findEmpById(dmsEmployee.getEmp_id());
 	if(optionalPersistDmsEmployee.isPresent()) {
 		DmsEmployee dmsPersistentEmployee = optionalPersistDmsEmployee.get();
+		dmsPersistentEmployee.setHrmsEmpId(dmsEmployee.getEmp_id()+"");
+		dmsPersistentEmployee.setHrmsRole(dmsEmployee.getHrmsRole());
 		dmsPersistentEmployee.setAddress(dmsEmployee.getAddress());
 		dmsPersistentEmployee.setDeptId(dmsEmployee.getDeptId());
 		dmsPersistentEmployee.setDesignationId(dmsEmployee.getDesignationId());
+		dmsPersistentEmployee.setGradeId(dmsEmployee.getGradeId());
 		dmsPersistentEmployee.setApprover(dmsEmployee.getApprover());
 		dmsPersistentEmployee.setReportingTo(dmsEmployee.getReportingTo());
 		dmsPersistentEmployee.setEmpName(dmsEmployee.getEmpName());

@@ -45,6 +45,10 @@ public class DmsEmployee {
 	
     @Column(name = "new_password")
     private String password;
+    
+	
+    @Column(name = "old_password")
+    private String oldPassword;
 	
 	@Column(name="basic_salary")
 	private String basicSal;
@@ -60,6 +64,9 @@ public class DmsEmployee {
 	
 	@Column(name="primary_designation")
 	private String designationId;
+	
+	@Column(name="grade_id")
+	private String gradeId;
 	
 	
 	@Column(name="employee_status_id")
