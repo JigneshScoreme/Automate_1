@@ -1578,14 +1578,14 @@ public class SalesGapServiceImpl implements SalesGapService {
 
 				log.debug("Emp ID " + req.getEmployeeId() + " StartDate " + req.getStartDate() + " endData: "
 						+ req.getEndDate());
-				Optional<TargetEntityUser> tesOpt = targetUserRepo.findByEmpIdWithDate(req.getEmployeeId(),
-						req.getStartDate(), req.getEndDate(),req.getTargetType());
-				if (tesOpt.isPresent()) {
+				List<TargetEntityUser> targetList = targetUserRepo.findByEmpIdWithDate(req.getEmployeeId(),
+						req.getStartDate(), req.getEndDate(),req.getTargetType(),req.getTargetName());
+				if (!targetList.isEmpty()) {
 					log.debug("Record present in user ts table");
-					TargetEntityUser tes = tesOpt.get();
+					TargetEntityUser tes = targetList.get(0);
 					teUser.setGeneratedId(tes.getGeneratedId());
 				}
-
+				
 				modelMapper.getConfiguration().setAmbiguityIgnored(true);
 				teUser.setTeamLeadId(req.getTeamLead());
 				teUser.setManagerId(req.getManager());
@@ -2176,53 +2176,57 @@ public class SalesGapServiceImpl implements SalesGapService {
 			
 			log.debug("finalEmpId::"+finalEmpId);
 			
-			Optional<TargetEntityUser> opt = targetUserRepo.findByEmpIdWithDate(finalEmpId, req.getStartDate(),
-					req.getEndDate(),req.getTargetType());
+			List<TargetEntityUser>  targetEntityUserList  = targetUserRepo.findByEmpIdWithDate(finalEmpId, req.getStartDate(),
+					req.getEndDate(),req.getTargetType(),req.getTargetName());
 
 			
 			
 			String adminTargets = getAdminTargetString(Integer.parseInt(finalEmpId));
 			log.debug("adminTargets :" + adminTargets);
-			if (opt.isPresent()) {
+			if (!targetEntityUserList.isEmpty()) {
+				for(TargetEntityUser te: targetEntityUserList) {
+					try {
+						String target = calculateTargets(adminTargets, retailTarget);
+						te.setTargets(target);
+						te.setActive("Y");
+						te.setType("");
+						te.setTargetName(req.getTargetName());
+						te.setTargetType(req.getTargetType());
+						modelMapper.getConfiguration().setAmbiguityIgnored(true);
+						te.setTeamLeadId(req.getTeamLeadId());
+						if (req.getManagerId() != null) {
+							te.setManagerId(req.getManagerId());
+						}
+						te.setBranch(req.getBranch());
+						if (req.getBranchmangerId() != null) {
+							te.setBranchmangerId(req.getBranchmangerId());
+						}
+						if (req.getGeneralManagerId() != null) {
+							te.setGeneralManager(getEmpName(req.getGeneralManagerId()));
+						}
+						te.setStartDate(req.getStartDate());
+						te.setEndDate(req.getEndDate());
+						te.setRetailTarget(retailTarget);
 
-				TargetEntityUser te = opt.get();
-				String target = calculateTargets(adminTargets, retailTarget);
+						TargetRoleRes role = getEmpRoleDataV3(Integer.parseInt(finalEmpId));
+						te.setOrgId(role.getOrgId());
 
-				te.setTargets(target);
-				te.setActive("Y");
-				te.setType("");
-				te.setTargetName(req.getTargetName());
-				te.setTargetType(req.getTargetType());
-				modelMapper.getConfiguration().setAmbiguityIgnored(true);
-				te.setTeamLeadId(req.getTeamLeadId());
-				if(req.getManagerId()!=null) {
-				te.setManagerId(req.getManagerId());
+						res = modelMapper.map(targetUserRepo.save(te), TargetSettingRes.class);
+
+						res.setEmpName(getEmpName(res.getEmployeeId()));
+						res.setTeamLead(getEmpName(res.getTeamLeadId()));
+						res.setManager(getEmpName(res.getManagerId()));
+						res.setBranchmanger(getEmpName(req.getBranchmangerId()));
+						res.setGeneralManager(getEmpName(req.getGeneralManagerId()));
+
+						res.setBranchManagerId(req.getBranchmangerId());
+						// res.setLocation(req.getLocation());
+						res = convertTargetStrToObj(te.getTargets(), res);
+					} catch (Exception e) {
+						e.printStackTrace();
+						log.error("exception ", e);
+					}
 				}
-				te.setBranch(req.getBranch());
-				if(req.getBranchmangerId()!=null) {
-				te.setBranchmangerId(req.getBranchmangerId());
-				}
-				if(req.getGeneralManagerId()!=null) {
-				te.setGeneralManager(getEmpName(req.getGeneralManagerId()));
-				}
-				te.setStartDate(req.getStartDate());
-				te.setEndDate(req.getEndDate());
-				te.setRetailTarget(retailTarget);
-				
-				TargetRoleRes role = getEmpRoleDataV3(Integer.parseInt(finalEmpId));
-				te.setOrgId(role.getOrgId());
-				
-				res = modelMapper.map(targetUserRepo.save(te), TargetSettingRes.class);
-
-				res.setEmpName(getEmpName(res.getEmployeeId()));
-				res.setTeamLead(getEmpName(res.getTeamLeadId()));
-				res.setManager(getEmpName(res.getManagerId()));
-				res.setBranchmanger(getEmpName(req.getBranchmangerId()));
-				res.setGeneralManager(getEmpName(req.getGeneralManagerId()));
-
-				res.setBranchManagerId(req.getBranchmangerId());
-				// res.setLocation(req.getLocation());
-				res = convertTargetStrToObj(te.getTargets(), res);
 			}
 
 		} catch (DynamicFormsServiceException e) {
