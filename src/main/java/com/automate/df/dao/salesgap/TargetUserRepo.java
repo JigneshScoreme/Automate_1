@@ -41,10 +41,11 @@ public interface TargetUserRepo extends JpaRepository<TargetEntityUser, Integer>
 			);
 	
 	
-	@Query(value="SELECT * FROM dms_target_setting_user where emp_id=:empId and start_date=:startDate and end_date=:endDate",nativeQuery = true)
+	@Query(value="SELECT * FROM dms_target_setting_user where emp_id=:empId and start_date=:startDate and end_date=:endDate and target_type=:targetType and is_active='Y'",nativeQuery = true)
 	public Optional<TargetEntityUser> findByEmpIdWithDate(@Param(value="empId") String empId,
 			@Param(value="startDate") String startDate,
-			@Param(value="endDate") String endDate);
+			@Param(value="endDate") String endDate,
+			@Param(value="targetType") String targetType);
 
 	@Query(value="SELECT * FROM dms_target_setting_user where emp_id=:empId and type='default'",nativeQuery = true)
 	public Optional<TargetEntityUser> checkDefaultDataInTargetUser(@Param(value="empId") String empId);

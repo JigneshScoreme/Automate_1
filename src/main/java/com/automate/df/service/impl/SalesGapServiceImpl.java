@@ -1579,7 +1579,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 				log.debug("Emp ID " + req.getEmployeeId() + " StartDate " + req.getStartDate() + " endData: "
 						+ req.getEndDate());
 				Optional<TargetEntityUser> tesOpt = targetUserRepo.findByEmpIdWithDate(req.getEmployeeId(),
-						req.getStartDate(), req.getEndDate());
+						req.getStartDate(), req.getEndDate(),req.getTargetType());
 				if (tesOpt.isPresent()) {
 					log.debug("Record present in user ts table");
 					TargetEntityUser tes = tesOpt.get();
@@ -2177,7 +2177,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 			log.debug("finalEmpId::"+finalEmpId);
 			
 			Optional<TargetEntityUser> opt = targetUserRepo.findByEmpIdWithDate(finalEmpId, req.getStartDate(),
-					req.getEndDate());
+					req.getEndDate(),req.getTargetType());
 
 			
 			
