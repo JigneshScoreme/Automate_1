@@ -3035,7 +3035,8 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			map.put("todaysData", getTodayDataV2(req,empIdsUnderReporting));
 			map.put("upcomingData", getUpcomingDataV2(req,empIdsUnderReporting));
 			map.put("pendingData", getPendingDataV2(req,empIdsUnderReporting));
-		} catch (Exception e) {
+			map.put("rescheduledData", getRescheduledDataV2(req,empIdsUnderReporting));
+			} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return map;
@@ -3048,6 +3049,22 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 	private List<TodaysTaskRes> getPendingDataV2(MyTaskReq req, List<Integer> empIdsUnderReporting) {
 		log.debug("Inside getUpcomingDataV2::()");
+		List<TodaysTaskRes> todaysRes = new ArrayList<>();
+		for (Integer empId : empIdsUnderReporting) {
+			String empName = salesGapServiceImpl.getEmpName(String.valueOf(empId));
+			log.debug("generating data for empId " + empId + " and empName:" + empName);
+			String todaysDate = getTodaysDate();
+			log.debug("todaysDate::"+todaysDate);
+			List<DmsWFTask> wfTaskList = dmsWfTaskDao.findAllByRescheduledStatus(String.valueOf(empId));
+			log.debug("wfTaskList size ingetPendingDataV2 "+wfTaskList.size());
+			//wfTaskList = wfTaskList.stream().filter(wfTask->validatePendingTask(wfTask.getTaskUpdatedTime(), wfTask.getTaskCreatedTime())).collect(Collectors.toList());
+			todaysRes.add(buildMyTaskObj(wfTaskList,empId,empName));    
+		}
+		return todaysRes;
+	}
+	
+	private List<TodaysTaskRes> getRescheduledDataV2(MyTaskReq req, List<Integer> empIdsUnderReporting) {
+		log.debug("Inside getRescheduledDataV2::()");
 		List<TodaysTaskRes> todaysRes = new ArrayList<>();
 		for (Integer empId : empIdsUnderReporting) {
 			String empName = salesGapServiceImpl.getEmpName(String.valueOf(empId));
