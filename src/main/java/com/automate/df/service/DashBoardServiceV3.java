@@ -11,5 +11,8 @@ public interface DashBoardServiceV3 {
 	String getTargetAchivementParams(String empId) throws DynamicFormsServiceException;
 	String getTargetParamsForEmp(String empId) throws DynamicFormsServiceException;
 	String getTargetParamsForAllEmp(String empId) throws DynamicFormsServiceException;
+	String getEmpRankOrg(Integer empId) throws DynamicFormsServiceException;
+	String getEmpRankBranch(Integer empId,Integer branchId) throws DynamicFormsServiceException;
+	
 
 }

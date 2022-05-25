@@ -383,14 +383,18 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		return resList;
 	}
 
-
+	
 	@Override
 	public List<TargetRankingRes> getEmployeeTargetRankingByOrg(Integer orgId,DashBoardReqV2 req) throws DynamicFormsServiceException {
-		return getEmployeeTargetRanking(dmsEmployeeRepo.findAllByOrgId(orgId),req);
+		Integer empId = req.getLoggedInEmpId();
+		Integer roleId = dmsEmployeeRepo.getEmpHrmsRole(empId);
+		return getEmployeeTargetRanking(dmsEmployeeRepo.findAllByOrgId(orgId,roleId),req);
 	}
 	
 	@Override
 	public List<TargetRankingRes> getEmployeeTargetRankingByOrgAndBranch(Integer orgId,Integer branchId,DashBoardReqV2 req) throws DynamicFormsServiceException {
+		Integer empId = req.getLoggedInEmpId();
+		Integer roleId = dmsEmployeeRepo.getEmpHrmsRole(empId);
 		return getEmployeeTargetRanking(dmsEmployeeRepo.getEmployeesByOrgBranch(orgId,branchId),req);
 	}
 

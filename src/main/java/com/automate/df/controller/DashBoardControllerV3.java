@@ -7,6 +7,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -63,6 +64,33 @@ public class DashBoardControllerV3 {
 		 String response = null;
 		if (Optional.of(req).isPresent()) {
 			response = dashBoardService.getTargetParamsForAllEmp(req.getEmpId());
+		} else {
+			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	
+	@CrossOrigin
+	@PostMapping(value = "v2/get_emp_target_ranking_scheduler/org/{orgId}")
+	public ResponseEntity<?> getEmployeeTargetRankingsByOrg(@PathVariable(name="orgId") Integer orgId,@RequestBody DashBoardReqV3 req)
+			throws DynamicFormsServiceException {
+		 String response = null;
+		if (Optional.of(req).isPresent()) {
+			response = dashBoardService.getEmpRankOrg(orgId);
+		} else {
+			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	@CrossOrigin
+	@PostMapping(value = "v2/get_emp_target_ranking_scheduler/org/{orgId}/branch/{branchId}")
+	public ResponseEntity<?> getEmployeeTargetRankingsByOrg(@PathVariable(name="orgId") Integer orgId,@PathVariable(name="branchId") Integer branchId,@RequestBody DashBoardReqV3 req)
+			throws DynamicFormsServiceException {
+		 String response = null;
+		if (Optional.of(req).isPresent()) {
+			response = dashBoardService.getEmpRankBranch(orgId,branchId);
 		} else {
 			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
 		}
