@@ -394,10 +394,11 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		return getEmployeeTargetRanking(dmsEmployeeRepo.getEmployeesByOrgBranch(orgId,branchId),req);
 	}
 
+	
 	private List<TargetRankingRes> getEmployeeTargetRanking(List<DmsEmployee> empList,DashBoardReqV2 req) throws DynamicFormsServiceException {
 		// TODO Auto-generated method stub
 		List<TargetRankingRes> targetRankingList = new ArrayList<>();
-		Set<Double> targetAchievementPercentSet = new HashSet<>();
+		Set<Integer> targetAchievementPercentSet = new HashSet<>();
 		empList.stream().forEach(employee->{
 		try {
 			TargetRankingRes targetRankingResponse = new TargetRankingRes();
@@ -407,6 +408,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 				TargetAchivement invoiceTarrgetAchievement = retailAchivementList.get(0);
 				targetRankingResponse.setAchivementPerc(Double.parseDouble(invoiceTarrgetAchievement.getAchivementPerc().replace("%", "")));
 				targetRankingResponse.setTargetAchivements(Integer.parseInt(invoiceTarrgetAchievement.getAchievment()));
+			
 			}
 			
 			targetRankingResponse.setEmpId(employee.getEmp_id());
@@ -414,23 +416,34 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			targetRankingResponse.setOrgId(Integer.parseInt(employee.getOrg()));
 			targetRankingResponse.setBranchId(Integer.parseInt(employee.getBranch()));
 			targetRankingList.add(targetRankingResponse);
-			targetAchievementPercentSet.add(targetRankingResponse.getAchivementPerc());
-			
+			//targetAchievementPercentSet.add(targetRankingResponse.getAchivementPerc());
+			targetAchievementPercentSet.add(targetRankingResponse.getTargetAchivements());			
 		} catch (ParseException | DynamicFormsServiceException e) {
 			// TODO Auto-generated catch block
+			log.error("Exception ",e);
 			e.printStackTrace();
 		}
 		});
-		List<Double> targetAchievementPercentList = targetAchievementPercentSet.stream().collect(Collectors.toList());
+		
+		
+
+		
+		
+		List<Integer> targetAchievementPercentList = targetAchievementPercentSet.stream().collect(Collectors.toList());
 		Collections.sort(targetAchievementPercentList,Collections.reverseOrder());
 		AtomicInteger rank= new AtomicInteger(0);
 		targetAchievementPercentList.stream().forEach(targetAchivementPercent->{
 			rank.set(rank.addAndGet(1));
-			List<TargetRankingRes> filteredList = targetRankingList.stream().filter(z->z.getAchivementPerc().equals(targetAchivementPercent)).collect(Collectors.toList());
+			List<TargetRankingRes> filteredList = targetRankingList.stream().filter(z->z.getTargetAchivements().equals(targetAchivementPercent)).collect(Collectors.toList());
 			filteredList.stream().forEach(y->{
 				y.setRank(rank.get());
 			});
 		});
+		
+		Collections.sort(targetRankingList,(o1,o2)->{
+			return o2.getTargetAchivements()-o1.getTargetAchivements();
+		});
+		
 		return targetRankingList;
 	}
 
@@ -476,7 +489,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		Optional<DmsEmployee> empOpt = dmsEmployeeRepo.findEmpById(empId);
 		if (empOpt.isPresent()) {
 			TargetRoleRes tRole = salesGapServiceImpl.getEmpRoleDataV2(empId);
-			System.out.println("tRole.getBranchId() ::" + tRole.getBranchId() + ",branchId:" + branchId);
+			//System.out.println("tRole.getBranchId() ::" + tRole.getBranchId() + ",branchId:" + branchId);
 			if (tRole.getBranchId().equals(branchId)) {
 				Map<String, Object> hMap = ohServiceImpl.getReportingHierarchy(empOpt.get(),
 						Integer.parseInt(tRole.getBranchId()), Integer.parseInt((tRole.getOrgId())));
@@ -954,7 +967,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			Date resStartDate = parseDate(res.getStartDate());
 			Date resEndDate = parseDate(res.getEndDate());
 			log.info("resStartDate:"+resStartDate+",resEndDate:"+resEndDate);
-			System.out.println("startDate equals "+startDate.equals(resStartDate));
+			//System.out.println("startDate equals "+startDate.equals(resStartDate));
 
 
 			if((resStartDate.after(startDate) || resStartDate.equals(startDate)) 
@@ -1042,7 +1055,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 	private String getAchievmentPercentage(Long cnt, Integer target) {
 		Double perc = 0D;
-		System.out.println("target "+target);
+		//System.out.println("target "+target);
 	
 		if(target>0) {
 			perc = (Double.valueOf(cnt)/Double.valueOf(target))*100;
@@ -2682,8 +2695,8 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 						finalEnqTarget = finalEnqTarget + Integer.parseInt(target.getTarget());
 					
 					}
-					System.out.println("finalEnqAchivePerc::"+finalEnqAchivePerc);
-					System.out.println("target.getAchivementPerc()::"+target.getAchivementPerc());
+					//System.out.println("finalEnqAchivePerc::"+finalEnqAchivePerc);
+					//System.out.println("target.getAchivementPerc()::"+target.getAchivementPerc());
 					if (null != target.getAchivementPerc()) {
 						String tmp = target.getAchivementPerc().replaceAll("%","").trim();
 					    finalEnqAchivePerc = finalEnqAchivePerc + Double.parseDouble(tmp);
