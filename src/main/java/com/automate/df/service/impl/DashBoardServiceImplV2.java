@@ -1782,13 +1782,13 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		log.info("StartDate " + startDate + ", EndDate " + endDate);
 		Map<String,Map<Integer,String>> vehicleDetails = dashBoardUtil.getVehilceDetails(orgId);
 		
-		map.putAll(getLostData(vehicleDetails,orgId,branchId,startDate,endDate,empNamesList,empIdsUnderReporting));
-		map.putAll(getDropData(vehicleDetails,orgId,branchId,startDate,endDate,empNamesList,empIdsUnderReporting));
+		map.putAll(getEnquiryLostData(vehicleDetails,orgId,branchId,startDate,endDate,empNamesList,empIdsUnderReporting));
+		map.putAll(getBookingCancelledData(vehicleDetails,orgId,branchId,startDate,endDate,empNamesList,empIdsUnderReporting));
 		return map;
 	}
 
 
-	private Map<String, Object> getDropData(Map<String, Map<Integer, String>> vehicleDetails,String orgId,String branchId,
+	private Map<String, Object> getBookingCancelledData(Map<String, Map<Integer, String>> vehicleDetails,String orgId,String branchId,
 			String startDate, String endDate, List<String> empNamesList, List<Integer> empIdsUnderReporting) {
 	
 		Map<String, Object> responseMap = new LinkedHashMap<>();
@@ -1834,7 +1834,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			lr.setDropPercentage(String.format("%.2f", perc));
 		}
 		responseMap.put("dropData", dropResList);
-		responseMap.put("totalDropRevenue", dropResList.stream().collect(Collectors.summingLong(DropRes::getDropAmount)));
+		responseMap.put("totalBkgCancelledRevenue", dropResList.stream().collect(Collectors.summingLong(DropRes::getDropAmount)));
 		return responseMap;
 	}
 
@@ -1842,7 +1842,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	private DropRes buildDropData(String orgId,String branchId, String startDate, String endDate, List<String> empNamesList,String model,Integer
 			modelId,List<String> list) {
 		List<DmsLead> dmsLeadList = dmsLeadDao.getAllEmployeeLeadsWithModelandStage(orgId, empNamesList, startDate, endDate, list, DROPPED);
-		List<Integer> dropList = dmsLeadDropDao.getLeads(dmsLeadList.stream().map(DmsLead::getId).collect(Collectors.toList()), ENQUIRY);
+		List<Integer> dropList = dmsLeadDropDao.getLeads(dmsLeadList.stream().map(DmsLead::getId).collect(Collectors.toList()), BOOKING);
 		
 		int lostCnt = 0;
 		List<DmsLead> filteredDmsList = new ArrayList<>();
@@ -1875,7 +1875,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	}
 
 
-	private Map<String, Object> getLostData(Map<String, Map<Integer, String>> vehicleDetails, String orgId,String branchId,
+	private Map<String, Object> getEnquiryLostData(Map<String, Map<Integer, String>> vehicleDetails, String orgId,String branchId,
 			String startDate, String endDate, List<String> empNamesList, List<Integer> empIdsUnderReporting) {
 		Map<String, Object> responseMap = new LinkedHashMap<>();
 		List<LostRes> lostResList = new ArrayList<>();
@@ -1920,7 +1920,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			lr.setLostPercentage(String.format("%.2f", perc));
 		}
 		responseMap.put("lostData", lostResList);
-		responseMap.put("totalLostRevenue", lostResList.stream().collect(Collectors.summingLong(LostRes::getLostAmount)));
+		responseMap.put("totalEnqLostRevenue", lostResList.stream().collect(Collectors.summingLong(LostRes::getLostAmount)));
 		return responseMap;
 	}
 	
