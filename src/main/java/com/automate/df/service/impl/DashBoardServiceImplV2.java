@@ -3059,7 +3059,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			log.debug("generating data for empId " + empId + " and empName:" + empName);
 			String todaysDate = getTodaysDate();
 			log.debug("todaysDate::"+todaysDate);
-			List<DmsWFTask> wfTaskList = dmsWfTaskDao.findAllByRescheduledStatus(String.valueOf(empId));
+			List<DmsWFTask> wfTaskList = dmsWfTaskDao.findAllByPendingStatus (String.valueOf(empId));
 			log.debug("wfTaskList size ingetPendingDataV2 "+wfTaskList.size());
 			//wfTaskList = wfTaskList.stream().filter(wfTask->validatePendingTask(wfTask.getTaskUpdatedTime(), wfTask.getTaskCreatedTime())).collect(Collectors.toList());
 			todaysRes.add(buildMyTaskObj(wfTaskList,empId,empName));    
