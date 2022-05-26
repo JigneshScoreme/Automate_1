@@ -12,5 +12,6 @@ public class DashBoardReqV3 {
 	String endDate;
 	int pageNo;
 	int size;
+	Integer loggedInEmpId;
 
 }

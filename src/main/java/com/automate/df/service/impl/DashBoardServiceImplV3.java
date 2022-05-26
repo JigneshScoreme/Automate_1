@@ -94,9 +94,9 @@ public class DashBoardServiceImplV3  implements DashBoardServiceV3{
 	}
 	
 	@Override
-	public String getEmpRankOrg(Integer empId)
+	public String getEmpRankOrg(Integer empId, Integer orgId)
 			throws DynamicFormsServiceException {
-		Optional<DmsEmployeeTargetRankingOrg> opt = dmsEmpTargetRankingOrgDao.findByEmpId(empId);
+		Optional<DmsEmployeeTargetRankingOrg> opt = dmsEmpTargetRankingOrgDao.findByEmpId(empId,orgId);
 		String str = null;
 		DmsEmployeeTargetRankingOrg auto = null;
 		if (opt.isPresent()) {
@@ -115,9 +115,9 @@ public class DashBoardServiceImplV3  implements DashBoardServiceV3{
 	}
 	
 	@Override
-	public String getEmpRankBranch(Integer empId, Integer branchId)
+	public String getEmpRankBranch(Integer empId,Integer orgId, Integer branchId)
 			throws DynamicFormsServiceException {
-		Optional<DmsEmployeeTargetRankingBranch> opt = dmsEmpTargetRankingBranchDao.findByEmpIdAndBranchId(empId,branchId);
+		Optional<DmsEmployeeTargetRankingBranch> opt = dmsEmpTargetRankingBranchDao.findByEmpIdAndBranchId(empId,orgId,branchId);
 		String str = null;
 		DmsEmployeeTargetRankingBranch auto = null;
 		if (opt.isPresent()) {

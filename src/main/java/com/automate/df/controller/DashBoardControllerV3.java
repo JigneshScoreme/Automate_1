@@ -77,7 +77,7 @@ public class DashBoardControllerV3 {
 			throws DynamicFormsServiceException {
 		 String response = null;
 		if (Optional.of(req).isPresent()) {
-			response = dashBoardService.getEmpRankOrg(orgId);
+			response = dashBoardService.getEmpRankOrg(req.getLoggedInEmpId(),orgId);
 		} else {
 			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
 		}
@@ -90,7 +90,7 @@ public class DashBoardControllerV3 {
 			throws DynamicFormsServiceException {
 		 String response = null;
 		if (Optional.of(req).isPresent()) {
-			response = dashBoardService.getEmpRankBranch(orgId,branchId);
+			response = dashBoardService.getEmpRankBranch(req.getLoggedInEmpId(),orgId,branchId);
 		} else {
 			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
 		}
