@@ -30,6 +30,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.automate.df.constants.DynamicFormConstants;
 import com.automate.df.dao.DmsSourceOfEnquiryDao;
 import com.automate.df.dao.LeadStageRefDao;
 import com.automate.df.dao.dashboard.ComplaintTrackerDao;
@@ -443,6 +444,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 				y.setRank(rank.get());
 			});
 		});
+		
 		
 		Collections.sort(targetRankingList,(o1,o2)->{
 			return o2.getTargetAchivements()-o1.getTargetAchivements();
@@ -3021,9 +3023,13 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 				empIdList.add(req.getLoggedInEmpId());
 				
 			}else {
+				Long startTime = System.currentTimeMillis();
 				empIdList = getReportingEmployes(req.getLoggedInEmpId());
+				log.debug("Time taken to get employess list "+(System.currentTimeMillis()-startTime));
 			}
-			list = getTodaysDataV2(empIdList, req);
+			Long startTime_1 = System.currentTimeMillis();
+			list = getTodaysDataV2(empIdList, req,req.getDataType());
+			log.debug("Time taken to get Todays Data "+(System.currentTimeMillis()-startTime_1));
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -3036,23 +3042,24 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 
 
-	private Map<String, Object> getTodaysDataV2(List<Integer> empIdsUnderReporting, MyTaskReq req) {
+	private Map<String, Object> getTodaysDataV2(List<Integer> empIdsUnderReporting, MyTaskReq req, String dataType) {
 
 		Map<String, Object> map = new LinkedHashMap<>();
 		try {
 			log.debug("empIdsUnderReporting in getTodaysData before pagination"+empIdsUnderReporting.size());
-			//empIdsUnderReporting = dashBoardUtil.getPaginatedList(empIdsUnderReporting, req.getPageNo(), req.getSize());
-			//log.debug("empIdsUnderReporting in getTodaysData "+empIdsUnderReporting.size());
-			//Map<String, Integer> paginationMap = new LinkedHashMap<>();
-			//paginationMap.put("totalCnt", totalCnt);
-			//paginationMap.put("pageNo", req.getPageNo());
-			//paginationMap.put("size", req.getSize());
-			
-			//map.put("paginationData", paginationMap);
-			map.put("todaysData", getTodayDataV2(req,empIdsUnderReporting));
-			map.put("upcomingData", getUpcomingDataV2(req,empIdsUnderReporting));
-			map.put("pendingData", getPendingDataV2(req,empIdsUnderReporting));
-			map.put("rescheduledData", getRescheduledDataV2(req,empIdsUnderReporting));
+			log.debug("dataType::::"+dataType);
+			if(dataType.equalsIgnoreCase(DynamicFormConstants.TODAYS_DATA)) {
+				map.put("todaysData", getTodayDataV2(req,empIdsUnderReporting));
+			}
+			else if(dataType.equalsIgnoreCase(DynamicFormConstants.UPCOMING_DATA)) {
+				map.put("upcomingData", getUpcomingDataV2(req,empIdsUnderReporting));
+			}
+			else if(dataType.equalsIgnoreCase(DynamicFormConstants.PENDING_DATA)) {
+				map.put("pendingData", getPendingDataV2(req,empIdsUnderReporting));
+			}
+			else if(dataType.equalsIgnoreCase(DynamicFormConstants.RESCHEDULED_DATA)) {
+				map.put("rescheduledData", getRescheduledDataV2(req,empIdsUnderReporting));
+			}
 			} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -3128,7 +3135,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		
 			String todaysDate = getTodaysDate();
 			log.debug("todaysDate::"+todaysDate);
-			List<DmsWFTask> todayWfTaskList = dmsWfTaskDao.getTodaysUpcomingTasks(empId, "2022-04-30"+" 00:00:00", todaysDate+" 23:59:59");
+			List<DmsWFTask> todayWfTaskList = dmsWfTaskDao.getTodaysUpcomingTasks(empId, todaysDate+" 00:00:00", todaysDate+" 23:59:59");
 			
 			todaysRes.add(buildMyTaskObj(todayWfTaskList,empId,empName));  
 			
@@ -3151,7 +3158,6 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			todaysRes.setEmpName(empName);
 			todaysRes.setTasksAvailable(uniqueTastSet);
 			todaysRes.setTaskAvailableCnt(uniqueTaskcnt);
-			
 			if (null != todayWfTaskList) {
 				for (DmsWFTask wf : todayWfTaskList) {
 					MyTask task = new MyTask();

@@ -24,6 +24,9 @@ public interface TargetUserRepo extends JpaRepository<TargetEntityUser, Integer>
 	public List<TargetEntityUser> findAllEmpIdsWithNoDefault(@Param(value="empId") String empId);
 	
 	
+	@Query(value="SELECT * FROM dms_target_setting_user where emp_id=:empId and is_active='Y' and type='default'",nativeQuery = true)
+	public List<TargetEntityUser> findAllEmpIdsWithDefault(@Param(value="empId") String empId);
+	
 	@Query(value = "SELECT * FROM dms_target_setting_user where org_id=:orgId  and department=:department and designation=:designation and branch=:branch and is_active='Y'", nativeQuery = true)
 	List<TargetEntityUser> getUserTargetData(@Param(value = "orgId") String orgId,
 			@Param(value="department") String deptId,
@@ -63,6 +66,11 @@ public interface TargetUserRepo extends JpaRepository<TargetEntityUser, Integer>
 	
 	@Query(value="SELECT * FROM dms_target_setting_user where emp_id = :empId ",nativeQuery = true)
 	public List<TargetEntityUser> findAllQ3(@Param(value="empId") String empId);
+	
+	
+
+	@Query(value="SELECT * FROM dms_target_setting_user where target_admin_id = :adminID and is_active='Y'",nativeQuery = true)
+	public List<TargetEntityUser> findAllByTargetAdminId(@Param(value="adminID") Integer adminID);
 	
 
 

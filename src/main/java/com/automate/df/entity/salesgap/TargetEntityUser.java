@@ -107,5 +107,8 @@ public class TargetEntityUser {
 		
 		@Column(name="user_hierarchy")
 		String userHierarchy;
+		
+		@Column(name="target_admin_id")
+		Integer targetAdminId;
 }
 

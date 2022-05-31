@@ -12,5 +12,8 @@ public class MyTaskReq {
 	String endDate;
 	boolean isOnlyForEmp;
 	
+	String dataType; // allowed Values todaysData,upcomingData,pendingData,rescheduledData
+	
+	
 
 }

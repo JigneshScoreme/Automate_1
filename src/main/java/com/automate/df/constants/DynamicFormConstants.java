@@ -20,4 +20,10 @@ public class DynamicFormConstants {
 	public static final String SPACE = " ";
 	public static final String TARGET_MONTHLY_TYPE = "MONTHLY";
 	public static final String TARGET_SPEICAL_TYPE = "SPECIAL";
+	
+	public static final String TODAYS_DATA = "todaysData";
+	public static final String UPCOMING_DATA = "upcomingData";
+	public static final String PENDING_DATA = "pendingData";
+	public static final String RESCHEDULED_DATA = "rescheduledData";
+	 
 }
