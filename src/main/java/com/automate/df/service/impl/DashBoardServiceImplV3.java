@@ -4,21 +4,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import com.automate.df.dao.TmpEmpHierarchyDao;
 import com.automate.df.dao.dashboard.DashBoardV3Dao;
+import com.automate.df.dao.dashboard.DmsEmpTargetRankingBranchDao;
+import com.automate.df.dao.dashboard.DmsEmpTargetRankingOrgDao;
 import com.automate.df.dao.dashboard.DmsTargetParamAllEmployeeSchedularDao;
 import com.automate.df.dao.dashboard.DmsTargetParamEmployeeSchedularDao;
-import com.automate.df.dao.dashboard.DmsEmpTargetRankingOrgDao;
-import com.automate.df.dao.dashboard.DmsEmpTargetRankingBranchDao;
+import com.automate.df.entity.DmsEmployeeTargetRankingBranch;
+import com.automate.df.entity.DmsEmployeeTargetRankingOrg;
 import com.automate.df.entity.DmsTargetParamAllEmployeeSchedular;
 import com.automate.df.entity.DmsTargetParamEmployeeSchedular;
 import com.automate.df.entity.DmsTargetParamSchedular;
-import com.automate.df.entity.DmsEmployeeTargetRankingOrg;
-import com.automate.df.entity.DmsEmployeeTargetRankingBranch;
+import com.automate.df.entity.TmpEmpHierarchy;
 import com.automate.df.exception.DynamicFormsServiceException;
 import com.automate.df.service.DashBoardServiceV3;
 import com.google.common.base.Optional;
 import com.google.gson.Gson;
+
+import lombok.extern.slf4j.Slf4j;
 @Service
+@Slf4j
 public class DashBoardServiceImplV3  implements DashBoardServiceV3{
 	@Autowired
 	DashBoardV3Dao boardV3Dao;
@@ -30,6 +35,36 @@ public class DashBoardServiceImplV3  implements DashBoardServiceV3{
 	DmsEmpTargetRankingOrgDao dmsEmpTargetRankingOrgDao;
 	@Autowired
 	DmsEmpTargetRankingBranchDao dmsEmpTargetRankingBranchDao;
+	
+	@Autowired
+	TmpEmpHierarchyDao tmpEmpHierarchyDao;
+	
+	@Override
+	public  String getEmpHierararchyDataSchedular(Integer empId,Integer orgId)
+			 {
+		String str = null;
+		try {
+		java.util.Optional<TmpEmpHierarchy> opt = tmpEmpHierarchyDao.getDataByEmp(orgId,empId);
+	
+		TmpEmpHierarchy auto = null;
+		if (opt.isPresent()) {
+			auto = opt.get();
+			str = new Gson().toJson(auto.getData());
+			str = str.replace("\\", "");
+			str = str.replaceAll("^\"|\"$", "");
+			System.out.println("str " + str);
+			auto.setData(str);
+			// convertedObject = new Gson().fromJson(auto.getData(), JsonObject.class);
+		} else {
+			throw new DynamicFormsServiceException("Data Not found in sysem for given empId",
+					HttpStatus.BAD_REQUEST);
+		}
+		}catch(Exception e) {
+			e.printStackTrace();
+			log.error("exception in getEmpHierararchyDataSchedular ",e);
+		}
+		return str;	
+	}
 	
 	@Override
 	public  String getTargetAchivementParams(String empId)

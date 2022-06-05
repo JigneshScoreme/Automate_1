@@ -75,11 +75,27 @@ public interface DmsWfTaskDao extends JpaRepository<DmsWFTask, Integer> {
             "task_created_time desc", nativeQuery = true)
 	  List<DmsWFTask> findAllByPendingStatus(String empId);
 	
+	
+	@Query(value = "SELECT * FROM dms_workflow_task where assignee_id =:assigneeId \r\n"
+			+ "	and task_status != 'CLOSED' \r\n"
+			+ "	and task_updated_time>= :startTime  and task_updated_time<=:endTime and task_name NOT IN ('Proceed to Pre Booking','Proceed to Booking','Proceed to Invoice','Proceed to Predelivery','Proceed to Delivery')", nativeQuery = true)
+	
+	List<DmsWFTask> findAllByPendingData(@Param(value = "assigneeId") Integer assigneeId,
+			@Param(value = "startTime") String startTime,
+			@Param(value = "endTime") String endTime);
+	
+	
+
 	   @Query(value = "SELECT * FROM dms_workflow_task where dms_workflow_task.assignee_id=?1 and  DATE" +
 	            "(`task_updated_time`) != CURDATE() and dms_workflow_task.task_status != 'ASSIGNED'and dms_workflow_task.task_status != 'CLOSED'and dms_workflow_task.task_status != 'IN_PROGRESS' and dms_workflow_task.task_status != 'CANCELLED'and dms_workflow_task.task_status != 'SYSTEM_ERROR' and dms_workflow_task.task_status != 'SENT_FOR_APPROVAL' and dms_workflow_task.task_status != 'APPROVED' order by "+ " task_created_time desc", nativeQuery = true)
-	    List<DmsWFTask> findAllByRescheduledStatus(String empId);
+	    List<DmsWFTask> findAllByRescheduledStatusWithNoDate(String empId);
 	
-	
+	  @Query(value = "SELECT * FROM dms_workflow_task where dms_workflow_task.assignee_id=:assigneeId and task_updated_time>= :startTime  and task_updated_time<=:endTime"
+	  		+ " and dms_workflow_task.task_status != 'ASSIGNED'and dms_workflow_task.task_status != 'CLOSED'and dms_workflow_task.task_status != 'IN_PROGRESS' and dms_workflow_task.task_status != 'CANCELLED'and dms_workflow_task.task_status != 'SYSTEM_ERROR' and dms_workflow_task.task_status != 'SENT_FOR_APPROVAL' and dms_workflow_task.task_status != 'APPROVED' order by "+ " task_created_time desc", nativeQuery = true)
+	    List<DmsWFTask> findAllByRescheduledStatus(@Param(value = "assigneeId") Integer assigneeId,
+				@Param(value = "startTime") String startTime,
+				@Param(value = "endTime") String endTime);
+	  
 	@Query(value = "SELECT * FROM dms_workflow_task  where universal_id=:universalId and task_name=:taskName", nativeQuery = true)
 	List<DmsWFTask> getWfTaskByUniversalIdandTask(@Param(value = "universalId") String crmUniversalId, 
 			@Param(value = "taskName") String hOME_VISIT);
