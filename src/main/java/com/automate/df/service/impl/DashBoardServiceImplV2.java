@@ -14,9 +14,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 
@@ -25,6 +31,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -70,6 +77,7 @@ import com.automate.df.model.salesgap.TargetDropDownV2;
 import com.automate.df.model.salesgap.TargetRoleRes;
 import com.automate.df.model.salesgap.TargetSettingRes;
 import com.automate.df.service.DashBoardServiceV2;
+import com.automate.df.service.DashBoardServiceV3;
 import com.automate.df.util.DashBoardUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
@@ -197,36 +205,35 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		log.info("Inside getTargetAchivementParams(){}");
 		List<TargetAchivement> resList = new ArrayList<>();
 		try {
+			long startTime = System.currentTimeMillis();
 			List<List<TargetAchivement>> allTargets = new ArrayList<>();
 			Integer empId = req.getLoggedInEmpId();
-			log.debug("Getting Target Data, LoggedIn emp id "+empId );
-			
+			log.debug("Getting Target Data, LoggedIn emp id " + empId);
+
 			List<Integer> selectedEmpIdList = req.getEmpSelected();
 			List<Integer> selectedNodeList = req.getLevelSelected();
 			TargetRoleRes tRole = salesGapServiceImpl.getEmpRoleDataV2(empId);
 			String orgId = tRole.getOrgId();
-			log.debug("tRole getTargetAchivementParams "+tRole);
-			if(null!=selectedEmpIdList && !selectedEmpIdList.isEmpty()) {
-				log.debug("Fetching empReportingIdList for selected employees,selectedEmpIdList"+selectedEmpIdList);
-				
-			
-								for(Integer eId : selectedEmpIdList) {
+			log.debug("tRole getTargetAchivementParams " + tRole);
+			if (null != selectedEmpIdList && !selectedEmpIdList.isEmpty()) {
+				log.debug("Fetching empReportingIdList for selected employees,selectedEmpIdList" + selectedEmpIdList);
+
+				for (Integer eId : selectedEmpIdList) {
 					List<Integer> empReportingIdList = new ArrayList<>();
 					empReportingIdList.add(eId);
-					empReportingIdList.addAll(getReportingEmployes(eId)); 
-					log.debug("empReportingIdList for given selectedEmpIdList "+empReportingIdList);
-					List<TargetAchivement> targetList = getTargetAchivementParamsForMultipleEmp(empReportingIdList,
-							req,orgId);
-					log.debug("targetList::::::"+targetList);
+					//empIdList = getEmployeeHiearachyData(orgId,req.getLoggedInEmpId());
+					empReportingIdList.addAll(getEmployeeHiearachyData(Integer.parseInt(orgId),eId));
+					log.debug("empReportingIdList for given selectedEmpIdList " + empReportingIdList);
+					List<TargetAchivement> targetList = getTargetAchivementParamsForMultipleEmp(empReportingIdList, req,
+							orgId);
+					log.debug("targetList::::::" + targetList);
 					allTargets.add(targetList);
 				}
-				
-			
+
 				resList = buildFinalTargets(allTargets);
-			}
-			else if(null!=selectedNodeList && !selectedNodeList.isEmpty()) {
+			} else if (null != selectedNodeList && !selectedNodeList.isEmpty()) {
 				log.debug("Fetching empReportingIdList for selected LEVEL NODES");
-				
+
 				for (Integer node : selectedNodeList) {
 					List<Integer> empReportingIdList = new ArrayList<>();
 					empReportingIdList.add(req.getLoggedInEmpId());
@@ -243,22 +250,22 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 									.collect(Collectors.toList()));
 						});
 					});
-					List<TargetAchivement> targetList = getTargetAchivementParamsForMultipleEmp(empReportingIdList,req,orgId);
+					List<TargetAchivement> targetList = getTargetAchivementParamsForMultipleEmp(empReportingIdList, req,
+							orgId);
 					allTargets.add(targetList);
-					
+
 				}
 				resList = buildFinalTargets(allTargets);
-			}
-			else {
-				log.debug("Fetching empReportingIdList for logged in emp in else :"+req.getLoggedInEmpId());
-				List<Integer> empReportingIdList =  getReportingEmployes(req.getLoggedInEmpId());
+			} else {
+				log.debug("Fetching empReportingIdList for logged in emp in else :" + req.getLoggedInEmpId());
+				List<Integer> empReportingIdList = getEmployeeHiearachyData(Integer.parseInt(orgId),req.getLoggedInEmpId());
 				empReportingIdList.add(req.getLoggedInEmpId());
-				log.debug("empReportingIdList for emp "+req.getLoggedInEmpId());
-				log.debug("Calling getTargetAchivemetns in else" +empReportingIdList);
-				resList = getTargetAchivementParamsForMultipleEmp(empReportingIdList,req,orgId);
+				log.debug("empReportingIdList for emp " + req.getLoggedInEmpId());
+				log.debug("Calling getTargetAchivemetns in else" + empReportingIdList);
+				resList = getTargetAchivementParamsForMultipleEmp(empReportingIdList, req, orgId);
 			}
-			log.debug("Fetching empReportingIdList for logged in emp outside:"+req.getLoggedInEmpId());
-				}catch(Exception e) {
+			log.debug("Total time taken for getTargetparams "+(System.currentTimeMillis()-startTime));
+		} catch (Exception e) {
 			e.printStackTrace();
 			throw new DynamicFormsServiceException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -270,7 +277,8 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		log.info("Inside getTargetAchivementParams(){}");
 		OverAllTargetAchivements overAllTargetAchivements = new OverAllTargetAchivements();
 		List<EmployeeTargetAchievement> empTargetAchievements = new ArrayList<>();
-		
+		List<EmployeeTargetAchievement> finalEmpTargetAchievements = new ArrayList<>();
+		long startTime1 = System.currentTimeMillis();
 		List<TargetAchivement> resList = new ArrayList<>();
 		try {
 			List<List<TargetAchivement>> allTargets = new ArrayList<>();
@@ -291,22 +299,19 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			TargetRoleRes tRole = salesGapServiceImpl.getEmpRoleDataV2(empId);
 			String orgId = tRole.getOrgId();
 			log.debug("tRole getTargetAchivementParams "+tRole);
-			if(null!=selectedEmpIdList && !selectedEmpIdList.isEmpty()) {
-				log.debug("Fetching empReportingIdList for selected employees,selectedEmpIdList"+selectedEmpIdList);
-				
-			
-								for(Integer eId : selectedEmpIdList) {
+			if (null != selectedEmpIdList && !selectedEmpIdList.isEmpty()) {
+				log.debug("Fetching empReportingIdList for selected employees,selectedEmpIdList" + selectedEmpIdList);
+				for (Integer eId : selectedEmpIdList) {
 					List<Integer> empReportingIdList = new ArrayList<>();
 					empReportingIdList.add(eId);
-					empReportingIdList.addAll(getReportingEmployes(eId)); 
-					log.debug("empReportingIdList for given selectedEmpIdList "+empReportingIdList);
-					List<TargetAchivement> targetList = getTargetAchivementParamsForMultipleEmpAndEmps(empReportingIdList,
-							req,orgId,empTargetAchievements,startDate,endDate);
-					log.debug("targetList::::::"+targetList);
+					empReportingIdList.addAll(getEmployeeHiearachyData(Integer.parseInt(orgId),eId));
+					log.debug("empReportingIdList for given selectedEmpIdList " + empReportingIdList);
+					List<TargetAchivement> targetList = getTargetAchivementParamsForMultipleEmpAndEmps(
+							empReportingIdList, req, orgId, empTargetAchievements, startDate, endDate);
+					log.debug("targetList::::::" + targetList);
 					allTargets.add(targetList);
 				}
-				
-			
+
 				resList = buildFinalTargets(allTargets);
 			}
 			else if(null!=selectedNodeList && !selectedNodeList.isEmpty()) {
@@ -336,34 +341,129 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			}
 			else {
 				log.debug("Fetching empReportingIdList for logged in emp in else :"+req.getLoggedInEmpId());
-				List<Integer> empReportingIdList =  getReportingEmployes(req.getLoggedInEmpId());
+				List<Integer> empReportingIdList =  getEmployeeHiearachyData(Integer.parseInt(orgId),req.getLoggedInEmpId());
 				empReportingIdList.add(req.getLoggedInEmpId());
-				log.debug("empReportingIdList for emp "+req.getLoggedInEmpId());
-				log.debug("Calling getTargetAchivemetns in else" +empReportingIdList);
+				//resList = process(empReportingIdList,req,orgId,empTargetAchievements,startDate,endDate);
+				
+				
+				//log.debug("empReportingIdList for emp "+req.getLoggedInEmpId());
+				//log.debug("Calling getTargetAchivemetns in else" +empReportingIdList);
 				resList = getTargetAchivementParamsForMultipleEmpAndEmps(empReportingIdList,req,orgId,empTargetAchievements,startDate,endDate);
 			}
-			log.debug("Fetching empReportingIdList for logged in emp outside:"+req.getLoggedInEmpId());
-			if(empTargetAchievements.size()>1) {
+			//log.debug("Fetching empReportingIdList for logged in emp outside:"+req.getLoggedInEmpId());
+			log.info("Time taken in get all target - Step1:::"+(System.currentTimeMillis()-startTime1));
+			long startTime = System.currentTimeMillis();
+			final List<TargetAchivement> resListFinal = resList;
 			final String startDt = startDate;
 			final String endDt = endDate;
+			
+			if(empTargetAchievements.size()>1) {
+			List<List<EmployeeTargetAchievement>> targetAchiPartList = partitionListEmpTarget(empTargetAchievements);
+			ExecutorService executor = Executors.newFixedThreadPool(targetAchiPartList.size());
+			
+			List<CompletableFuture<List<EmployeeTargetAchievement>>> futureList  = targetAchiPartList.stream()
+					.map(strings -> CompletableFuture.supplyAsync(() -> processEmployeeTargetAchiveList(strings,resListFinal,startDt,endDt), executor))
+					.collect(Collectors.toList());
+			
+			if (null != futureList) {
+				CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0])).join();
+				Stream<List<EmployeeTargetAchievement>> dataStream = (Stream<List<EmployeeTargetAchievement>>) futureList.stream().map(CompletableFuture::join);
+				dataStream.forEach(x -> {
+					finalEmpTargetAchievements.addAll(x);
+				});
+
+			}
+		
+			
+			}
+			
+			else if(empTargetAchievements.size()==1){
+				empTargetAchievements.get(0).setTargetAchievements(resList);
+				finalEmpTargetAchievements.addAll(empTargetAchievements);
+			}
+					
+			
+			/*if(empTargetAchievements.size()>1) {
+			
 			empTargetAchievements.stream().forEach(employeeTarget->{
 				List<TargetAchivement> responseList = new ArrayList();
-				employeeTarget.setTargetAchievements(getTaskAndBuildTargetAchievements(Arrays.asList(employeeTarget.getEmpId()), employeeTarget.getOrgId(), responseList, Arrays.asList(employeeTarget.getEmpName()), startDt,endDt, 
-						employeeTarget.getTargetAchievementsMap()));
+				employeeTarget.setTargetAchievements(getTaskAndBuildTargetAchievements(Arrays.asList(employeeTarget.getEmpId()), employeeTarget.getOrgId(), responseList, Arrays.asList(employeeTarget.getEmpName()), startDt,endDt, employeeTarget.getTargetAchievementsMap()));
 			});
 			}else if(empTargetAchievements.size()==1){
 				empTargetAchievements.get(0).setTargetAchievements(resList);
 			}
-		
+		*/
+			log.info("Time taken in get all target - Step2::::"+(System.currentTimeMillis()-startTime));
+			log.debug("Time taken in get all target - Step2::::"+(System.currentTimeMillis()-startTime));
 		}catch(Exception e) {
 			e.printStackTrace();
 			throw new DynamicFormsServiceException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		overAllTargetAchivements.setOverallTargetAchivements(resList);
-		overAllTargetAchivements.setEmployeeTargetAchievements(empTargetAchievements);
+		//overAllTargetAchivements.setEmployeeTargetAchievements(empTargetAchievements);
+		overAllTargetAchivements.setEmployeeTargetAchievements(finalEmpTargetAchievements);
 		return overAllTargetAchivements;
 	}
 	
+	
+	
+	private List<EmployeeTargetAchievement> processEmployeeTargetAchiveList(List<EmployeeTargetAchievement> empTargetAchievements,
+			List<TargetAchivement> resList, String startDt, String endDt) {
+		List<EmployeeTargetAchievement> res = new ArrayList<>();
+		try {
+			
+				empTargetAchievements.stream().forEach(employeeTarget->{
+					List<TargetAchivement> responseList = new ArrayList();
+					employeeTarget.setTargetAchievements(getTaskAndBuildTargetAchievements(Arrays.asList(employeeTarget.getEmpId()), employeeTarget.getOrgId(), responseList, Arrays.asList(employeeTarget.getEmpName()), startDt,endDt, employeeTarget.getTargetAchievementsMap()));
+					res.add(employeeTarget);
+				});
+				
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			log.error("Exception ",e);
+			
+		}
+		return res;
+	}
+
+	private List<TargetAchivement> process(List<Integer> empReportingIdList, DashBoardReqV2 req, String orgId,
+			List<EmployeeTargetAchievement> empTargetAchievements, String startDate, String endDate) {
+		List<TargetAchivement> finalList = new ArrayList<>();
+		try {
+			List<List<Integer>> empIdPartionList = partitionList(empReportingIdList);
+			log.debug("empIdPartionList ::" + empIdPartionList.size());
+			ExecutorService executor = Executors.newFixedThreadPool(empIdPartionList.size());
+			
+			List<CompletableFuture<List<TargetAchivement>>> futureList  = empIdPartionList.stream()
+					.map(strings -> CompletableFuture.supplyAsync(() -> {
+						List<TargetAchivement> list = new ArrayList<>();
+						try {
+							list= getTargetAchivementParamsForMultipleEmpAndEmps(strings,req,orgId,empTargetAchievements,startDate,endDate);
+						} catch (ParseException | DynamicFormsServiceException e) {
+							log.error("exception ",e);
+							e.printStackTrace();
+						}
+						return list;
+					}, executor))
+					.collect(Collectors.toList());
+			
+			if (null != futureList) {
+				log.debug("futureList size "+futureList.size());
+				CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0])).join();
+				Stream<List<TargetAchivement>> dataStream = (Stream<List<TargetAchivement>>) futureList.stream().map(CompletableFuture::join);
+				dataStream.forEach(x -> {
+					finalList.addAll(x);
+				});
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			log.error("Exception ",e);
+		}
+		return finalList;
+	}
+
 	@Override
 	public List<TargetAchivement> getTargetAchivementParamsForSingleEmp(DashBoardReqV2 req) throws DynamicFormsServiceException {
 		log.info("Inside getTargetAchivementParams(){}");
@@ -453,6 +553,8 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		return targetRankingList;
 	}
 
+
+	//@CachePut (value = "empDataCache",key="#empId")
 	public List<Integer> getReportingEmployes(Integer empId) throws DynamicFormsServiceException {
 		List<String> empReportingIdList = new ArrayList<>();
 		log.debug("getReportingEmployes , Empid "+empId);
@@ -481,10 +583,19 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			Set<String> s = new HashSet<>();
 			s.addAll(empReportingIdList);
 			empReportingIdList = new ArrayList<>(s);
+			
+			
 		}else {
 			throw new DynamicFormsServiceException("Logged in emp is not valid employee,no record found in dms_employee", HttpStatus.BAD_REQUEST);
 		}
 		empReportingIdList_1 = empReportingIdList.stream().map(Integer::parseInt).collect(Collectors.toList());
+		
+		/*HashOperations hashOperations = redisTemplate.opsForHash();
+		hashOperations.put("EMPHIERARCHY", empReportingIdList_1, empId);
+		redisTemplate.expire("EMPHIERARCHY", 10,TimeUnit.MINUTES);
+		List<String> empReportingIdListCache = (List<String>)hashOperations.get("EMPHIERARCHY", empId);
+		log.debug("empReportingIdListCache::"+empReportingIdListCache);*/
+		
 		return empReportingIdList_1;
 	}
 	
@@ -526,8 +637,8 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		List<String> empNamesList = dmsEmployeeRepo.findEmpNamesById(empIdsUnderReporting);
 		log.info("empNamesList::" + empNamesList);
 		log.info("Calling getTargetAchivementParamsForMultipleEmp");
-		String startDate = null;
-		String endDate = null;
+		final String startDate;
+		final String endDate;
 		if (null == req.getStartDate() && null == req.getEndDate()) {
 			startDate = getFirstDayOfMonth();
 			endDate = getLastDayOfMonth();
@@ -536,8 +647,28 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			endDate = req.getEndDate()+" 23:59:59";
 		}
 
+		
 		log.info("StartDate " + startDate + ", EndDate " + endDate);
-		Map<String, Integer> map = new LinkedHashMap<>();
+		Map<String, Integer> map = new ConcurrentHashMap<>();
+		Map<String, Integer> finalMap = new ConcurrentHashMap<>();
+		
+		if(empIdsUnderReporting.size()>0) {
+			List<List<Integer>> empIdPartionList = partitionList(empIdsUnderReporting);
+			log.debug("empIdPartionList ::" + empIdPartionList.size());
+			ExecutorService executor = Executors.newFixedThreadPool(empIdPartionList.size());
+			
+			List<CompletableFuture<Map<String, Integer>>> futureList = empIdPartionList.stream()
+					.map(strings -> CompletableFuture.supplyAsync(() -> processTargetMap(strings,map,startDate,endDate), executor))
+					.collect(Collectors.toList());
+			
+			CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0])).join();
+			Stream<Map<String, Integer>> dataStream = (Stream<Map<String, Integer>>) futureList.stream().map(CompletableFuture::join);
+			dataStream.forEach(x -> {
+				finalMap.putAll(map);
+			});
+		}
+		
+		/*
 		for(Integer empId : empIdsUnderReporting) {
 			log.debug("Getting target params for user "+empId);
 			Map<String, Integer> innerMap = getTargetParams(String.valueOf(empId), startDate, endDate);
@@ -555,46 +686,20 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			map = validateAndUpdateMapData(INVOICE,innerMap,map);
 			
 		}
-		
+		*/
 		//List<DmsLead> dmsLeadList = dmsLeadDao.getAllEmployeeLeads(empNamesList, startDate, endDate, ENQUIRY);
 	
 		
 		
-		return getTaskAndBuildTargetAchievements(empIdsUnderReporting, orgId, resList, empNamesList, startDate, endDate,
-				map);
+		return getTaskAndBuildTargetAchievements(empIdsUnderReporting, orgId, resList, empNamesList, startDate, endDate,map);
 	}
 
-	private List<TargetAchivement> getTargetAchivementParamsForMultipleEmpAndEmps(
-			List<Integer> empIdsUnderReporting, DashBoardReqV2 req,String orgId,List<EmployeeTargetAchievement> empTargetAchievements,String startDate,String endDate) throws ParseException, DynamicFormsServiceException {
-		List<TargetAchivement> resList = new ArrayList<>();
-//		List<String> empNamesList = dmsEmployeeRepo.findEmpNamesById(empIdsUnderReporting);
-		List<DmsEmployee> employees = dmsEmployeeRepo.findAllById(empIdsUnderReporting);
-		List<String> empNamesList = employees.stream().map(x->x.getEmpName()).collect(Collectors.toList());
-		log.info("empNamesList::" + empNamesList);
-		log.info("Calling getTargetAchivementParamsForMultipleEmp");
-//		String startDate = null;
-//		String endDate = null;
-//		if (null == req.getStartDate() && null == req.getEndDate()) {
-//			startDate = getFirstDayOfMonth();
-//			endDate = getLastDayOfMonth();
-//		} else {
-//			startDate = req.getStartDate()+" 00:00:00";
-//			endDate = req.getEndDate()+" 23:59:59";
-//		}
-
-		log.info("StartDate " + startDate + ", EndDate " + endDate);
-		Map<String, Integer> map = new LinkedHashMap<>();
-		for(DmsEmployee employee : employees) {
-			EmployeeTargetAchievement employeeTargetAchievement = new EmployeeTargetAchievement();
-			log.debug("Getting target params for user "+employee.getEmp_id());
-			Map<String, Integer> innerMap = getTargetParams(String.valueOf(employee.getEmp_id()), startDate, endDate);
+	private Map<String, Integer> processTargetMap(List<Integer> empIdsUnderReporting,Map<String, Integer> map, String startDate,String endDate) {
+		try {
+		for(Integer empId : empIdsUnderReporting) {
+			log.debug("Getting target params for user "+empId);
+			Map<String, Integer> innerMap = getTargetParams(String.valueOf(empId), startDate, endDate);
 			log.debug("innerMap::"+innerMap);
-			employeeTargetAchievement.setEmpId(employee.getEmp_id());
-			employeeTargetAchievement.setEmpName(employee.getEmpName());
-			employeeTargetAchievement.setBranchId(employee.getBranch());
-			employeeTargetAchievement.setOrgId(employee.getOrg());
-			employeeTargetAchievement.setTargetAchievementsMap(innerMap);
-			empTargetAchievements.add(employeeTargetAchievement);
 			map = validateAndUpdateMapData(ENQUIRY,innerMap,map);
 			map = validateAndUpdateMapData(TEST_DRIVE,innerMap,map);
 			map = validateAndUpdateMapData(HOME_VISIT,innerMap,map);
@@ -608,9 +713,100 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			map = validateAndUpdateMapData(INVOICE,innerMap,map);
 			
 		}
+		}catch(Exception e) {
+			e.printStackTrace();
+			log.error("Exception in processTargetMap ",e);
+		}
+		return map;
+	}
+
+	private List<TargetAchivement> getTargetAchivementParamsForMultipleEmpAndEmps(
+			List<Integer> empIdsUnderReporting, DashBoardReqV2 req,String orgId,List<EmployeeTargetAchievement> empTargetAchievements,String startDate,String endDate) throws ParseException, DynamicFormsServiceException {
+		log.debug("Calling getTargetAchivementParamsForMultipleEmp");
+
+		List<TargetAchivement> resList = new ArrayList<>();
+		List<DmsEmployee> employees = dmsEmployeeRepo.findAllById(empIdsUnderReporting);
+		List<String> empNamesList = employees.stream().map(x->x.getEmpName()).collect(Collectors.toList());
 		
-		return getTaskAndBuildTargetAchievements(empIdsUnderReporting, orgId, resList, empNamesList, startDate, endDate,
-				map);
+		
+		Map<String, Integer> map = new LinkedHashMap<>();
+				
+		List<List<DmsEmployee>> empIdPartionList = partitionListEmp(employees);
+		log.debug("empIdPartionList ::" + empIdPartionList.size());
+		ExecutorService executor = Executors.newFixedThreadPool(empIdPartionList.size());
+		
+		List<CompletableFuture<List<EmployeeTargetAchievement>>> futureList = empIdPartionList.stream()
+				.map(strings -> CompletableFuture.supplyAsync(() -> processTargetAchivementFormMultipleEmp(strings,map,startDate, endDate), executor))
+				.collect(Collectors.toList());
+		if (null != futureList) {
+			CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0])).join();
+			Stream<List<EmployeeTargetAchievement>> dataStream = (Stream<List<EmployeeTargetAchievement>>) futureList.stream().map(CompletableFuture::join);
+			dataStream.forEach(x -> {
+				empTargetAchievements.addAll(x);
+			});
+
+		}
+	
+		/*for(DmsEmployee employee : employees) {
+			EmployeeTargetAchievement employeeTargetAchievement = new EmployeeTargetAchievement();
+			log.debug("Getting target params for user "+employee.getEmp_id());
+			Map<String, Integer> innerMap = getTargetParams(String.valueOf(employee.getEmp_id()), startDate, endDate);
+			log.debug("innerMap::"+innerMap);
+			employeeTargetAchievement.setEmpId(employee.getEmp_id());
+			employeeTargetAchievement.setEmpName(employee.getEmpName());
+			employeeTargetAchievement.setBranchId(employee.getBranch());
+			employeeTargetAchievement.setOrgId(employee.getOrg());
+			employeeTargetAchievement.setTargetAchievementsMap(innerMap);
+			empTargetAchievements.add(employeeTargetAchievement);
+			/*map = validateAndUpdateMapData(ENQUIRY,innerMap,map);
+			map = validateAndUpdateMapData(TEST_DRIVE,innerMap,map);
+			map = validateAndUpdateMapData(HOME_VISIT,innerMap,map);
+			map = validateAndUpdateMapData(VIDEO_CONFERENCE,innerMap,map);
+			map = validateAndUpdateMapData(BOOKING,innerMap,map);
+			map = validateAndUpdateMapData(EXCHANGE,innerMap,map);
+			map = validateAndUpdateMapData(FINANCE,innerMap,map);
+			map = validateAndUpdateMapData(INSURANCE,innerMap,map);
+			map = validateAndUpdateMapData(ACCCESSORIES,innerMap,map);
+			map = validateAndUpdateMapData(EVENTS,innerMap,map);
+			map = validateAndUpdateMapData(INVOICE,innerMap,map);
+		}*/
+		return getTaskAndBuildTargetAchievements(empIdsUnderReporting, orgId, resList, empNamesList, startDate, endDate,map);
+	}
+
+	private List<EmployeeTargetAchievement>  processTargetAchivementFormMultipleEmp(List<DmsEmployee> employees,Map<String, Integer> map,
+			 String startDate, String endDate) {
+		List<EmployeeTargetAchievement> empTargetAchievements = new ArrayList<>();
+		try {
+			for (DmsEmployee employee : employees) {
+				EmployeeTargetAchievement employeeTargetAchievement = new EmployeeTargetAchievement();
+				log.debug("Getting target params for user " + employee.getEmp_id());
+				Map<String, Integer> innerMap = getTargetParams(String.valueOf(employee.getEmp_id()), startDate,
+						endDate);
+				log.debug("innerMap::" + innerMap);
+				employeeTargetAchievement.setEmpId(employee.getEmp_id());
+				employeeTargetAchievement.setEmpName(employee.getEmpName());
+				employeeTargetAchievement.setBranchId(employee.getBranch());
+				employeeTargetAchievement.setOrgId(employee.getOrg());
+				employeeTargetAchievement.setTargetAchievementsMap(innerMap);
+				empTargetAchievements.add(employeeTargetAchievement);
+				
+				map = validateAndUpdateMapData(ENQUIRY,innerMap,map);
+				map = validateAndUpdateMapData(TEST_DRIVE,innerMap,map);
+				map = validateAndUpdateMapData(HOME_VISIT,innerMap,map);
+				map = validateAndUpdateMapData(VIDEO_CONFERENCE,innerMap,map);
+				map = validateAndUpdateMapData(BOOKING,innerMap,map);
+				map = validateAndUpdateMapData(EXCHANGE,innerMap,map);
+				map = validateAndUpdateMapData(FINANCE,innerMap,map);
+				map = validateAndUpdateMapData(INSURANCE,innerMap,map);
+				map = validateAndUpdateMapData(ACCCESSORIES,innerMap,map);
+				map = validateAndUpdateMapData(EVENTS,innerMap,map);
+				map = validateAndUpdateMapData(INVOICE,innerMap,map);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			log.error("Exception in processTargetAchivementFormMultipleEmp ", e);
+		}
+		return empTargetAchievements;
 	}
 
 	private List<TargetAchivement> getTaskAndBuildTargetAchievements(List<Integer> empIdsUnderReporting, String orgId,
@@ -2052,6 +2248,10 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	private String getTodaysDate() {
 		return LocalDate.now().toString();
 	}
+	
+	private String getYesterdaysDate() {
+		return LocalDate.now().minusDays(1).toString();
+	}
 
 
 	private List<TodaysRes> getUpcomingData(DashBoardReqV2 req, List<Integer> empIdsUnderReporting) {
@@ -3006,7 +3206,9 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 
 
-
+	@Autowired
+	DashBoardServiceV3 dashBoardServiceV3;
+	
 	@Override
 	public Map<String, Object> getTodaysPendingUpcomingDataV2(MyTaskReq req) throws DynamicFormsServiceException {
 		log.info("Inside getTodaysPendingUpcomingDataV2(){},empId " + req.getLoggedInEmpId() + " and IsOnlyForEmp "
@@ -3024,7 +3226,9 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 				
 			}else {
 				Long startTime = System.currentTimeMillis();
-				empIdList = getReportingEmployes(req.getLoggedInEmpId());
+				empIdList = getEmployeeHiearachyData(req.getOrgId(),req.getLoggedInEmpId());
+				
+				log.debug("getReportingEmployes list "+empIdList.size());
 				log.debug("Time taken to get employess list "+(System.currentTimeMillis()-startTime));
 			}
 			Long startTime_1 = System.currentTimeMillis();
@@ -3036,11 +3240,35 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			throw new DynamicFormsServiceException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		return list;
+		
 
 	}
 
 
 
+
+	private List<Integer> getEmployeeHiearachyData(Integer orgId, Integer empId) {
+		List<Integer> empIdList = new ArrayList<>();
+		try {
+			String empHierarchyString = dashBoardServiceV3.getEmpHierararchyDataSchedular(empId, orgId);
+
+			if (null != empHierarchyString) {
+				log.debug("empHierarchyString is not null " + empId);
+				String[] strings = empHierarchyString.substring(1, empHierarchyString.length() - 1).split(",");
+				for (int i = 1; i < strings.length; i++) {
+					strings[i] = strings[i].substring(1);
+					empIdList.add(Integer.parseInt(strings[i]));
+				}
+			} else {
+				empIdList = getReportingEmployes(empId);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			log.error("Exception in getEmployeeHiearachyData() ",e);
+		
+		}
+		return empIdList;
+	}
 
 	private Map<String, Object> getTodaysDataV2(List<Integer> empIdsUnderReporting, MyTaskReq req, String dataType) {
 
@@ -3049,20 +3277,22 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			log.debug("empIdsUnderReporting in getTodaysData before pagination"+empIdsUnderReporting.size());
 			log.debug("dataType::::"+dataType);
 			if(dataType.equalsIgnoreCase(DynamicFormConstants.TODAYS_DATA)) {
-				map.put("todaysData", getTodayDataV2(req,empIdsUnderReporting));
+				map.put("todaysData", processTodaysUpcomingPendingData(req,empIdsUnderReporting,DynamicFormConstants.TODAYS_DATA));
 			}
 			else if(dataType.equalsIgnoreCase(DynamicFormConstants.UPCOMING_DATA)) {
-				map.put("upcomingData", getUpcomingDataV2(req,empIdsUnderReporting));
+				map.put("upcomingData", processTodaysUpcomingPendingData(req,empIdsUnderReporting,DynamicFormConstants.UPCOMING_DATA));
 			}
 			else if(dataType.equalsIgnoreCase(DynamicFormConstants.PENDING_DATA)) {
-				map.put("pendingData", getPendingDataV2(req,empIdsUnderReporting));
+				map.put("pendingData", processTodaysUpcomingPendingData(req,empIdsUnderReporting,DynamicFormConstants.PENDING_DATA));
 			}
 			else if(dataType.equalsIgnoreCase(DynamicFormConstants.RESCHEDULED_DATA)) {
-				map.put("rescheduledData", getRescheduledDataV2(req,empIdsUnderReporting));
+				map.put("rescheduledData", processTodaysUpcomingPendingData(req,empIdsUnderReporting,DynamicFormConstants.RESCHEDULED_DATA));
 			}
+			
+			
 			} catch (Exception e) {
 			e.printStackTrace();
-		}
+			log.error("Exception in getTodaysDataV2 ",e);			}
 		return map;
 	
 	}
@@ -3071,15 +3301,25 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 	
 
-	private List<TodaysTaskRes> getPendingDataV2(MyTaskReq req, List<Integer> empIdsUnderReporting) {
+	private List<TodaysTaskRes> processPendingData(MyTaskReq req,  List<Integer> empIdsUnderReporting) {
 		log.debug("Inside getUpcomingDataV2::()");
 		List<TodaysTaskRes> todaysRes = new ArrayList<>();
 		for (Integer empId : empIdsUnderReporting) {
 			String empName = salesGapServiceImpl.getEmpName(String.valueOf(empId));
-			log.debug("generating data for empId " + empId + " and empName:" + empName);
-			String todaysDate = getTodaysDate();
-			log.debug("todaysDate::"+todaysDate);
-			List<DmsWFTask> wfTaskList = dmsWfTaskDao.findAllByPendingStatus (String.valueOf(empId));
+			//log.debug("generating data for empId " + empId + " and empName:" + empName);
+			String startDate = req.getStartDate()+" 00:00:00";
+			String endDate = req.getEndDate()+" 23:59:59";
+			log.debug("processPendingData :startDate:"+startDate+",endDate:"+endDate);
+			List<DmsWFTask> wfTaskList = null;
+			if(req.isIgnoreDateFilter()) {
+				wfTaskList = dmsWfTaskDao.findAllByPendingStatus (String.valueOf(empId));
+			}else if(!req.isIgnoreDateFilter() && req.getStartDate()!=null && req.getEndDate()!=null) {
+				wfTaskList = dmsWfTaskDao.findAllByPendingData(empId,startDate,endDate);
+			}
+			else {
+				wfTaskList = dmsWfTaskDao.findAllByPendingStatus (String.valueOf(empId));
+			}
+		
 			log.debug("wfTaskList size ingetPendingDataV2 "+wfTaskList.size());
 			//wfTaskList = wfTaskList.stream().filter(wfTask->validatePendingTask(wfTask.getTaskUpdatedTime(), wfTask.getTaskCreatedTime())).collect(Collectors.toList());
 			todaysRes.add(buildMyTaskObj(wfTaskList,empId,empName));    
@@ -3087,15 +3327,28 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		return todaysRes;
 	}
 	
-	private List<TodaysTaskRes> getRescheduledDataV2(MyTaskReq req, List<Integer> empIdsUnderReporting) {
+	private List<TodaysTaskRes> processResechduledData(MyTaskReq req,List<Integer> empIdsUnderReporting) {
 		log.debug("Inside getRescheduledDataV2::()");
 		List<TodaysTaskRes> todaysRes = new ArrayList<>();
 		for (Integer empId : empIdsUnderReporting) {
 			String empName = salesGapServiceImpl.getEmpName(String.valueOf(empId));
 			log.debug("generating data for empId " + empId + " and empName:" + empName);
-			String todaysDate = getTodaysDate();
-			log.debug("todaysDate::"+todaysDate);
-			List<DmsWFTask> wfTaskList = dmsWfTaskDao.findAllByRescheduledStatus(String.valueOf(empId));
+			String startDate = req.getStartDate()+" 00:00:00";
+			String endDate = req.getEndDate()+" 23:59:59";
+			
+			List<DmsWFTask> wfTaskList  =null;
+			if(req.isIgnoreDateFilter()) {
+				wfTaskList = dmsWfTaskDao.findAllByRescheduledStatusWithNoDate (String.valueOf(empId));
+			}else if(!req.isIgnoreDateFilter() && req.getStartDate()!=null && req.getEndDate()!=null) {
+				wfTaskList =dmsWfTaskDao.findAllByRescheduledStatus(empId,startDate,endDate);
+			}
+			else {
+				wfTaskList = dmsWfTaskDao.findAllByRescheduledStatusWithNoDate (String.valueOf(empId));
+			}
+		
+			
+			
+			//List<DmsWFTask> wfTaskList = dmsWfTaskDao.findAllByRescheduledStatus(empId,startDate,endDate);
 			log.debug("wfTaskList size ingetPendingDataV2 "+wfTaskList.size());
 			//wfTaskList = wfTaskList.stream().filter(wfTask->validatePendingTask(wfTask.getTaskUpdatedTime(), wfTask.getTaskCreatedTime())).collect(Collectors.toList());
 			todaysRes.add(buildMyTaskObj(wfTaskList,empId,empName));    
@@ -3106,7 +3359,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 
 
-	private List<TodaysTaskRes> getUpcomingDataV2(MyTaskReq req, List<Integer> empIdsUnderReporting) {
+	private List<TodaysTaskRes> processUpcomingData(List<Integer> empIdsUnderReporting) {
 		log.debug("Inside getUpcomingDataV2::()");
 		List<TodaysTaskRes> todaysRes = new ArrayList<>();
 		for (Integer empId : empIdsUnderReporting) {
@@ -3124,26 +3377,95 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 
 
-	private List<TodaysTaskRes> getTodayDataV2(MyTaskReq req, List<Integer> empIdsUnderReporting) {
+	private List<TodaysTaskRes> processTodaysUpcomingPendingData(MyTaskReq req, List<Integer> empIdsUnderReporting,String dataType) {
 
 		log.debug("Inside getTodayDataV2::()");
 		List<TodaysTaskRes> todaysRes = new ArrayList<>();
-		
-		for (Integer empId : empIdsUnderReporting) {
-			String empName = salesGapServiceImpl.getEmpName(String.valueOf(empId));
-			log.debug("generating data for empId " + empId + " and empName:" + empName);
-		
-			String todaysDate = getTodaysDate();
-			log.debug("todaysDate::"+todaysDate);
-			List<DmsWFTask> todayWfTaskList = dmsWfTaskDao.getTodaysUpcomingTasks(empId, todaysDate+" 00:00:00", todaysDate+" 23:59:59");
+
+		if (empIdsUnderReporting.size() > 0) {
+			List<List<Integer>> empIdPartionList = partitionList(empIdsUnderReporting);
+			log.debug("empIdPartionList ::" + empIdPartionList.size());
+			ExecutorService executor = Executors.newFixedThreadPool(empIdPartionList.size());
 			
-			todaysRes.add(buildMyTaskObj(todayWfTaskList,empId,empName));  
-			
+			List<CompletableFuture<List<TodaysTaskRes>>> futureList  =null;
+			if(dataType.equalsIgnoreCase(DynamicFormConstants.TODAYS_DATA)) {
+				futureList = empIdPartionList.stream()
+						.map(strings -> CompletableFuture.supplyAsync(() -> processTodaysData(strings), executor))
+						.collect(Collectors.toList());
+			}
+			else if(dataType.equalsIgnoreCase(DynamicFormConstants.UPCOMING_DATA)) {
+				futureList = empIdPartionList.stream()
+						.map(strings -> CompletableFuture.supplyAsync(() -> processUpcomingData(strings), executor))
+						.collect(Collectors.toList());
+			}
+			else if(dataType.equalsIgnoreCase(DynamicFormConstants.PENDING_DATA)) {
+				futureList = empIdPartionList.stream()
+						.map(strings -> CompletableFuture.supplyAsync(() -> processPendingData(req,strings), executor))
+						.collect(Collectors.toList());
+			}
+			else if(dataType.equalsIgnoreCase(DynamicFormConstants.RESCHEDULED_DATA)) {
+				futureList = empIdPartionList.stream()
+						.map(strings -> CompletableFuture.supplyAsync(() -> processResechduledData(req,strings), executor))
+						.collect(Collectors.toList());
+			}
+			if (null != futureList) {
+				CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0])).join();
+				Stream<List<TodaysTaskRes>> dataStream = (Stream<List<TodaysTaskRes>>) futureList.stream().map(CompletableFuture::join);
+				dataStream.forEach(x -> {
+					todaysRes.addAll(x);
+				});
+
+			}
 		}
+		log.debug("size of todaysRes " + todaysRes.size());
+	
 		return todaysRes;
 	}
 
 
+
+
+	private List<TodaysTaskRes> processTodaysData(List<Integer> empIdsUnderReporting) {
+		List<TodaysTaskRes> todaysRes = new ArrayList<>();
+		for (Integer empId : empIdsUnderReporting) {
+			String empName = salesGapServiceImpl.getEmpName(String.valueOf(empId));
+			log.debug("generating data for empId " + empId + " and empName:" + empName);
+
+			String todaysDate = getTodaysDate();
+			log.debug("todaysDate::" + todaysDate);
+			List<DmsWFTask> todayWfTaskList = dmsWfTaskDao.getTodaysUpcomingTasks(empId, todaysDate + " 00:00:00",
+					todaysDate + " 23:59:59");
+			todaysRes.add(buildMyTaskObj(todayWfTaskList, empId, empName));
+		}
+		return todaysRes;
+	}
+
+	private List<List<Integer>> partitionList(List<Integer> list) {
+		final int G = 5;
+		final int NG = (list.size() + G - 1) / G;
+		List<List<Integer>> result = IntStream.range(0, NG)
+			    .mapToObj(i -> list.subList(G * i, Math.min(G * i + G, list.size())))
+			    .collect(Collectors.toList());
+		return result;
+	}
+	
+	private List<List<DmsEmployee>> partitionListEmp(List<DmsEmployee> list) {
+		final int G = 5;
+		final int NG = (list.size() + G - 1) / G;
+		List<List<DmsEmployee>> result = IntStream.range(0, NG)
+			    .mapToObj(i -> list.subList(G * i, Math.min(G * i + G, list.size())))
+			    .collect(Collectors.toList());
+		return result;
+	}
+	
+	private List<List<EmployeeTargetAchievement>> partitionListEmpTarget(List<EmployeeTargetAchievement> list) {
+		final int G = 5;
+		final int NG = (list.size() + G - 1) / G;
+		List<List<EmployeeTargetAchievement>> result = IntStream.range(0, NG)
+			    .mapToObj(i -> list.subList(G * i, Math.min(G * i + G, list.size())))
+			    .collect(Collectors.toList());
+		return result;
+	}
 
 
 	private TodaysTaskRes buildMyTaskObj(List<DmsWFTask> todayWfTaskList,Integer empId, String empName) {

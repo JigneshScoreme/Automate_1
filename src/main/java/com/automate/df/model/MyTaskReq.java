@@ -7,12 +7,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class MyTaskReq {
 	
+	Integer orgId;
 	Integer loggedInEmpId;
 	String startDate;
 	String endDate;
 	boolean isOnlyForEmp;
 	
 	String dataType; // allowed Values todaysData,upcomingData,pendingData,rescheduledData
+	boolean ignoreDateFilter;
 	
 	
 
