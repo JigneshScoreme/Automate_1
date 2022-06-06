@@ -86,8 +86,7 @@ public interface DmsWfTaskDao extends JpaRepository<DmsWFTask, Integer> {
 	
 	
 
-	   @Query(value = "SELECT * FROM dms_workflow_task where dms_workflow_task.assignee_id=?1 and  DATE" +
-	            "(`task_updated_time`) != CURDATE() and dms_workflow_task.task_status != 'ASSIGNED'and dms_workflow_task.task_status != 'CLOSED'and dms_workflow_task.task_status != 'IN_PROGRESS' and dms_workflow_task.task_status != 'CANCELLED'and dms_workflow_task.task_status != 'SYSTEM_ERROR' and dms_workflow_task.task_status != 'SENT_FOR_APPROVAL' and dms_workflow_task.task_status != 'APPROVED' order by "+ " task_created_time desc", nativeQuery = true)
+	   @Query(value = "SELECT * FROM dms_workflow_task where dms_workflow_task.assignee_id=?1 and dms_workflow_task.task_status != 'ASSIGNED'and dms_workflow_task.task_status != 'CLOSED'and dms_workflow_task.task_status != 'IN_PROGRESS' and dms_workflow_task.task_status != 'CANCELLED'and dms_workflow_task.task_status != 'SYSTEM_ERROR' and dms_workflow_task.task_status != 'SENT_FOR_APPROVAL' and dms_workflow_task.task_status != 'APPROVED' order by "+ " task_created_time desc", nativeQuery = true)
 	    List<DmsWFTask> findAllByRescheduledStatusWithNoDate(String empId);
 	
 	  @Query(value = "SELECT * FROM dms_workflow_task where dms_workflow_task.assignee_id=:assigneeId and task_updated_time>= :startTime  and task_updated_time<=:endTime"
@@ -95,6 +94,8 @@ public interface DmsWfTaskDao extends JpaRepository<DmsWFTask, Integer> {
 	    List<DmsWFTask> findAllByRescheduledStatus(@Param(value = "assigneeId") Integer assigneeId,
 				@Param(value = "startTime") String startTime,
 				@Param(value = "endTime") String endTime);
+	  
+	  
 	  
 	@Query(value = "SELECT * FROM dms_workflow_task  where universal_id=:universalId and task_name=:taskName", nativeQuery = true)
 	List<DmsWFTask> getWfTaskByUniversalIdandTask(@Param(value = "universalId") String crmUniversalId, 
