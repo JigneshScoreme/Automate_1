@@ -287,6 +287,21 @@ public class DashBoardControllerV2 {
 		}
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
+	
+	@CrossOrigin
+	@PostMapping(value = "v2/get_todays_datav3")
+	public ResponseEntity<Map<String,Object>> getTodaysDataV3(@RequestBody MyTaskReq req)
+			throws DynamicFormsServiceException {
+		Map<String, Object> response = null;
+		if (req.getLoggedInEmpId() != null) {
+			response = dashBoardService.getTodaysPendingUpcomingDataV3(req);
+		} else {
+			throw new DynamicFormsServiceException("LoggedInEmpId,PageNo and Size are mandatory params",
+					HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
 	 @GetMapping("/get_target_param/{orgId}/{empId}")
 	    public List<DmsTargetParamSchedular> getById(@PathVariable("orgId") String orgId,@PathVariable("empId") String empId) {
 

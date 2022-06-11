@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
+
 public class MyTaskReq {
 	
 	Integer orgId;
@@ -15,6 +16,9 @@ public class MyTaskReq {
 	
 	String dataType; // allowed Values todaysData,upcomingData,pendingData,rescheduledData
 	boolean ignoreDateFilter;
+	boolean isDetailView;
+	String viewForEmp;
+	Integer detailedViewEmpId;
 	
 	
 
