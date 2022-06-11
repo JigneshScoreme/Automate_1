@@ -3705,16 +3705,16 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		}else {
 			
 			if(dataType.equalsIgnoreCase(DynamicFormConstants.TODAYS_DATA)) {
-				processTodaysDataV3(empIdsUnderReporting,req);
+				todaysRes.addAll(processTodaysDataV3(empIdsUnderReporting,req));
 			}
 			else if(dataType.equalsIgnoreCase(DynamicFormConstants.UPCOMING_DATA)) {
-				processUpcomingDataV3(empIdsUnderReporting,req);
+				todaysRes.addAll(processUpcomingDataV3(empIdsUnderReporting,req));
 			}
 			else if(dataType.equalsIgnoreCase(DynamicFormConstants.PENDING_DATA)) {
-				processPendingDataV3(req,empIdsUnderReporting);
+				todaysRes.addAll(processPendingDataV3(req,empIdsUnderReporting));
 			}
 			else if(dataType.equalsIgnoreCase(DynamicFormConstants.PENDING_DATA)) {
-				processResechduledDataV3(req,empIdsUnderReporting);
+				todaysRes.addAll(processResechduledDataV3(req,empIdsUnderReporting));
 			}
 			
 		}
@@ -3816,6 +3816,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 	
 	private TodaysTaskRes buildMyTaskObjV3(List<DmsWFTask> todayWfTaskList,Integer empId, String empName, MyTaskReq req) {
+		log.info("buildMyTaskObjV3::");	
 		TodaysTaskRes todaysRes = new TodaysTaskRes();
 		try {
 			List<MyTask> myTaskList = new ArrayList<>();
@@ -3827,6 +3828,8 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			todaysRes.setEmpName(empName);
 			todaysRes.setTasksAvailable(uniqueTastSet);
 			todaysRes.setTaskAvailableCnt(uniqueTaskcnt);
+			log.info("::todaysRes:"+todaysRes);		
+			
 			if(req.isDetailView()) {
 			if (null != todayWfTaskList) {
 				for (DmsWFTask wf : todayWfTaskList) {
@@ -3853,6 +3856,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 					myTaskList.add(task);
 				}
 			}
+			}
 			Map<String,List<MyTask>> map=   myTaskList.stream().collect(Collectors.groupingBy(MyTask::getTaskName));
 			
 			List<EmpTask> tasksList = new ArrayList<>();
@@ -3869,7 +3873,8 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			});
 			
 			todaysRes.setTasksList(tasksList);
-			}
+			log.info("todaysRes "+todaysRes);
+			
 			
 		}catch(Exception e) {
 			e.printStackTrace();
