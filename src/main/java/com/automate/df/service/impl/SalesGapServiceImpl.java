@@ -138,12 +138,12 @@ public class SalesGapServiceImpl implements SalesGapService {
 	final String getSalForEmp = "select salary from dms_emp_sal_mapping where emp_id=<ID>";
 
 	@Override
-	public List<TargetSettingRes> getTargetSettingData(int pageNo, int size) {
+	public List<TargetSettingRes> getTargetSettingData(int pageNo, int size,int orgId) {
 		log.debug("Inside getTargetSettingData()");
 		List<TargetSettingRes> list = new ArrayList<>();
 		try {
 			Pageable pageable = PageRequest.of(pageNo, size);
-			List<TargetEntity> dbList = targetSettingRepo.findAll(pageable).toList();
+			List<TargetEntity> dbList = targetSettingRepo.getTargetmappingDataOrg(orgId,pageable);
 			// list = dbList.stream().map(x -> modelMapper.map(x,
 			// TargetSettingRes.class)).collect(Collectors.toList());
 			dbList = dbList.stream().filter(x -> x.getActive().equalsIgnoreCase(GsAppConstants.ACTIVE))

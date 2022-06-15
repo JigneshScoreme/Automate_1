@@ -407,7 +407,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	
 	
 	
-	private List<EmployeeTargetAchievement> processEmployeeTargetAchiveList(List<EmployeeTargetAchievement> empTargetAchievements,
+	public List<EmployeeTargetAchievement> processEmployeeTargetAchiveList(List<EmployeeTargetAchievement> empTargetAchievements,
 			List<TargetAchivement> resList, String startDt, String endDt) {
 		List<EmployeeTargetAchievement> res = new ArrayList<>();
 		try {
@@ -631,12 +631,12 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 
 	
-	private List<TargetAchivement> getTargetAchivementParamsForMultipleEmp(
+	public List<TargetAchivement> getTargetAchivementParamsForMultipleEmp(
 			List<Integer> empIdsUnderReporting, DashBoardReqV2 req,String orgId) throws ParseException, DynamicFormsServiceException {
 		List<TargetAchivement> resList = new ArrayList<>();
 		List<String> empNamesList = dmsEmployeeRepo.findEmpNamesById(empIdsUnderReporting);
-		log.info("empNamesList::" + empNamesList);
-		log.info("Calling getTargetAchivementParamsForMultipleEmp");
+		log.debug("empNamesList::" + empNamesList);
+		log.debug("Calling getTargetAchivementParamsForMultipleEmp");
 		final String startDate;
 		final String endDate;
 		if (null == req.getStartDate() && null == req.getEndDate()) {
@@ -720,7 +720,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		return map;
 	}
 
-	private List<TargetAchivement> getTargetAchivementParamsForMultipleEmpAndEmps(
+	public List<TargetAchivement> getTargetAchivementParamsForMultipleEmpAndEmps(
 			List<Integer> empIdsUnderReporting, DashBoardReqV2 req,String orgId,List<EmployeeTargetAchievement> empTargetAchievements,String startDate,String endDate) throws ParseException, DynamicFormsServiceException {
 		log.debug("Calling getTargetAchivementParamsForMultipleEmp");
 
@@ -2830,7 +2830,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 
 
-	private List<TargetAchivement> buildFinalTargets(List<List<TargetAchivement>> allTargets) {
+	public List<TargetAchivement> buildFinalTargets(List<List<TargetAchivement>> allTargets) {
 
 		List<TargetAchivement> resList = new ArrayList<>();
 		Integer finalEnq = 0;
@@ -3225,8 +3225,8 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 				
 			}else {
 				Long startTime = System.currentTimeMillis();
-				empIdList = getEmployeeHiearachyData(req.getOrgId(),req.getLoggedInEmpId());
-				
+				//empIdList = getEmployeeHiearachyData(req.getOrgId(),req.getLoggedInEmpId());
+				empIdList = getReportingEmployes(req.getLoggedInEmpId());
 				log.debug("getReportingEmployes list "+empIdList.size());
 				log.debug("Time taken to get employess list "+(System.currentTimeMillis()-startTime));
 			}
@@ -3252,7 +3252,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	private List<Integer> getEmployeeHiearachyData(Integer orgId, Integer empId) {
 		List<Integer> empIdList = new ArrayList<>();
 		try {
-			String empHierarchyString = dashBoardServiceV3.getEmpHierararchyDataSchedular(empId, orgId);
+			/*String empHierarchyString = dashBoardServiceV3.getEmpHierararchyDataSchedular(empId, orgId);
 
 			if (null != empHierarchyString) {
 				log.debug("empHierarchyString is not null " + empId);
@@ -3261,9 +3261,10 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 					strings[i] = strings[i].substring(1);
 					empIdList.add(Integer.parseInt(strings[i]));
 				}
-			} else {
+			}*/
+			//else {
 				empIdList = getReportingEmployes(empId);
-			}
+			//}
 		} catch (Exception e) {
 			e.printStackTrace();
 			log.error("Exception in getEmployeeHiearachyData() ",e);
@@ -3460,7 +3461,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		return result;
 	}
 	
-	private List<List<EmployeeTargetAchievement>> partitionListEmpTarget(List<EmployeeTargetAchievement> list) {
+	public List<List<EmployeeTargetAchievement>> partitionListEmpTarget(List<EmployeeTargetAchievement> list) {
 		final int G = 5;
 		final int NG = (list.size() + G - 1) / G;
 		List<List<EmployeeTargetAchievement>> result = IntStream.range(0, NG)
