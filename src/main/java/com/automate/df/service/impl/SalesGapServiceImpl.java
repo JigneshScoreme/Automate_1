@@ -756,6 +756,8 @@ public class SalesGapServiceImpl implements SalesGapService {
                     .collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparingInt(TargetSettingRes::getId))),
                                                ArrayList::new));
 			//outputList = outputList.stream().distinct().collect(Collectors.toList());
+			
+			log.debug("outputList::"+outputList);
 			int totalCnt = outputList.size();
 			int fromIndex = size * (pageNo - 1);
 			int toIndex = size * pageNo;
@@ -1151,6 +1153,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 				// targetUserRepo.findAllEmpIds(tRole.getEmpId());
 				List<TargetEntityUser> tesUserList = targetUserRepo.findAllEmpIdsWithNoDefault(tRole.getEmpId());
 				List<TargetEntityUser> teUserDefaultList = targetUserRepo.findAllEmpIdsWithDefault(tRole.getEmpId());
+				log.debug("teUserDefaultList is not empty " + teUserDefaultList.size());
 				if (null != tesUserList && !tesUserList.isEmpty()) {
 					log.debug("tesUserList is not empty " + tesUserList.size());
 					for (TargetEntityUser teUser : tesUserList) {
@@ -1196,7 +1199,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 
 				}
 
-				else if(null!=teUserDefaultList && teUserDefaultList.isEmpty()){
+				if(null!=teUserDefaultList && teUserDefaultList.isEmpty()){
 					log.debug("tesUserList is  empty ");
 					modelMapper.getConfiguration().setAmbiguityIgnored(true);
 
@@ -1273,7 +1276,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 					list.add(res);
 
 				}
-				else if(null!=teUserDefaultList && !teUserDefaultList.isEmpty()){
+				if(null!=teUserDefaultList && !teUserDefaultList.isEmpty()){
 					log.debug("tesUserList is  empty ");
 					modelMapper.getConfiguration().setAmbiguityIgnored(true);
 
@@ -2258,7 +2261,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 
 			List<TargetEntityUser> targetEntityUserList = targetUserRepo.findByEmpIdWithDate(finalEmpId,
 					req.getStartDate(), req.getEndDate(), req.getTargetType(), req.getTargetName());
-
+			log.debug("targetEntityUserList::"+targetEntityUserList);
 			Map<String, Object> adminTargetMap = getAdminTargetString(Integer.parseInt(finalEmpId));
 			String adminTargets = (String) adminTargetMap.get("VAL");
 			Integer adminId = (Integer) adminTargetMap.get("ID");
@@ -2270,7 +2273,11 @@ public class SalesGapServiceImpl implements SalesGapService {
 						te.setTargets(target);
 						te.setTargetAdminId(adminId);
 						te.setActive("Y");
+						if(te.getType().equalsIgnoreCase("default")) {
+							te.setType("default");
+						}else {
 						te.setType("");
+						}
 						te.setTargetName(req.getTargetName());
 						te.setTargetType(req.getTargetType());
 						modelMapper.getConfiguration().setAmbiguityIgnored(true);
