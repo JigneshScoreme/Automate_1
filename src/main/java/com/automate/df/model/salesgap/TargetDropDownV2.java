@@ -1,15 +1,15 @@
 package com.automate.df.model.salesgap;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 
-public class TargetDropDownV2 {
+public class TargetDropDownV2 implements Serializable {
 
 	String code;
 	String name;

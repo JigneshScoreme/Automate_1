@@ -17,7 +17,7 @@ import com.automate.df.model.salesgap.TargetSettingRes;
 
 public interface SalesGapService {
 
-	List<TargetSettingRes> getTargetSettingData(int pageNo,int size);
+	List<TargetSettingRes> getTargetSettingData(int pageNo,int size, int orgId);
 
 	TargetSettingRes saveTargetSettingData(TargetSettingReq request) throws DynamicFormsServiceException;
 

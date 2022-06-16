@@ -49,9 +49,12 @@ public interface DashBoardServiceV2 {
 	Map<String, Object> getTodaysPendingUpcomingDataV2(MyTaskReq req) throws DynamicFormsServiceException;
 
 
+	Map<String, Object> getTodaysPendingUpcomingDataV3(MyTaskReq req) throws DynamicFormsServiceException;
 	
 	List<TargetRankingRes> getEmployeeTargetRankingByOrg(Integer orgId,DashBoardReqV2 req) throws DynamicFormsServiceException;
 	
 	List<TargetRankingRes> getEmployeeTargetRankingByOrgAndBranch(Integer orgId,Integer branchId,DashBoardReqV2 req) throws DynamicFormsServiceException;
+
+	Map<String, Object> getTodaysPendingUpcomingDataDetailV3(MyTaskReq req) throws DynamicFormsServiceException;
 
 }

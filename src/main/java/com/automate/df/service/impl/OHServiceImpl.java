@@ -19,6 +19,8 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -1475,6 +1477,7 @@ public class OHServiceImpl implements OHService {
 		return list;
 	}
 	
+	@Cacheable (value = "empDataCache",key="#branchId_1")
 	private List<TargetDropDownV2> buildDropDownV2(Integer id, Integer branch, Integer orgId) {
 		//String query = "SELECT emp_id,emp_name FROM dms_employee where reporting_to=<ID> and branch=<BRANCH> and org=<ORGID>";
 		String query = "\r\n"
@@ -2089,7 +2092,7 @@ public class OHServiceImpl implements OHService {
 	
 	}
 	
-	
+	//@Cacheable (value = "empDataCache",key="#branchId")
 	public Map<String, Object> getReportingHierarchyV2(DmsEmployee emp, int branchId, Integer orgId) {
 		log.debug("Inside getReportingHierarchyV2,branchId: "+branchId+",orgId:"+orgId);
 		Map<String, Object> empDtaMap = new LinkedHashMap<>();

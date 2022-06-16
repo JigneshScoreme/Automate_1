@@ -50,11 +50,11 @@ public class SalesGapController {
 	@CrossOrigin
 	@GetMapping(value = "getall_target_mapping_admin")
 	public ResponseEntity<?> getTargetSettingData(@RequestParam(defaultValue = "0") int pageNo,
-			@RequestParam(defaultValue = "10") int size)
+			@RequestParam(defaultValue = "10") int size,@RequestParam int orgId)
 			throws DynamicFormsServiceException {
 		List<TargetSettingRes> response = null;
 		if (Optional.of(pageNo).isPresent()) {
-			response = salesGapService.getTargetSettingData(pageNo,size);
+			response = salesGapService.getTargetSettingData(pageNo,size,orgId);
 		} else {
 			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
 		}
@@ -194,6 +194,8 @@ public class SalesGapController {
 		}
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
+	
+	
 	
 	/*
 	 * @CrossOrigin

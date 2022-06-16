@@ -24,6 +24,9 @@ public interface TargetUserRepo extends JpaRepository<TargetEntityUser, Integer>
 	public List<TargetEntityUser> findAllEmpIdsWithNoDefault(@Param(value="empId") String empId);
 	
 	
+	@Query(value="SELECT * FROM dms_target_setting_user where emp_id=:empId and is_active='Y' and type='default'",nativeQuery = true)
+	public List<TargetEntityUser> findAllEmpIdsWithDefault(@Param(value="empId") String empId);
+	
 	@Query(value = "SELECT * FROM dms_target_setting_user where org_id=:orgId  and department=:department and designation=:designation and branch=:branch and is_active='Y'", nativeQuery = true)
 	List<TargetEntityUser> getUserTargetData(@Param(value = "orgId") String orgId,
 			@Param(value="department") String deptId,
@@ -41,10 +44,12 @@ public interface TargetUserRepo extends JpaRepository<TargetEntityUser, Integer>
 			);
 	
 	
-	@Query(value="SELECT * FROM dms_target_setting_user where emp_id=:empId and start_date=:startDate and end_date=:endDate",nativeQuery = true)
-	public Optional<TargetEntityUser> findByEmpIdWithDate(@Param(value="empId") String empId,
+	@Query(value="SELECT * FROM dms_target_setting_user where emp_id=:empId and start_date=:startDate and end_date=:endDate and target_type=:targetType and is_active='Y' and target_name=:targetName",nativeQuery = true)
+	public List<TargetEntityUser> findByEmpIdWithDate(@Param(value="empId") String empId,
 			@Param(value="startDate") String startDate,
-			@Param(value="endDate") String endDate);
+			@Param(value="endDate") String endDate,
+			@Param(value="targetType") String targetType,
+			@Param(value="targetName") String targetName);
 
 	@Query(value="SELECT * FROM dms_target_setting_user where emp_id=:empId and type='default'",nativeQuery = true)
 	public Optional<TargetEntityUser> checkDefaultDataInTargetUser(@Param(value="empId") String empId);
@@ -61,6 +66,11 @@ public interface TargetUserRepo extends JpaRepository<TargetEntityUser, Integer>
 	
 	@Query(value="SELECT * FROM dms_target_setting_user where emp_id = :empId ",nativeQuery = true)
 	public List<TargetEntityUser> findAllQ3(@Param(value="empId") String empId);
+	
+	
+
+	@Query(value="SELECT * FROM dms_target_setting_user where target_admin_id = :adminID and is_active='Y'",nativeQuery = true)
+	public List<TargetEntityUser> findAllByTargetAdminId(@Param(value="adminID") Integer adminID);
 	
 
 

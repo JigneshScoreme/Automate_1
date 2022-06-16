@@ -1,5 +1,6 @@
 package com.automate.df.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -72,6 +73,25 @@ public class DashBoardControllerV2 {
 			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
 		}
 		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	@CrossOrigin
+	@PostMapping(value = "v2/get_target_param_headings")
+	public ResponseEntity<List<String>> getTargetAchivementParamsByEmps()
+			throws DynamicFormsServiceException {
+		List<String> list = new ArrayList<>();
+		
+		list.add("Enq");
+		list.add("Tdr");
+		list.add("Fin");
+		list.add("Ins");
+		list.add("Acc");
+		list.add("Bkg");
+		list.add("Hvt");
+		list.add("Exg");
+		list.add("Ret");
+		
+		return new ResponseEntity<>(list, HttpStatus.OK);
 	}
 	
 	@CrossOrigin
@@ -267,6 +287,21 @@ public class DashBoardControllerV2 {
 		}
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
+	
+	@CrossOrigin
+	@PostMapping(value = "v2/get_todays_datav3")
+	public ResponseEntity<Map<String,Object>> getTodaysDataV3(@RequestBody MyTaskReq req)
+			throws DynamicFormsServiceException {
+		Map<String, Object> response = null;
+		if (req.getLoggedInEmpId() != null) {
+			response = dashBoardService.getTodaysPendingUpcomingDataV3(req);
+		} else {
+			throw new DynamicFormsServiceException("LoggedInEmpId,PageNo and Size are mandatory params",
+					HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
 	 @GetMapping("/get_target_param/{orgId}/{empId}")
 	    public List<DmsTargetParamSchedular> getById(@PathVariable("orgId") String orgId,@PathVariable("empId") String empId) {
 

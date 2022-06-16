@@ -2,6 +2,7 @@ package com.automate.df.dao.salesgap;
 
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -72,5 +73,9 @@ public interface TargetSettingRepo extends JpaRepository<TargetEntity, Integer> 
 			@Param(value = "departmentId") String department, @Param(value = "experience") String experience,
 			@Param(value = "salary") String salary,
 			@Param(value = "designation") String designation);
+
+	
+	@Query(value = "SELECT * FROM dms_target_setting where org_id=:orgId", nativeQuery = true)
+	List<TargetEntity> getTargetmappingDataOrg(@Param(value = "orgId") Integer orgId,Pageable pageable);
 
 }
