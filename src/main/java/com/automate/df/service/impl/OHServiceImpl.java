@@ -2200,4 +2200,45 @@ public class OHServiceImpl implements OHService {
 	return null;
 	}
 	
+	
+	
+	
+	public Map<String, Object> getReportingHierarchyV3(DmsEmployee emp, int branchId, Integer orgId) {
+		log.debug("Inside getReportingHierarchyV3,branchId: "+branchId+",orgId:"+orgId);
+		Map<String, Object> empDtaMap = new LinkedHashMap<>();
+		try {
+			Integer maxLevel = getMaxLevel();
+			log.debug("maxLevel:::" + maxLevel);
+			Integer empLevel = 0;
+			if (null != emp.getDesignationId()) {
+				Integer empDesId = Integer.parseInt(emp.getDesignationId());
+				log.debug("empDesigntaion:::" + empDesId);
+				Optional<DmsDesignation> desOpt = dmsDesignationRepo.findById(empDesId);
+				if (desOpt.isPresent()) {
+					empLevel = desOpt.get().getLevel();
+				} else {
+					throw new DynamicFormsServiceException(
+							"Given emp does not have valid designation in dms_designation", HttpStatus.BAD_REQUEST);
+				}
+
+				log.debug("Given emp level is " + empLevel);
+
+				List<TargetDropDownV2> empList = buildDropDownV2(emp.getEmp_id(), branchId, orgId);
+				if (!empList.isEmpty() && maxLevel >= (empLevel + 1)) {
+					Map<String, Object> map = new LinkedHashMap<>();
+					map.put(String.valueOf(emp.getEmp_id()), empList);
+					empDtaMap.put(getLevelName(empLevel + 1), map);
+				}
+			
+
+			}
+			log.debug("empDtaMap in getReportingHierarchyV3:::"+empDtaMap);		
+		} catch (Exception e) {
+			e.printStackTrace();
+			log.error("Exception ",e);;
+		}
+
+		return empDtaMap;
+	}
+	
 }

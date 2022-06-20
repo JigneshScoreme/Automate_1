@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class DashBoardReqV2 {
 	
+	String orgId;
 	Integer loggedInEmpId;
 	List<Integer> empSelected;
 	List<Integer> levelSelected;
@@ -29,4 +30,6 @@ public class DashBoardReqV2 {
 	String branchSelectionInEvents;
 	int pageNo;
 	int size;
+	
+	Integer selectedEmpId;
 }
