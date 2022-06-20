@@ -69,7 +69,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * 
- * @author sruja
+ * @author srujan
  *
  */
 @Slf4j
@@ -1154,8 +1154,9 @@ public class SalesGapServiceImpl implements SalesGapService {
 				List<TargetEntityUser> tesUserList = targetUserRepo.findAllEmpIdsWithNoDefault(tRole.getEmpId());
 				List<TargetEntityUser> teUserDefaultList = targetUserRepo.findAllEmpIdsWithDefault(tRole.getEmpId());
 				log.debug("teUserDefaultList is not empty " + teUserDefaultList.size());
+				log.debug("tesUserList is not empty " + tesUserList.size());
 				if (null != tesUserList && !tesUserList.isEmpty()) {
-					log.debug("tesUserList is not empty " + tesUserList.size());
+					
 					for (TargetEntityUser teUser : tesUserList) {
 						modelMapper.getConfiguration().setAmbiguityIgnored(true);
 						TargetSettingRes tsRes = modelMapper.map(teUser, TargetSettingRes.class);
@@ -1277,59 +1278,46 @@ public class SalesGapServiceImpl implements SalesGapService {
 
 				}
 				if(null!=teUserDefaultList && !teUserDefaultList.isEmpty()){
-					log.debug("tesUserList is  empty ");
-					modelMapper.getConfiguration().setAmbiguityIgnored(true);
+					log.debug("teUserDefaultList is not empty");
+					for (TargetEntityUser teUser : teUserDefaultList) {
+						modelMapper.getConfiguration().setAmbiguityIgnored(true);
+						TargetSettingRes tsRes = modelMapper.map(teUser, TargetSettingRes.class);
+						tsRes = convertTargetStrToObj(teUser.getTargets(), tsRes);
+						tsRes.setEmpName(getEmpName(tRole.getEmpId()));
+						tsRes.setEmployeeId(tRole.getEmpId());
+						tsRes.setId(teUser.getGeneratedId());
+						tsRes.setTargetName(teUser.getTargetName());
+						tsRes.setTargetType(teUser.getTargetType());
+						if (null != teamLeadId) {
+							tsRes.setTeamLead(getTeamLeadName(teamLeadId));
+							tsRes.setTeamLeadId(teamLeadId);
+						}
+						if (null != managerId) {
+							tsRes.setManager(getEmpName(managerId));
+							tsRes.setManagerId(managerId);
+						}
+						if (null != branchMgrId) {
+							tsRes.setBranchManagerId(branchMgrId);
+							tsRes.setBranchmanger(getEmpName(branchMgrId));
+						}
+						if (null != generalMgrId) {
+							tsRes.setGeneralManagerId(generalMgrId);
+							tsRes.setGeneralManager(getEmpName(generalMgrId));
+						}
 
-					for(TargetEntityUser teUser : teUserDefaultList) {
-					TargetSettingRes res = modelMapper.map(teUser, TargetSettingRes.class);
-					res.setStartDate(getFirstDayOfQurter());
-					res.setEndDate(getLastDayOfQurter());
-
-					
-					res.setEmployeeId(tRole.getEmpId());
-
-					
-
-					
-						res.setId(teUser.getGeneratedId());
-					
-					res = convertTargetStrToObjV3(te.getTargets(), res);
-					res.setEmpName(getEmpName(tRole.getEmpId()));
-					res.setEmployeeId(tRole.getEmpId());
-					res.setTargetName("DEFAULT");
-					res.setTargetType(DynamicFormConstants.TARGET_MONTHLY_TYPE);
-					res.setExperience(tRole.getExperience() != null ? tRole.getExperience() : "");
-					if (null != teamLeadId) {
-						res.setTeamLead(getTeamLeadName(teamLeadId));
-						res.setTeamLeadId(teamLeadId);
-					}
-					if (null != managerId) {
-						res.setManager(getEmpName(managerId));
-						res.setManagerId(managerId);
-					}
-					if (null != branchMgrId) {
-						res.setBranchManagerId(branchMgrId);
-						res.setBranchmanger(getEmpName(branchMgrId));
-					}
-					if (null != generalMgrId) {
-						res.setGeneralManagerId(generalMgrId);
-						res.setGeneralManager(getEmpName(generalMgrId));
-					}
-
-					if (null != tRole.getLocationId()) {
-						res.setLocationName(getLocationName(tRole.getLocationId()));
-					}
-					if (null != tRole.getBranchId()) {
-						res.setBranchName(getBranchName(tRole.getBranchId()));
-					}
-					if (null != tRole.getDeptId()) {
-						res.setDepartmentName(getDeptName(tRole.getDeptId()));
-					}
-					if (null != tRole.getDesignationId()) {
-						res.setDesignationName(getDesignationName(tRole.getDesignationId()));
-					}
-					log.debug("res::::::::::::"+res);
-					list.add(res);
+						if (null != tRole.getLocationId()) {
+							tsRes.setLocationName(getLocationName(tRole.getLocationId()));
+						}
+						if (null != tRole.getBranchId()) {
+							tsRes.setBranchName(getBranchName(tRole.getBranchId()));
+						}
+						if (null != tRole.getDeptId()) {
+							tsRes.setDepartmentName(getDeptName(tRole.getDeptId()));
+						}
+						if (null != tRole.getDesignationId()) {
+							tsRes.setDesignationName(getDesignationName(tRole.getDesignationId()));
+						}
+						list.add(tsRes);
 					}
 
 				}
@@ -2257,11 +2245,12 @@ public class SalesGapServiceImpl implements SalesGapService {
 			 * Optional.of(managerId).isPresent()) { finalEmpId=managerId; }
 			 */
 
-			log.debug("finalEmpId::" + finalEmpId);
-
+			log.debug("targetName:::: "+req.getTargetName());
+			log.debug("finalEmpId::" + finalEmpId+", startDate:"+req.getStartDate()+" End Dte "+req.getEndDate()+" ,TargetType "+req.getTargetType());
+			log.debug("Targe name "+req.getTargetName());
 			List<TargetEntityUser> targetEntityUserList = targetUserRepo.findByEmpIdWithDate(finalEmpId,
 					req.getStartDate(), req.getEndDate(), req.getTargetType(), req.getTargetName());
-			log.debug("targetEntityUserList::"+targetEntityUserList);
+			log.debug("targetEntityUserList:::::"+targetEntityUserList);
 			Map<String, Object> adminTargetMap = getAdminTargetString(Integer.parseInt(finalEmpId));
 			String adminTargets = (String) adminTargetMap.get("VAL");
 			Integer adminId = (Integer) adminTargetMap.get("ID");
@@ -2278,6 +2267,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 						}else {
 						te.setType("");
 						}
+						log.debug("Setting type :::::::;");
 						te.setTargetName(req.getTargetName());
 						te.setTargetType(req.getTargetType());
 						modelMapper.getConfiguration().setAmbiguityIgnored(true);
@@ -2299,6 +2289,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 						TargetRoleRes role = getEmpRoleDataV3(Integer.parseInt(finalEmpId));
 						te.setOrgId(role.getOrgId());
 
+						log.debug("TE before sving "+te);
 						res = modelMapper.map(targetUserRepo.save(te), TargetSettingRes.class);
 
 						res.setEmpName(getEmpName(res.getEmployeeId()));
