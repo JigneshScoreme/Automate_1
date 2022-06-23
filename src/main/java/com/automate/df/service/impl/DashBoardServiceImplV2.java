@@ -40,6 +40,7 @@ import org.springframework.web.client.RestTemplate;
 import com.automate.df.constants.DynamicFormConstants;
 import com.automate.df.dao.DmsSourceOfEnquiryDao;
 import com.automate.df.dao.LeadStageRefDao;
+import com.automate.df.dao.SourceAndIddao;
 import com.automate.df.dao.dashboard.ComplaintTrackerDao;
 import com.automate.df.dao.dashboard.DmsLeadDao;
 import com.automate.df.dao.dashboard.DmsLeadDropDao;
@@ -50,6 +51,7 @@ import com.automate.df.dao.salesgap.DmsEmployeeRepo;
 import com.automate.df.dao.salesgap.TargetSettingRepo;
 import com.automate.df.dao.salesgap.TargetUserRepo;
 import com.automate.df.entity.LeadStageRefEntity;
+import com.automate.df.entity.SourceAndId;
 import com.automate.df.entity.dashboard.ComplaintsTracker;
 import com.automate.df.entity.dashboard.DmsLead;
 import com.automate.df.entity.dashboard.DmsWFTask;
@@ -142,7 +144,8 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	@Autowired
 	RestTemplate restTemplate;
 	
-	
+	@Autowired
+	SourceAndIddao repository; 
 	
 	@Autowired
 	ObjectMapper om;
@@ -1318,6 +1321,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	public List<VehicleModelRes> getVehicleModelData(DashBoardReqV2 req) throws DynamicFormsServiceException {
 		log.info("Inside getVehicleModelData(){}");
 		List<VehicleModelRes> resList = new ArrayList<>();
+		System.out.println("model"+resList);
 		try {
 
 			Integer empId = req.getLoggedInEmpId();
@@ -1654,7 +1658,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		String endDate = getEndDate(req.getEndDate());
 		log.info("StartDate " + startDate + ", EndDate " + endDate);
 
-		getLeadTypes().forEach((k, v) -> {
+		getLeadTypes(orgId).forEach((k, v) -> {
 			LeadSourceRes leadSource = new LeadSourceRes();
 			log.debug("Generating data for Leadsource " + k + " and enq id " + v);
 			List<DmsLead> dmsAllLeadList = dmsLeadDao.getAllEmployeeLeadsBasedOnEnquiry(orgId, empNamesList, startDate, endDate, v);
@@ -1736,12 +1740,26 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 
 
-	private Map<String,Integer> getLeadTypes() {
+//	private Map<String,Integer> getLeadTypes() {
+//		Map<String,Integer> map = new LinkedHashMap<>();
+//		
+//		map.put("Reference",6);//6
+//		map.put("Showroom",1); //1
+//		map.put("Field",2);  //2
+//		map.put("Social Network",5);//5
+//		return map;
+//	}
+	
+	private Map<String,Integer> getLeadTypes(String orgId){
+		
+		List<SourceAndId> reslist=repository.getSources(orgId);
+		System.out.println("reslist"+reslist);
 		Map<String,Integer> map = new LinkedHashMap<>();
-		map.put("Reference",6);//6
-		map.put("Showroom",1); //1
-		map.put("Field",2);  //2
-		map.put("Social Network",5);//5
+		reslist.stream().forEach(res->
+		{
+			map.put(res.getName(), res.getId());
+			
+		});
 		return map;
 	}
 
