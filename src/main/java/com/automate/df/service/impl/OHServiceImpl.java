@@ -2224,6 +2224,7 @@ public class OHServiceImpl implements OHService {
 				log.debug("Given emp level is " + empLevel);
 
 				List<TargetDropDownV2> empList = buildDropDownV2(emp.getEmp_id(), branchId, orgId);
+				log.debug("empList::"+empList);	
 				if (!empList.isEmpty() && maxLevel >= (empLevel + 1)) {
 					Map<String, Object> map = new LinkedHashMap<>();
 					map.put(String.valueOf(emp.getEmp_id()), empList);

@@ -191,7 +191,7 @@ public class DashBoardServiceImplV4 implements DashBoardServiceV4{
 				log.debug("Fetching empReportingIdList for logged in emp in else :"+req.getLoggedInEmpId());
 				List<Integer> empReportingIdList =  getImmediateReportingEmp(req.getSelectedEmpId(),orgId);
 				log.debug("empReportingIdList::"+empReportingIdList);
-				empReportingIdList.add(req.getLoggedInEmpId());
+				empReportingIdList.add(req.getSelectedEmpId());
 				resList = dashBoardServiceImplV2.getTargetAchivementParamsForMultipleEmpAndEmps(empReportingIdList,req,orgId,empTargetAchievements,startDate,endDate);
 			}
 			final List<TargetAchivement> resListFinal = resList;
