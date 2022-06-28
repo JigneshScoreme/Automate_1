@@ -38,6 +38,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.automate.df.constants.DynamicFormConstants;
+import com.automate.df.dao.DmsDeliveryDao;
+import com.automate.df.dao.DmsExchangeBuyerDao;
+import com.automate.df.dao.DmsFinanceDao;
+import com.automate.df.dao.DmsInvoiceDao;
 import com.automate.df.dao.DmsSourceOfEnquiryDao;
 import com.automate.df.dao.LeadStageRefDao;
 import com.automate.df.dao.SourceAndIddao;
@@ -55,6 +59,7 @@ import com.automate.df.entity.SourceAndId;
 import com.automate.df.entity.dashboard.ComplaintsTracker;
 import com.automate.df.entity.dashboard.DmsLead;
 import com.automate.df.entity.dashboard.DmsWFTask;
+import com.automate.df.entity.sales.employee.DmsExchangeBuyer;
 import com.automate.df.entity.sales.master.DmsSourceOfEnquiry;
 import com.automate.df.entity.salesgap.DmsEmployee;
 import com.automate.df.entity.salesgap.TargetRoleReq;
@@ -144,8 +149,20 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	@Autowired
 	RestTemplate restTemplate;
 	
+
+	
+	@Autowired
+	DmsExchangeBuyerDao buyerDao;
+	
+	@Autowired
+	DmsDeliveryDao  deliveryDao;
+	
+	@Autowired
+	DmsFinanceDao dmsFinanceDao;
+
 	@Autowired
 	SourceAndIddao repository; 
+
 	
 	@Autowired
 	ObjectMapper om;
@@ -177,7 +194,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	public static final String PROCEED_TO_INVOICE= "Proceed to Invoice";
 	public static final String INVOICE_FOLLOWUP_DSE = "Invoice Follow Up - DSE";
 	public static final String INVOICE = "INVOICE";
-	
+	public static final String EXTENDED_WARRANTY = "EXTENDEDWARRANTY";
 	
 	public static final String PRE_BOOKING = "Pre Booking";
 	public static final String DELIVERY = "Delivery";
@@ -702,7 +719,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		for(Integer empId : empIdsUnderReporting) {
 			log.debug("Getting target params for user "+empId);
 			Map<String, Integer> innerMap = getTargetParams(String.valueOf(empId), startDate, endDate);
-			log.debug("innerMap::"+innerMap);
+			
 			map = validateAndUpdateMapData(ENQUIRY,innerMap,map);
 			map = validateAndUpdateMapData(TEST_DRIVE,innerMap,map);
 			map = validateAndUpdateMapData(HOME_VISIT,innerMap,map);
@@ -841,6 +858,8 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			preDeliveryCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREDELIVERY")).count();
 			//delCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("DELIVERY")).count();
 			delCnt = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(delCompStatus)).count();
+	
+			
 		}
 		
 		List<DmsWFTask> wfTaskList = dmsWfTaskDao.getWfTaskByAssigneeIdList(empIdsUnderReporting, startDate, endDate);
@@ -926,22 +945,26 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 		// Getting Test Drive Cnt
 		Long testDriveCnt = getTestDriveCount(wfTaskList);
-		Long financeCnt = getFinanceCount(wfTaskList);
-		Long insuranceCnt =getInsuranceCount(wfTaskList);
+		//Long financeCnt = getFinanceCount(wfTaskList);
+		//Long insuranceCnt =getInsuranceCount(wfTaskList);
 		Long accessoriesCnt = getAccessoriesCount(wfTaskList);
 		//Long bookingCnt = getBookingCount(wfTaskList);
 		Long homeVistCnt = getHomeVisitCount(wfTaskList);
 		//Long videoConfCnt = wfTaskList.stream().filter(x->x.getTaskName().equalsIgnoreCase(VIDEO_CONFERENCE)).count();
-		Long exchangeCnt = getExchangeCount(wfTaskList);
+		//Long exchangeCnt = getExchangeCount(wfTaskList);
 		//Long invoceCnt = getInvoiceCountTarget(wfTaskList);
 		//Long retailCnt = 0L;
 		Long bookingCnt = bookCount;
 		Long invoceCnt = invCount;
 		
-		//enqLeadCnt = getEnqTaskCount(wfTaskList);
+		
+		List<Integer> leadIdList = leadRefList.stream().map(x->x.getLeadId()).collect(Collectors.toList());
+		Long exchangeCnt  = getExchangeCntSupportParam(leadIdList);
+		Long insuranceCnt = getInsuranceCntSupportParam(leadIdList);
+		Long extendedWarntyCnt  =getExtendedWarrntySupportParam(leadIdList);
+		Long financeCnt = getFinanceCntSupportParam(leadIdList);
+		
 		TargetAchivement enqTargetAchivement = new TargetAchivement();
-
-
 		enqTargetAchivement.setParamName(ENQUIRY);
 		enqTargetAchivement.setParamShortName("Enq");
 		enqTargetAchivement.setAchievment(String.valueOf(enqLeadCnt));;
@@ -1078,7 +1101,6 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		resList.add(homeVisitTA);
 		
 		TargetAchivement exchangeTA = new TargetAchivement();
-		
 		exchangeTA.setParamName(EXCHANGE);
 		exchangeTA.setParamShortName("Exg");
 		exchangeTA.setAchievment(String.valueOf(exchangeCnt));
@@ -1093,7 +1115,6 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			exchangeTA.setShortfall(String.valueOf("0"));
 			exchangeTA.setShortFallPerc(String.valueOf("0"));
 		}
-		//exchangeTA.setData(buildDataList(leadRefList,EXCHANGE));
 		resList.add(exchangeTA);
 		
 		/*
@@ -1108,7 +1129,6 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		resList.add(vcTA);*/
 		
 		TargetAchivement rTa = new TargetAchivement();
-	
 		rTa.setParamName(INVOICE);
 		rTa.setParamShortName("Ret");
 		rTa.setAchievment(String.valueOf(invoceCnt));
@@ -1123,11 +1143,77 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			rTa.setShortfall(String.valueOf("0"));
 			rTa.setShortFallPerc(String.valueOf("0"));
 		}
-		//rTa.setData(buildDataList(leadRefList,INVOICE));
+		
 		resList.add(rTa);
+		
+		
+		
+		
+		
+		TargetAchivement extendedWarantyTA = new TargetAchivement();
+		extendedWarantyTA.setParamName(EXTENDED_WARRANTY);
+		extendedWarantyTA.setParamShortName("ExW");
+		extendedWarantyTA.setAchievment(String.valueOf(extendedWarntyCnt));
+		if(targetParamMap.containsKey(EXTENDED_WARRANTY)) {
+			extendedWarantyTA.setTarget(String.valueOf(targetParamMap.get(EXTENDED_WARRANTY)));
+			extendedWarantyTA.setAchivementPerc(getAchievmentPercentage(invoceCnt,targetParamMap.get(EXTENDED_WARRANTY)));
+			extendedWarantyTA.setShortfall(getShortFallCount(invoceCnt,targetParamMap.get(EXTENDED_WARRANTY)));
+			extendedWarantyTA.setShortFallPerc(getShortFallPercentage(invoceCnt,targetParamMap.get(EXTENDED_WARRANTY)));
+		}else {
+			extendedWarantyTA.setTarget(String.valueOf("0"));
+			extendedWarantyTA.setAchivementPerc(String.valueOf("0"));
+			extendedWarantyTA.setShortfall(String.valueOf("0"));
+			extendedWarantyTA.setShortFallPerc(String.valueOf("0"));
+		}
+		
+		resList.add(extendedWarantyTA);
 		return resList;
 	}
 
+
+
+	
+	
+	private Long getFinanceCntSupportParam(List<Integer> leadIdList) {
+		  Long cnt=0L;
+			 List<String> list = dmsFinanceDao.getFinanceTypeLeads(leadIdList);
+	     	 if(null!=list) {
+	     		 cnt= (long) list.size();
+	     		 
+	     	 }
+			 return cnt;
+	}
+	
+	private Long getInsuranceCntSupportParam(List<Integer> leadIdList) {
+		  Long cnt=0L;
+			 List<String> list = deliveryDao.getInsuranceTakenLeads(leadIdList,"InHouse");
+	     	 if(null!=list) {
+	     		 cnt= (long) list.size();
+	     		 
+	     	 }
+			 return cnt;
+	}
+
+	private Long getExtendedWarrntySupportParam(List<Integer> leadIdList) {
+		  Long cnt=0L;
+			 List<String> list = deliveryDao.getWarrantyTakenLeads(leadIdList);
+	     	 if(null!=list) {
+	     		 cnt= (long) list.size();
+	     		 
+	     	 }
+			 return cnt;
+	}
+
+
+	private Long getExchangeCntSupportParam(List<Integer> leadIdList) {
+		  Long cnt=0L;
+		 List<String> list = buyerDao.getAllDmsExchangeBuyersByLeadIdList(leadIdList,"Exchange Buyer");
+     	 if(null!=list) {
+     		 cnt= (long) list.size();
+     		 
+     	 }
+		 return cnt;
+	}
 
 	private List<Object> buildDataList(List<LeadStageRefEntity> leadRefList, String type) {
 		List<Object> dataList = new ArrayList<>();
@@ -1738,6 +1824,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 	}
 
+	
 
 
 //	private Map<String,Integer> getLeadTypes() {
