@@ -2195,6 +2195,8 @@ public class OHServiceImpl implements OHService {
 		dmsPersistentEmployee.setEmpName(dmsEmployee.getEmpName());
 		dmsPersistentEmployee.setEmail(dmsEmployee.getEmail());
 		dmsPersistentEmployee.setMobile(dmsEmployee.getMobile());
+		dmsPersistentEmployee.setBasicSal(dmsEmployee.getBasicSal());
+		dmsPersistentEmployee.setPrevExperience(dmsEmployee.getPrevExperience());
 		return dmsEmployeeRepo.save(dmsPersistentEmployee);
 	}
 	return null;
