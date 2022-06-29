@@ -3386,6 +3386,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			log.debug("dataType::::"+dataType);
 			if(dataType.equalsIgnoreCase(DynamicFormConstants.TODAYS_DATA)) {
 				map.put("todaysData", processTodaysUpcomingPendingData(req,empIdsUnderReporting,DynamicFormConstants.TODAYS_DATA));
+				map.put("rescheduledData", processTodaysUpcomingPendingData(req,empIdsUnderReporting,DynamicFormConstants.RESCHEDULED_DATA));
 			}
 			else if(dataType.equalsIgnoreCase(DynamicFormConstants.UPCOMING_DATA)) {
 				map.put("upcomingData", processTodaysUpcomingPendingData(req,empIdsUnderReporting,DynamicFormConstants.UPCOMING_DATA));
