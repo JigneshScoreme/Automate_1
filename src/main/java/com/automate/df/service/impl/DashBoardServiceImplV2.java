@@ -505,7 +505,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	}
 
 	
-	@Override
+/*	@Override
 	public List<TargetRankingRes> getEmployeeTargetRankingByOrg(Integer orgId,DashBoardReqV2 req) throws DynamicFormsServiceException {
 		Integer empId = req.getLoggedInEmpId();
 		Integer roleId = dmsEmployeeRepo.getEmpHrmsRole(empId);
@@ -517,6 +517,21 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		Integer empId = req.getLoggedInEmpId();
 		Integer roleId = dmsEmployeeRepo.getEmpHrmsRole(empId);
 		return getEmployeeTargetRanking(dmsEmployeeRepo.getEmployeesByOrgBranch(orgId,branchId),req);
+	}
+	
+*/	
+	@Override
+	public List<TargetRankingRes> getEmployeeTargetRankingByOrg(Integer orgId,DashBoardReqV2 req) throws DynamicFormsServiceException {
+		Integer empId = req.getLoggedInEmpId();
+		Integer roleId = dmsEmployeeRepo.getEmpHrmsRole(empId);
+		return getEmployeeTargetRanking(dmsEmployeeRepo.findAllByOrgId(orgId,roleId),req);
+	}
+	
+	@Override
+	public List<TargetRankingRes> getEmployeeTargetRankingByOrgAndBranch(Integer orgId,Integer branchId,DashBoardReqV2 req) throws DynamicFormsServiceException {
+		Integer empId = req.getLoggedInEmpId();
+		Integer roleId = dmsEmployeeRepo.getEmpHrmsRole(empId);
+		return getEmployeeTargetRanking(dmsEmployeeRepo.getEmployeesByOrgBranch(orgId,branchId,roleId),req);
 	}
 
 	
@@ -540,6 +555,8 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			targetRankingResponse.setEmpName(employee.getEmpName());
 			targetRankingResponse.setOrgId(Integer.parseInt(employee.getOrg()));
 			targetRankingResponse.setBranchId(Integer.parseInt(employee.getBranch()));
+			targetRankingResponse.setBranchName(getBranchName(Integer.parseInt(employee.getBranch())));
+			targetRankingResponse.setBranchCode(getBranchCode(Integer.parseInt(employee.getBranch())));
 			targetRankingList.add(targetRankingResponse);
 			//targetAchievementPercentSet.add(targetRankingResponse.getAchivementPerc());
 			targetAchievementPercentSet.add(targetRankingResponse.getTargetAchivements());			
@@ -573,6 +590,38 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		return targetRankingList;
 	}
 
+	
+	private String getBranchName(int branchId) {
+		log.info("Inside getBranchName,Given Branch ID : " + branchId);
+		String res = null;
+		String deptQuery = "SELECT name FROM dms_branch where branch_id=<ID>;";
+		try {
+
+			Object obj = entityManager.createNativeQuery(deptQuery.replaceAll("<ID>", String.valueOf(branchId)))
+					.getSingleResult();
+			res = (String) obj;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return res;
+	}
+	
+	private String getBranchCode(int branchId) {
+		log.info("Inside getBranchCode,Given Branch ID : " + branchId);
+		String res = null;
+		String deptQuery = "SELECT dealer_code FROM dms_branch where branch_id=<ID>;";
+		try {
+
+			Object obj = entityManager.createNativeQuery(deptQuery.replaceAll("<ID>", String.valueOf(branchId)))
+					.getSingleResult();
+			res = (String) obj;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return res;
+	}
 
 	//@CachePut (value = "empDataCache",key="#empId")
 	public List<Integer> getReportingEmployes(Integer empId) throws DynamicFormsServiceException {

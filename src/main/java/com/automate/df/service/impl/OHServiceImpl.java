@@ -1626,8 +1626,9 @@ public class OHServiceImpl implements OHService {
 								DmsBranch branch = dmsBranchDao.getBranchByOrgMpId(nodeId);
 								int branchId = branch.getBranchId();
 								log.debug("branchId::" + branchId);
+								Integer roleId = dmsEmployeeRepo.getEmpHrmsRole(empId);
 								List<DmsEmployee> branchEmpList = dmsEmployeeRepo.getEmployeesByOrgBranch(orgId,
-										branchId);
+										branchId,roleId);
 								log.debug("branchEmpList size ::" + branchEmpList.size());
 								Optional<DmsEmployee> empOpt = branchEmpList.stream()
 										.filter(x -> x.getEmp_id() == empId).findAny();
@@ -1877,8 +1878,9 @@ public class OHServiceImpl implements OHService {
 								DmsBranch branch = dmsBranchDao.getBranchByOrgMpId(nodeId);
 								int branchId = branch.getBranchId();
 								log.debug("branchId::" + branchId);
+								Integer roleId = dmsEmployeeRepo.getEmpHrmsRole(empId);
 								List<DmsEmployee> branchEmpList = dmsEmployeeRepo.getEmployeesByOrgBranch(orgId,
-										branchId);
+										branchId,roleId);
 								log.debug("branchEmpList size ::" + branchEmpList.size());
 						
 							}
