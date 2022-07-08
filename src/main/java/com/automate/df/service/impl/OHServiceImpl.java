@@ -1482,7 +1482,7 @@ public class OHServiceImpl implements OHService {
 		//String query = "SELECT emp_id,emp_name FROM dms_employee where reporting_to=<ID> and branch=<BRANCH> and org=<ORGID>";
 		String query = "\r\n"
 				+ "select emp_id,emp_name from dms_employee where org = <ORGID> "
-				+ "and reporting_to=<ID> and emp_id in (select emp_id from emp_location_mapping where org_id=<ORGID>"
+				+ "and reporting_to=<ID> and status = 'Active' and emp_id in (select emp_id from emp_location_mapping where org_id=<ORGID>"
 				+ " and location_node_data_id in (select org_map_id from dms_branch where branch_id=<BRANCH>))";
 		query = query.replaceAll("<ID>", String.valueOf(id));
 		query = query.replaceAll("<BRANCH>", String.valueOf(branch));
