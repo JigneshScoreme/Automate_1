@@ -156,7 +156,7 @@ public class DashBoardServiceImplV4 implements DashBoardServiceV4{
 					log.debug("empReportingIdList for given selectedEmpIdList " + empReportingIdList);
 					List<TargetAchivement> targetList = dashBoardServiceImplV2.getTargetAchivementParamsForMultipleEmpAndEmps(
 							empReportingIdList, req, orgId, empTargetAchievements, startDate, endDate);
-					log.debug("targetList::::::" + targetList);
+					
 					allTargets.add(targetList);
 				}
 
@@ -310,6 +310,8 @@ public class DashBoardServiceImplV4 implements DashBoardServiceV4{
 				log.debug("Fetching empReportingIdList for logged in emp in else :" + req.getLoggedInEmpId());
 				List<Integer> empReportingIdList = getImmediateReportingEmp(selectedEmpId,orgId);
 				empReportingIdList.add(req.getLoggedInEmpId());
+				
+				
 				log.debug("empReportingIdList for emp " + req.getLoggedInEmpId());
 				log.debug("Calling getTargetAchivemetns in else" + empReportingIdList);
 				resList = dashBoardServiceImplV2.getTargetAchivementParamsForMultipleEmp(empReportingIdList, req, orgId);
@@ -321,7 +323,9 @@ public class DashBoardServiceImplV4 implements DashBoardServiceV4{
 		}
 		return resList;
 	}
-	
+
+
+	//findEmpByDeptwithActive(orgId,empId);
 	public List<Integer> getImmediateReportingEmp(Integer empId, String orgId) throws DynamicFormsServiceException {
 		List<String> empReportingIdList = new ArrayList<>();
 		log.debug("getImmediateReportingEmp(){} , Empid "+empId+", ORGID "+orgId);
@@ -351,7 +355,18 @@ public class DashBoardServiceImplV4 implements DashBoardServiceV4{
 			throw new DynamicFormsServiceException("Logged in emp is not valid employee,no record found in dms_employee", HttpStatus.BAD_REQUEST);
 		}
 		empReportingIdList_1 = empReportingIdList.stream().map(Integer::parseInt).collect(Collectors.toList());
-		return empReportingIdList_1;
+		
+		
+		log.debug("empReportingIdList for org "+orgId+ " is "+empReportingIdList_1);
+		List<Integer> salesempReportingIdList = new ArrayList<>();
+		for(Integer id : empReportingIdList_1) {
+			if(dmsEmployeeRepo.findEmpByDeptwithActive(orgId,id).isPresent()) {
+				salesempReportingIdList.add(id);
+			}
+		}
+		
+		log.debug("salesempReportingIdList for org "+orgId+ " is "+salesempReportingIdList);
+		return salesempReportingIdList;
 	}
 
 
