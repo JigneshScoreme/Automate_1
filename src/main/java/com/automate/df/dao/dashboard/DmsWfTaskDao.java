@@ -47,7 +47,7 @@ public interface DmsWfTaskDao extends JpaRepository<DmsWFTask, Integer> {
 	@Query(value = "SELECT * FROM dms_workflow_task where assignee_id =:assigneeId \r\n"
 			+ "	and task_status != 'CLOSED' \r\n"
 			+ "	and task_status != 'RESCHEDULED' \r\n"
-			+ "	and task_created_time>= :startTime  and task_created_time <= :endTime order by "+ " task_created_time desc", nativeQuery = true)
+			+ "	and task_updated_time>= :startTime  and task_updated_time <= :endTime order by "+ " task_updated_time desc", nativeQuery = true)
 	List<DmsWFTask> getTodaysUpcomingTasks(
 			@Param(value = "assigneeId") Integer assigneeId,
 			//@Param(value = "universalIdList") List<String> universalIdList,
