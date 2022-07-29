@@ -788,7 +788,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 			if (outputList != null && !outputList.isEmpty() && outputList.size() > toIndex) {
 				outputList = outputList.subList(fromIndex, toIndex);
 			}
-			outputList.sort((o1,o2) -> o1.getEndDate().compareTo(o2.getEndDate()));
+			outputList.sort((o1,o2) -> o2.getEndDate().compareTo(o1.getEndDate()));
 			map.put("totalCnt", totalCnt);
 			map.put("pageNo", pageNo);
 			map.put("size", size);
