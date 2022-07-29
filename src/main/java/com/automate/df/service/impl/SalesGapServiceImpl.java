@@ -755,6 +755,8 @@ public class SalesGapServiceImpl implements SalesGapService {
 			outputList = outputList.stream()
                     .collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparingInt(TargetSettingRes::getId))),
                                                ArrayList::new));
+			
+			
 			//outputList = outputList.stream().distinct().collect(Collectors.toList());
 			
 			log.debug("outputList::"+outputList);
@@ -786,6 +788,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 			if (outputList != null && !outputList.isEmpty() && outputList.size() > toIndex) {
 				outputList = outputList.subList(fromIndex, toIndex);
 			}
+			outputList.sort((o1,o2) -> o1.getEndDate().compareTo(o2.getEndDate()));
 			map.put("totalCnt", totalCnt);
 			map.put("pageNo", pageNo);
 			map.put("size", size);
