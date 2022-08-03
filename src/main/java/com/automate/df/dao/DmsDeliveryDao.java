@@ -22,5 +22,8 @@ public interface DmsDeliveryDao extends JpaRepository<DmsDelivery, Integer>{
 	@Query(value="SELECT warranty_taken FROM dms_delivery where lead_id in (:leadList) and warranty_taken='YES'",nativeQuery = true)
 	public List<String> getWarrantyTakenLeads(@Param(value="leadList")  List<Integer> leadIdList);
 
+	@Query(value="SELECT sum(Total_accessories_cost) FROM dms_delivery where lead_id in (:leadList)",nativeQuery = true)
+	public Long getAccessoriesAmt(@Param(value="leadList")  List<Integer> leadIdList);
+
 
 }
