@@ -988,6 +988,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	}
 
 	
+	
 	private List<TargetAchivement> buildTargetAchivements(List<TargetAchivement> resList,
 			Map<String, Integer> targetParamMap, Long enqLeadCnt,Long preBookCount, Long bookCount, Long invCount, Long preDeliveryCnt, Long delCnt, List<DmsWFTask> wfTaskList, List<LeadStageRefEntity> leadRefList) {
 		
@@ -996,7 +997,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		Long testDriveCnt = getTestDriveCount(wfTaskList);
 		//Long financeCnt = getFinanceCount(wfTaskList);
 		//Long insuranceCnt =getInsuranceCount(wfTaskList);
-		Long accessoriesCnt = getAccessoriesCount(wfTaskList);
+		
 		//Long bookingCnt = getBookingCount(wfTaskList);
 		Long homeVistCnt = getHomeVisitCount(wfTaskList);
 		//Long videoConfCnt = wfTaskList.stream().filter(x->x.getTaskName().equalsIgnoreCase(VIDEO_CONFERENCE)).count();
@@ -1007,12 +1008,23 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		Long invoceCnt = invCount;
 		
 		
-		List<Integer> leadIdList = leadRefList.stream().map(x->x.getLeadId()).collect(Collectors.toList());
-		Long exchangeCnt  = getExchangeCntSupportParam(leadIdList);
-		Long insuranceCnt = getInsuranceCntSupportParam(leadIdList);
-		Long extendedWarntyCnt  =getExtendedWarrntySupportParam(leadIdList);
-		Long financeCnt = getFinanceCntSupportParam(leadIdList);
+		Long exchangeCnt  = 0L;
+		Long insuranceCnt = 0L;
+		Long accessoriesCnt = 0L;
+		Long extendedWarntyCnt  =0L;
+		Long financeCnt = 0L;
 		
+		List<Integer> leadIdList = leadRefList.stream().map(x->x.getLeadId()).collect(Collectors.toList());
+		List<Integer> leadIdListV1 = leadRefList.stream().filter(x->x.getLeadStatus().equals("INVOICECOMPLETED")).map(x->x.getLeadId()).collect(Collectors.toList());
+		if(leadIdListV1!=null && !leadIdListV1.isEmpty()) {
+			exchangeCnt  = getExchangeCntSupportParam(leadIdListV1);
+			insuranceCnt = getInsuranceCntSupportParam(leadIdListV1);
+			accessoriesCnt = getAccessoriesCount(leadIdListV1);
+			
+			financeCnt = getFinanceCntSupportParam(leadIdListV1);	
+		}
+		
+		extendedWarntyCnt  =getExtendedWarrntySupportParam(leadIdList);
 		TargetAchivement enqTargetAchivement = new TargetAchivement();
 		enqTargetAchivement.setParamName(ENQUIRY);
 		enqTargetAchivement.setParamShortName("Enq");
@@ -2070,8 +2082,11 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	}
 
 
-	private Long getAccessoriesCount(List<DmsWFTask> wfTaskList) {
-		return wfTaskList.stream().filter(x->x.getTaskName().equalsIgnoreCase(BOOKING_FOLLOWUP_ACCCESSORIES)).count();
+	private Long getAccessoriesCount(List<Integer> leadIdList) {
+		
+		 return deliveryDao.getAccessoriesAmt(leadIdList);
+     	
+		
 	}
 
 
@@ -2498,6 +2513,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	private Long getCallCount(List<DmsWFTask> wfTaskList) {
 		return wfTaskList.stream().filter(x->StringUtils.containsIgnoreCase(x.getTaskName(), "Enquiry Follow Up")).count();
 	}
+	
 
 
 	private boolean validateTodaysDate(String taskUpdatedTime, String taskCreatedTime) {
