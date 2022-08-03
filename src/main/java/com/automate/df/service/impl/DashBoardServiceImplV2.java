@@ -1017,7 +1017,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		List<Integer> leadIdList = leadRefList.stream().map(x->x.getLeadId()).collect(Collectors.toList());
 
 		List<Integer> leadIdListV1 = leadRefList.stream().filter(x->null!=x.getLeadStatus() && x.getLeadStatus().equals("INVOICECOMPLETED")).map(x->x.getLeadId()).collect(Collectors.toList());
-=
+
 		if(leadIdListV1!=null && !leadIdListV1.isEmpty()) {
 			exchangeCnt  = getExchangeCntSupportParam(leadIdListV1);
 			insuranceCnt = getInsuranceCntSupportParam(leadIdListV1);
