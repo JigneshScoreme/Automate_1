@@ -220,6 +220,8 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	String dmsEmpByidQuery =  "SELECT * FROM dms_employee where emp_id=<EMP_ID>";
 	String getEmpUnderTLQuery = "SELECT emp_id FROM dms_employee where reporting_to=<ID>";
 
+	private String EXTENDEDWARRANTY;
+
 	@Override
 	public List<TargetAchivement> getTargetAchivementParams(DashBoardReqV2 req) throws DynamicFormsServiceException {
 		log.info("Inside getTargetAchivementParams(){}");
@@ -780,6 +782,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			map = validateAndUpdateMapData(ACCCESSORIES,innerMap,map);
 			map = validateAndUpdateMapData(EVENTS,innerMap,map);
 			map = validateAndUpdateMapData(INVOICE,innerMap,map);
+			map = validateAndUpdateMapData(EXTENDED_WARRANTY,innerMap,map);
 			
 		}
 		}catch(Exception e) {
@@ -870,6 +873,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 				map = validateAndUpdateMapData(ACCCESSORIES,innerMap,map);
 				map = validateAndUpdateMapData(EVENTS,innerMap,map);
 				map = validateAndUpdateMapData(INVOICE,innerMap,map);
+				map = validateAndUpdateMapData(EXTENDED_WARRANTY,innerMap,map);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -951,6 +955,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		map = validateAndUpdateMapData(ACCCESSORIES,innerMap,map);
 		map = validateAndUpdateMapData(EVENTS,innerMap,map);
 		map = validateAndUpdateMapData(INVOICE,innerMap,map);
+		map = validateAndUpdateMapData(EXTENDED_WARRANTY,innerMap,map);
 		return getTaskAndBuildTargetAchievements(Arrays.asList(empId), orgId, resList, Arrays.asList(empName), startDate, endDate,
 				map);
 	}
@@ -1345,6 +1350,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		Integer accessories=0;
 		Integer events = 0;
 		Integer invoice=0;
+		Integer exwarranty=0;
 		
 		for(TargetSettingRes res :filteredList) {
 			retailTarget += validateNumber(res.getRetailTarget());
@@ -1360,6 +1366,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			//exW += Integer.valueOf(res.getExchange());
 			events += validateNumber(res.getEvents());
 			invoice += validateNumber(res.getInvoice());
+			exwarranty += validateNumber(res.getExWarranty());
 		}
 		
 		Map<String,Integer> map = new HashMap<>();
@@ -1374,6 +1381,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		map.put(ACCCESSORIES, accessories);
 		map.put(EVENTS, events);
 		map.put(INVOICE, retailTarget);
+		map.put(EXTENDED_WARRANTY, exwarranty);
 		//map.put(RETAIL_TARGET, retailTarget);
 		return map;
 	}
