@@ -95,6 +95,7 @@ public class DashBoardControllerV2 {
 		list.add("Hvt");
 		list.add("Exg");
 		list.add("Ret");
+		list.add("Exw");
 		
 		return new ResponseEntity<>(list, HttpStatus.OK);
 	}
