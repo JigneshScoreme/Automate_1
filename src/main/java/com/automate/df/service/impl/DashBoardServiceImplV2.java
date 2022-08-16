@@ -1027,8 +1027,9 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			exchangeCnt  = getExchangeCntSupportParam(leadIdListV1);
 			insuranceCnt = getInsuranceCntSupportParam(leadIdListV1);
 			accessoriesCnt = getAccessoriesCount(leadIdListV1);
-			if(accessoriesCnt==null) {
-				accessoriesCnt=0L;
+			if(accessoriesCnt==null || leadIdListV1.isEmpty())
+			{
+				accessoriesCnt = 0L;
 			}
 			financeCnt = getFinanceCntSupportParam(leadIdListV1);	
 		}
@@ -1681,10 +1682,10 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 				List<LeadStageRefEntity> leadRefList  =  leadStageRefDao.getLeadsByStageandDate(orgId,dmsLeadIdList,startDate,endDate);
 				if(null!=leadRefList && !leadRefList.isEmpty()) {
 					log.debug("Total leads in LeadReF table is ::"+leadRefList.size());
-					System.out.println("Total leads in LeadReF table is ------ ::"+leadRefList.size());
-					for(LeadStageRefEntity refentity : leadRefList) {
-						System.out.println("-------------"+refentity.getStageName());
-					}
+//					System.out.println("Total leads in LeadReF table is ------ ::"+leadRefList.size());
+//					for(LeadStageRefEntity refentity : leadRefList) {
+//						System.out.println("-------------"+refentity.getStageName());
+//					}
 					enqLeadCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY")).count();
 					bookCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("BOOKING")).count();
 				}
