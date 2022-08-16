@@ -1024,10 +1024,14 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		List<Integer> leadIdListV1 = leadRefList.stream().filter(x->null!=x.getLeadStatus() && x.getLeadStatus().equals("INVOICECOMPLETED")).map(x->x.getLeadId()).collect(Collectors.toList());
 
 		if(leadIdListV1!=null && !leadIdListV1.isEmpty()) {
+			//log.debug("<><<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+leadIdListV1);
 			exchangeCnt  = getExchangeCntSupportParam(leadIdListV1);
 			insuranceCnt = getInsuranceCntSupportParam(leadIdListV1);
 			accessoriesCnt = getAccessoriesCount(leadIdListV1);
-			
+			if(accessoriesCnt==null || leadIdListV1.isEmpty())
+			{
+				accessoriesCnt = 0L;
+			}
 			financeCnt = getFinanceCntSupportParam(leadIdListV1);	
 		}
 		
@@ -1118,6 +1122,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		if(targetParamMap.containsKey(ACCCESSORIES)) {
 			accessoriesTA.setTarget(String.valueOf(targetParamMap.get(ACCCESSORIES)));
 			accessoriesTA.setAchivementPerc(getAchievmentPercentage(accessoriesCnt,targetParamMap.get(ACCCESSORIES)));
+			//log.debug("<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>> "+accessoriesCnt+ " is "+targetParamMap.get(ACCCESSORIES));
 			accessoriesTA.setShortfall(getShortFallCount(accessoriesCnt,targetParamMap.get(ACCCESSORIES)));
 			accessoriesTA.setShortFallPerc(getShortFallPercentage(accessoriesCnt,targetParamMap.get(ACCCESSORIES)));
 		}else {
