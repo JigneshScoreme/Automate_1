@@ -19,7 +19,7 @@ public interface DmsEmployeeRepo extends JpaRepository<DmsEmployee, Integer> {
 	List<DmsEmployee> getEmployeesByOrgBranch(@Param(value = "orgId") Integer orgId,
 			@Param(value = "branchId") Integer branchId);
 */	
-	@Query(value = "SELECT * FROM dms_employee where org=:orgId and branch=:branchId  and hrms_role =:roleId", nativeQuery = true)
+	@Query(value = "SELECT * FROM dms_employee where org=:orgId and branch=:branchId  and hrms_role =:roleId and status = 'Active'", nativeQuery = true)
 	List<DmsEmployee> getEmployeesByOrgBranch(@Param(value = "orgId") Integer orgId,
 			@Param(value = "branchId") Integer branchId,@Param(value = "roleId") Integer roleId);
 	
@@ -46,7 +46,7 @@ public interface DmsEmployeeRepo extends JpaRepository<DmsEmployee, Integer> {
 	@Query(value = "SELECT * FROM dms_employee where reporting_to =:to", nativeQuery = true)
 	Optional<DmsEmployee> findByReportingId(@Param(value = "to") String reportingTo);
 	
-	@Query(value = "SELECT * FROM dms_employee where org =:orgId and hrms_role =:roleId", nativeQuery = true)
+	@Query(value = "SELECT * FROM dms_employee where org =:orgId and hrms_role =:roleId and status ='Active'", nativeQuery = true)
 	List<DmsEmployee> findAllByOrgId(@Param(value = "orgId") Integer orgId,@Param(value = "roleId") Integer roleId);
 
 	@Query(value = "SELECT emp_name FROM dms_employee where emp_id=:id ", nativeQuery = true)
