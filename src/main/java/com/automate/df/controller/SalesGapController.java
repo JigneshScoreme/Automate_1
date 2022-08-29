@@ -325,11 +325,10 @@ public class SalesGapController {
 		ObjectMapper mapper = new ObjectMapper();
 		String json =null;
 		try {
-			if(json!=null) {
+		
 		   json = mapper.writeValueAsString(targetupdatedto.getTargets());
 		  System.out.println("ResultingJSONstring = " + json);
 		  //System.out.println(json);
-			}
 		} catch (JsonProcessingException e) {
 		   e.printStackTrace();
 		}
