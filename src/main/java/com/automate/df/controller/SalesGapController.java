@@ -19,8 +19,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.automate.df.dao.salesgap.TargetUserRepo;
+import com.automate.df.entity.sales.TargetsUpdateDto;
 import com.automate.df.entity.salesgap.TSAdminUpdateReq;
-import com.automate.df.entity.salesgap.TargetEntity;
 import com.automate.df.entity.salesgap.TargetRoleReq;
 import com.automate.df.exception.DynamicFormsServiceException;
 import com.automate.df.model.salesgap.TargetDropDown;
@@ -29,6 +30,8 @@ import com.automate.df.model.salesgap.TargetSearch;
 import com.automate.df.model.salesgap.TargetSettingReq;
 import com.automate.df.model.salesgap.TargetSettingRes;
 import com.automate.df.service.SalesGapService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +53,9 @@ public class SalesGapController {
 	
 	@Autowired
 	Environment env;
+	
+	@Autowired
+	private TargetUserRepo targetuserrepo;
 	
 	
 	@CrossOrigin
@@ -259,6 +265,10 @@ public class SalesGapController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 	
+	
+	
+	
+	
 
 	
 
@@ -305,6 +315,35 @@ public class SalesGapController {
 			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
 		}
 		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	
+	
+	@CrossOrigin
+	@PostMapping(value = "target-update")
+	public ResponseEntity<?> targetUpdate(@RequestBody TargetsUpdateDto targetupdatedto) {
+		ObjectMapper mapper = new ObjectMapper();
+		String json =null;
+		try {
+			if(json!=null) {
+		   json = mapper.writeValueAsString(targetupdatedto.getTargets());
+		  System.out.println("ResultingJSONstring = " + json);
+		  //System.out.println(json);
+			}
+		} catch (JsonProcessingException e) {
+		   e.printStackTrace();
+		}
+		int updateTargetSetings = targetuserrepo.updateTargetSetings(json,
+				targetupdatedto.getEmployeeId(), targetupdatedto.getOrgId(), targetupdatedto.getBranch(),
+				targetupdatedto.getDepartment(), targetupdatedto.getDesignation()
+				,targetupdatedto.getStart_date(),targetupdatedto.getEnd_date()
+				);
+		if (updateTargetSetings > 0) {
+			return new ResponseEntity<>("Update Sucessfully", HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>("Not Updated", HttpStatus.BAD_REQUEST);
+		}
+
 	}
 
 }

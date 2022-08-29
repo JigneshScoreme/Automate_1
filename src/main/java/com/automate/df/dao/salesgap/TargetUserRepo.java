@@ -4,8 +4,10 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.automate.df.entity.salesgap.TargetEntity;
 import com.automate.df.entity.salesgap.TargetEntityUser;
@@ -73,5 +75,13 @@ public interface TargetUserRepo extends JpaRepository<TargetEntityUser, Integer>
 	public List<TargetEntityUser> findAllByTargetAdminId(@Param(value="adminID") Integer adminID);
 	
 
-
+	@Modifying
+	@Transactional
+	@Query(value = "UPDATE dms_target_setting_user SET targets = :targets WHERE emp_id = :employeeId and org_id=:org_id and branch =:branch and department = :department and designation=:designation and start_date>= :start_date and end_date <= :end_date",nativeQuery = true)
+	public int updateTargetSetings(@Param(value = "targets") String targets,
+			@Param(value = "employeeId") String employeeId, @Param(value = "org_id") String org_id,
+			@Param(value = "branch") String branch, @Param(value = "department") String department,
+			@Param(value = "designation") String designation
+			,@Param(value = "start_date") String start_date,@Param(value = "end_date") String end_date
+			);
 }
