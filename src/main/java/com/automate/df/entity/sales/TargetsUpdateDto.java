@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 public class TargetsUpdateDto {
 	
-	List<TargetsDto> targets;
+	List<TargetUpdateBasedOnEmplyeeDto> targets;
 	
 	String employeeId;
 	

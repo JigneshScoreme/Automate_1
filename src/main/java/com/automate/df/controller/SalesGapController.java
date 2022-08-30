@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.automate.df.dao.salesgap.TargetUserRepo;
+import com.automate.df.entity.sales.TargetUpdateBasedOnEmplyeeDto;
+import com.automate.df.entity.sales.TargetsDto;
 import com.automate.df.entity.sales.TargetsUpdateDto;
 import com.automate.df.entity.salesgap.TSAdminUpdateReq;
 import com.automate.df.entity.salesgap.TargetRoleReq;
@@ -321,28 +323,36 @@ public class SalesGapController {
 	
 	@CrossOrigin
 	@PostMapping(value = "target-update")
-	public ResponseEntity<?> targetUpdate(@RequestBody TargetsUpdateDto targetupdatedto) {
+	public ResponseEntity<?> targetUpdate(@RequestBody TargetsUpdateDto targetsUpdateDto) {
+		System.out.println("entered into controller");
+		int updateTargetSetings=0;
+		List<TargetUpdateBasedOnEmplyeeDto> targetemployeesupdatedto = targetsUpdateDto.getTargets();
+		for(TargetUpdateBasedOnEmplyeeDto targetemployeeupdatedto: targetemployeesupdatedto) {
+			 List<TargetsDto> targets = targetemployeeupdatedto.getTargets();
 		ObjectMapper mapper = new ObjectMapper();
 		String json =null;
+		
 		try {
 		
-		   json = mapper.writeValueAsString(targetupdatedto.getTargets());
+		   json = mapper.writeValueAsString(targets);
 		  System.out.println("ResultingJSONstring = " + json);
 		  //System.out.println(json);
 		} catch (JsonProcessingException e) {
 		   e.printStackTrace();
 		}
-		int updateTargetSetings = targetuserrepo.updateTargetSetings(json,
-				targetupdatedto.getEmployeeId(), targetupdatedto.getOrgId(), targetupdatedto.getBranch(),
-				targetupdatedto.getDepartment(), targetupdatedto.getDesignation()
-				,targetupdatedto.getStart_date(),targetupdatedto.getEnd_date()
+		 updateTargetSetings = targetuserrepo.updateTargetSetings(json,
+				targetemployeeupdatedto.getEmployeeId(), targetsUpdateDto.getOrgId(), targetsUpdateDto.getBranch(),
+				targetsUpdateDto.getDepartment(), targetsUpdateDto.getDesignation()
+				,targetsUpdateDto.getStart_date(),targetsUpdateDto.getEnd_date()
 				);
+		}
 		if (updateTargetSetings > 0) {
 			return new ResponseEntity<>("Update Sucessfully", HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>("Not Updated", HttpStatus.BAD_REQUEST);
 		}
 
+		
 	}
 
 }
