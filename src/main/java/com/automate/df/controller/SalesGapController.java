@@ -23,6 +23,7 @@ import com.automate.df.dao.salesgap.TargetUserRepo;
 import com.automate.df.entity.sales.TargetUpdateBasedOnEmplyeeDto;
 import com.automate.df.entity.sales.TargetsDto;
 import com.automate.df.entity.sales.TargetsUpdateDto;
+import com.automate.df.entity.sales.TargetsUpdateDto1;
 import com.automate.df.entity.salesgap.TSAdminUpdateReq;
 import com.automate.df.entity.salesgap.TargetRoleReq;
 import com.automate.df.exception.DynamicFormsServiceException;
@@ -355,4 +356,30 @@ public class SalesGapController {
 		
 	}
 
+	@CrossOrigin
+	@PostMapping(value = "target-update1")
+	public ResponseEntity<?> targetUpdate1(@RequestBody TargetsUpdateDto1 targetsUpdateDto) {
+		ObjectMapper mapper = new ObjectMapper();
+		String json =null;
+		try {
+			if(json!=null) {
+		   json = mapper.writeValueAsString(targetsUpdateDto.getTargets());
+		  System.out.println("ResultingJSONstring = " + json);
+		  //System.out.println(json);
+			}
+		} catch (JsonProcessingException e) {
+		   e.printStackTrace();
+		}
+		int updateTargetSetings = targetuserrepo.updateTargetSetings(json,
+				targetsUpdateDto.getEmployeeId(), targetsUpdateDto.getOrgId(), targetsUpdateDto.getBranch(),
+				targetsUpdateDto.getDepartment(), targetsUpdateDto.getDesignation()
+				,targetsUpdateDto.getStart_date(),targetsUpdateDto.getEnd_date()
+				);
+		if (updateTargetSetings > 0) {
+			return new ResponseEntity<>("Update Sucessfully", HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>("Not Updated", HttpStatus.BAD_REQUEST);
+		}
+	
+	}
 }
