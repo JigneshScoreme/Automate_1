@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.automate.df.dao.salesgap.TargetUserRepo;
+import com.automate.df.entity.sales.TargetSettingsResponseDto;
 import com.automate.df.entity.sales.TargetUpdateBasedOnEmplyeeDto;
 import com.automate.df.entity.sales.TargetsDto;
 import com.automate.df.entity.sales.TargetsUpdateDto;
@@ -326,6 +327,7 @@ public class SalesGapController {
 	@PostMapping(value = "target-update")
 	public ResponseEntity<?> targetUpdate(@RequestBody TargetsUpdateDto targetsUpdateDto) {
 		System.out.println("entered into controller");
+		TargetSettingsResponseDto response=new TargetSettingsResponseDto();
 		int updateTargetSetings=0;
 		List<TargetUpdateBasedOnEmplyeeDto> targetemployeesupdatedto = targetsUpdateDto.getTargets();
 		for(TargetUpdateBasedOnEmplyeeDto targetemployeeupdatedto: targetemployeesupdatedto) {
@@ -348,9 +350,11 @@ public class SalesGapController {
 				);
 		}
 		if (updateTargetSetings > 0) {
-			return new ResponseEntity<>("Update Sucessfully", HttpStatus.OK);
+			response.setMessage("Update Sucessfully");
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} else {
-			return new ResponseEntity<>("Not Updated", HttpStatus.BAD_REQUEST);
+			response.setMessage("Not Updated");
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 		}
 
 		
@@ -361,6 +365,7 @@ public class SalesGapController {
 	public ResponseEntity<?> targetUpdate1(@RequestBody TargetsUpdateDto1 targetsUpdateDto) {
 		ObjectMapper mapper = new ObjectMapper();
 		String json =null;
+		TargetSettingsResponseDto response=new TargetSettingsResponseDto();
 		try {
 			
 		   json = mapper.writeValueAsString(targetsUpdateDto.getTargets());
@@ -376,9 +381,11 @@ public class SalesGapController {
 				,targetsUpdateDto.getStart_date(),targetsUpdateDto.getEnd_date()
 				);
 		if (updateTargetSetings > 0) {
-			return new ResponseEntity<>("Update Sucessfully", HttpStatus.OK);
+			response.setMessage("Update Sucessfully");
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} else {
-			return new ResponseEntity<>("Not Updated", HttpStatus.BAD_REQUEST);
+			response.setMessage("Not Updated");
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 		}
 	
 	}
