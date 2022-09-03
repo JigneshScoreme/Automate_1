@@ -1541,9 +1541,16 @@ public class SalesGapServiceImpl implements SalesGapService {
 		String res = null;
 		try {
 			if (null != eId) {
+				final String dmsEmpByidQueryForDmsSalary = "SELECT * FROM dms_emp_sal_mapping where emp_id=<EMP_ID>";
+				String tmpQuery = dmsEmpByidQueryForDmsSalary.replaceAll("<EMP_ID>", String.valueOf(eId));
+				List<Object[]> data = entityManager.createNativeQuery(tmpQuery).getResultList();
+				if(data.size()>0) {
 				Object obj = entityManager.createNativeQuery(getSalForEmp.replaceAll("<ID>", String.valueOf(eId)))
 						.getSingleResult();
 				res = (String) obj;
+				}else {
+					res = "0";
+				}
 			} else {
 				res = "";
 			}
