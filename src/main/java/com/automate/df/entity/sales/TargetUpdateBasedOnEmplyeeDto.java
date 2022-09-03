@@ -12,6 +12,16 @@ public class TargetUpdateBasedOnEmplyeeDto {
 	private String employeeId;
 	
 	private List<TargetsDto> targets;
+		
+	String branch;
+	
+	String department;
+	
+	String designation;
+	
+	
+	
+	
 	
 	
 

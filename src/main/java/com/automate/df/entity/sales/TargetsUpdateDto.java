@@ -11,18 +11,12 @@ public class TargetsUpdateDto {
 	
 	List<TargetUpdateBasedOnEmplyeeDto> targets;
 	
-	String employeeId;
+    String start_date;
 	
-	String branch;
-	
-	String department;
-	
-	String designation;
+	String end_date;
 	
 	String orgId;
 	
-	String start_date;
 	
-	String end_date;
 
 }

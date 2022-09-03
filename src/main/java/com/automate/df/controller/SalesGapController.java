@@ -344,8 +344,8 @@ public class SalesGapController {
 		   e.printStackTrace();
 		}
 		 updateTargetSetings = targetuserrepo.updateTargetSetings(json,
-				targetemployeeupdatedto.getEmployeeId(), targetsUpdateDto.getOrgId(), targetsUpdateDto.getBranch(),
-				targetsUpdateDto.getDepartment(), targetsUpdateDto.getDesignation()
+				targetemployeeupdatedto.getEmployeeId(), targetsUpdateDto.getOrgId(), targetemployeeupdatedto.getBranch(),
+				targetemployeeupdatedto.getDepartment(), targetemployeeupdatedto.getDesignation()
 				,targetsUpdateDto.getStart_date(),targetsUpdateDto.getEnd_date()
 				);
 		}
@@ -360,6 +360,8 @@ public class SalesGapController {
 		
 	}
 
+	
+	
 	@CrossOrigin
 	@PostMapping(value = "target-update1")
 	public ResponseEntity<?> targetUpdate1(@RequestBody TargetsUpdateDto1 targetsUpdateDto) {
