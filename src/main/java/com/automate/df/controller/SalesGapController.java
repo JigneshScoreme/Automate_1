@@ -19,8 +19,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.automate.df.dao.salesgap.TargetUserRepo;
+import com.automate.df.entity.sales.TargetSettingsResponseDto;
+import com.automate.df.entity.sales.TargetUpdateBasedOnEmplyeeDto;
+import com.automate.df.entity.sales.TargetsDto;
+import com.automate.df.entity.sales.TargetsUpdateDto;
+import com.automate.df.entity.sales.TargetsUpdateDto1;
 import com.automate.df.entity.salesgap.TSAdminUpdateReq;
-import com.automate.df.entity.salesgap.TargetEntity;
 import com.automate.df.entity.salesgap.TargetRoleReq;
 import com.automate.df.exception.DynamicFormsServiceException;
 import com.automate.df.model.salesgap.TargetDropDown;
@@ -29,6 +34,8 @@ import com.automate.df.model.salesgap.TargetSearch;
 import com.automate.df.model.salesgap.TargetSettingReq;
 import com.automate.df.model.salesgap.TargetSettingRes;
 import com.automate.df.service.SalesGapService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +54,9 @@ public class SalesGapController {
 	
 	@Autowired
 	SalesGapService salesGapService;
+	
+	@Autowired
+	private TargetUserRepo targetuserrepo;
 	
 	@Autowired
 	Environment env;
@@ -305,6 +315,73 @@ public class SalesGapController {
 			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
 		}
 		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	@CrossOrigin
+	@PostMapping(value = "target-update")
+	public ResponseEntity<?> targetUpdate(@RequestBody TargetsUpdateDto targetsUpdateDto) {
+		System.out.println("entered into controller");
+		TargetSettingsResponseDto response=new TargetSettingsResponseDto();
+		int updateTargetSetings=0;
+		List<TargetUpdateBasedOnEmplyeeDto> targetemployeesupdatedto = targetsUpdateDto.getTargets();
+		for(TargetUpdateBasedOnEmplyeeDto targetemployeeupdatedto: targetemployeesupdatedto) {
+			 List<TargetsDto> targets = targetemployeeupdatedto.getTargets();
+		ObjectMapper mapper = new ObjectMapper();
+		String json =null;
+		
+		try {
+		
+		   json = mapper.writeValueAsString(targets);
+		  System.out.println("ResultingJSONstring = " + json);
+		  //System.out.println(json);
+		} catch (JsonProcessingException e) {
+		   e.printStackTrace();
+		}
+		 updateTargetSetings = targetuserrepo.updateTargetSetings(json,
+				targetemployeeupdatedto.getEmployeeId(), targetsUpdateDto.getOrgId(), targetsUpdateDto.getBranch(),
+				targetsUpdateDto.getDepartment(), targetsUpdateDto.getDesignation()
+				,targetsUpdateDto.getStart_date(),targetsUpdateDto.getEnd_date()
+				);
+		}
+		if (updateTargetSetings > 0) {
+			response.setMessage("Update Sucessfully");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		} else {
+			response.setMessage("Not Updated");
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		}
+
+		
+	}
+
+	@CrossOrigin
+	@PostMapping(value = "target-update1")
+	public ResponseEntity<?> targetUpdate1(@RequestBody TargetsUpdateDto1 targetsUpdateDto) {
+		ObjectMapper mapper = new ObjectMapper();
+		String json =null;
+		TargetSettingsResponseDto response=new TargetSettingsResponseDto();
+		try {
+			
+		   json = mapper.writeValueAsString(targetsUpdateDto.getTargets());
+		  System.out.println("ResultingJSONstring = " + json);
+		  //System.out.println(json);
+			
+		} catch (JsonProcessingException e) {
+		   e.printStackTrace();
+		}
+		int updateTargetSetings = targetuserrepo.updateTargetSetings(json,
+				targetsUpdateDto.getEmployeeId(), targetsUpdateDto.getOrgId(), targetsUpdateDto.getBranch(),
+				targetsUpdateDto.getDepartment(), targetsUpdateDto.getDesignation()
+				,targetsUpdateDto.getStart_date(),targetsUpdateDto.getEnd_date()
+				);
+		if (updateTargetSetings > 0) {
+			response.setMessage("Update Sucessfully");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		} else {
+			response.setMessage("Not Updated");
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		}
+	
 	}
 
 }
