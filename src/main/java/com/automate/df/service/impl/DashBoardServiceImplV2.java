@@ -1501,7 +1501,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 				vehicleModelList.add(v);
 			});
 			List<Integer> selectedNodeList = req.getLevelSelected();
-			resList = getVehicleModelData(getEmpReportingList(empId,selectedEmpIdList,selectedNodeList,orgId,null), req, orgId, branchId, vehicleModelList);
+			resList = getVehicleModelData(getEmpReportingList(empId,selectedEmpIdList,selectedNodeList,orgId,branchId), req, orgId, branchId, vehicleModelList);
 			Double totalBookingCnt=0D;
 			for(VehicleModelRes vr: resList) {
 				totalBookingCnt= totalBookingCnt+vr.getB();
