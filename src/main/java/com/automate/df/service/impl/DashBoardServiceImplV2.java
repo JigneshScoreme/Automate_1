@@ -1664,8 +1664,6 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 		List<String> empNamesList = dmsEmployeeRepo.findEmpNamesById(empIdsUnderReporting);
 		log.info("empNamesList::" + empNamesList);
-
-		empNamesList.add("Nagesh C");
 		String startDate = getStartDate(req.getStartDate());
 		String endDate = getEndDate(req.getEndDate());
 		log.info("StartDate " + startDate + ", EndDate " + endDate);
@@ -4989,8 +4987,6 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		empIdsUnderReporting.add(empId);
 		List<String> empNamesList = dmsEmployeeRepo.findEmpNamesById(empIdsUnderReporting);
 		log.info("empNamesList::" + empNamesList);
-
-		empNamesList.add("Nagesh C");
 		String startDate = getStartDate(req.getStartDate());
 		String endDate = getEndDate(req.getEndDate());
 		log.info("StartDate " + startDate + ", EndDate " + endDate);
