@@ -49,6 +49,8 @@ import com.automate.df.dao.dashboard.ComplaintTrackerDao;
 import com.automate.df.dao.dashboard.DmsLeadDao;
 import com.automate.df.dao.dashboard.DmsLeadDropDao;
 import com.automate.df.dao.dashboard.DmsWfTaskDao;
+import com.automate.df.dao.dashboard.TargetAchivementModelandSource;
+import com.automate.df.dao.dashboard.TargetAchivementResponseDto;
 import com.automate.df.dao.oh.DmsBranchDao;
 import com.automate.df.dao.oh.EmpLocationMappingDao;
 import com.automate.df.dao.salesgap.DmsEmployeeRepo;
@@ -1662,7 +1664,6 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 
 		List<String> empNamesList = dmsEmployeeRepo.findEmpNamesById(empIdsUnderReporting);
 		log.info("empNamesList::" + empNamesList);
-
 		String startDate = getStartDate(req.getStartDate());
 		String endDate = getEndDate(req.getEndDate());
 		log.info("StartDate " + startDate + ", EndDate " + endDate);
@@ -4071,6 +4072,980 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		}
 		return todaysRes;
 	}
+	
+	@Override
+	public List<TargetAchivementModelandSource> getTargetAchivementParamsModelAndSource(DashBoardReqV2 req) throws DynamicFormsServiceException {
+		log.info("Inside getTargetAchivementParams(){}");
+		List<TargetAchivementModelandSource> resList = new ArrayList<>();
+		try {
+			long startTime = System.currentTimeMillis();
+			List<List<TargetAchivementModelandSource>> allTargets = new ArrayList<>();
+			Integer empId = req.getLoggedInEmpId();
+			log.debug("Getting Target Data, LoggedIn emp id " + empId);
+
+			List<Integer> selectedEmpIdList = req.getEmpSelected();
+			List<Integer> selectedNodeList = req.getLevelSelected();
+			TargetRoleRes tRole = salesGapServiceImpl.getEmpRoleDataV2(empId);
+			String orgId = tRole.getOrgId();
+			String branchId = tRole.getBranchId();
+			log.debug("tRole getTargetAchivementParams " + tRole);
+			Map<Integer, String> vehicleDataMap = dashBoardUtil.getVehilceDetails(orgId).get("main");
+			List<String> vehicleModelList = new ArrayList<>();
+			vehicleDataMap.forEach((k, v) -> {
+				vehicleModelList.add(v);
+			});
+			
+			
+			 List<VehicleModelRes> vehicleModelData = getVehicleModelDataModelandSource(getEmpReportingList(empId,selectedEmpIdList,selectedNodeList,orgId,branchId), req, orgId, branchId, vehicleModelList,empId);
+			 List<LeadSourceRes> leadSourceData = getLeadSourceData(req);
+			 
+			 System.out.println("vehical model data size is  "+vehicleModelData.size());
+			 System.out.println("vehocal mode data details"+vehicleModelData);
+			
+			if (null != selectedEmpIdList && !selectedEmpIdList.isEmpty()) {
+				log.debug("Fetching empReportingIdList for selected employees,selectedEmpIdList" + selectedEmpIdList);
+				for (Integer eId : selectedEmpIdList) {
+					List<Integer> empReportingIdList = new ArrayList<>();
+					empReportingIdList.add(eId);
+					//empIdList = getEmployeeHiearachyData(orgId,req.getLoggedInEmpId());
+					empReportingIdList.addAll(getEmployeeHiearachyData(Integer.parseInt(orgId),eId));
+					log.debug("empReportingIdList for given selectedEmpIdList " + empReportingIdList);
+					resList = getTargetAchivementParamsForMultipleEmpmodelandSource(empReportingIdList, req,
+							orgId,vehicleModelData,  leadSourceData);
+					//log.debug("targetList::::::" + targetList);
+					//allTargets.add(targetList);
+				}
+
+				//return resList;
+				//resList = buildFinalTargetsModelandSorce(allTargets);
+				
+			} else if (null != selectedNodeList && !selectedNodeList.isEmpty()) {
+				log.debug("Fetching empReportingIdList for selected LEVEL NODES");
+
+				for (Integer node : selectedNodeList) {
+					List<Integer> empReportingIdList = new ArrayList<>();
+					empReportingIdList.add(req.getLoggedInEmpId());
+					List<Integer> nodeList = new ArrayList<>();
+					nodeList.add(node);
+
+					Map<String, Object> datamap = ohServiceImpl.getActiveDropdownsV2(nodeList,
+							Integer.parseInt(tRole.getOrgId()), empId);
+					datamap.forEach((k, v) -> {
+						Map<String, Object> innerMap = (Map<String, Object>) v;
+						innerMap.forEach((x, y) -> {
+							List<TargetDropDownV2> dd = (List<TargetDropDownV2>) y;
+							empReportingIdList.addAll(dd.stream().map(z -> z.getCode()).map(Integer::parseInt)
+									.collect(Collectors.toList()));
+						});
+					});
+					resList = getTargetAchivementParamsForMultipleEmpmodelandSource(empReportingIdList, req,
+							orgId,vehicleModelData,leadSourceData);
+					//allTargets.add(targetList);
+
+				}
+				//resList = buildFinalTargetsModelandSorce(allTargets);
+			} else {
+				log.debug("Fetching empReportingIdList for logged in emp in else :" + req.getLoggedInEmpId());
+				List<Integer> empReportingIdList = getEmployeeHiearachyData(Integer.parseInt(orgId),req.getLoggedInEmpId());
+				empReportingIdList.add(req.getLoggedInEmpId());
+				log.debug("empReportingIdList for emp " + req.getLoggedInEmpId());
+				log.debug("Calling getTargetAchivemetns in else" + empReportingIdList);
+				resList = getTargetAchivementParamsForMultipleEmpmodelandSource(empReportingIdList, req, orgId,vehicleModelData, leadSourceData);
+			}
+			log.debug("Total time taken for getTargetparams "+(System.currentTimeMillis()-startTime));
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new DynamicFormsServiceException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+//		Map<Integer, String> vehicleDataMap = dashBoardUtil.getVehilceDetails(req.getOrgId()).get("main");
+//		List<String> vehicleModelList = new ArrayList<>();
+//		vehicleDataMap.forEach((k, v) -> {
+//			vehicleModelList.add(v);
+//		});
+		
+	
+		return resList;
+	}
+
+	public List<TargetAchivementModelandSource> buildFinalTargetsModelandSorce(List<List<TargetAchivementModelandSource>> allTargets) {
+
+		List<TargetAchivementModelandSource> resList = new ArrayList<>();
+		Integer finalEnq = 0;
+		Integer finalEnqTarget = 0;
+		Double finalEnqAchivePerc = 0D;
+		Integer finalEnqShortfall = 0;
+		Double finalEnqShortfallPerc = 0D;
+
+		Integer finalTD = 0;
+		Integer finalTDTarget = 0;
+		Double finalTDAchivePerc = 0D;
+		Integer finalTDShortfall = 0;
+		Double finalTDShortfallPerc = 0D;
+
+		Integer finalFIN = 0;
+		Integer finalFINTarget = 0;
+		Double finalFINAchivePerc = 0D;
+		Integer finalFINShortfall = 0;
+		Double finalFINShortfallPerc = 0D;
+
+		Integer finalINS = 0;
+		Integer finalINSTarget = 0;
+		Double finalINSAchivePerc = 0D;
+		Integer finalINSShortfall = 0;
+		Double finalINSShortfallPerc = 0D;
+
+		Integer finalHV = 0;
+		Integer finalHVTarget = 0;
+		Double finalHVAchivePerc = 0D;
+		Integer finalHVShortfall = 0;
+		Double finalHVShortfallPerc = 0D;
+
+		Integer finalBOOK = 0;
+		Integer finalBOOKTarget = 0;
+		Double finalBOOKAchivePerc = 0D;
+		Integer finalBOOKShortfall = 0;
+		Double finalBOOKShortfallPerc = 0D;
+
+		Integer finalEXC = 0;
+		Integer finalEXCTarget = 0;
+		Double finalEXCAchivePerc = 0D;
+		Integer finalEXCShortfall = 0;
+		Double finalEXCShortfallPerc = 0D;
+
+		Integer finalRETAIL = 0;
+		Integer finalRETAILTarget = 0;
+		Double finalRETAILAchivePerc = 0D;
+		Integer finalRETAILShortfall = 0;
+		Double finalRETAILShortfallPerc = 0D;
+
+		Integer finalACC = 0;
+		Integer finalACCTarget = 0;
+		Double finalACCAchivePerc = 0D;
+		Integer finalACCShortfall = 0;
+		Double finalACCShortfallPerc = 0D;
+		String model=null;
+		String source=null;
+
+		for (List<TargetAchivementModelandSource> targetList : allTargets) {
+
+			for (TargetAchivementModelandSource target : targetList) {
+				
+				
+
+				if (target.getParamName().equalsIgnoreCase(ENQUIRY)) {
+
+					if (null != target.getAchievment()) {
+						finalEnq = finalEnq + Integer.parseInt(target.getAchievment());
+					}
+					if (null != target.getTarget()) {
+						
+						finalEnqTarget = finalEnqTarget + Integer.parseInt(target.getTarget());
+					
+					}
+					//System.out.println("finalEnqAchivePerc::"+finalEnqAchivePerc);
+					//System.out.println("target.getAchivementPerc()::"+target.getAchivementPerc());
+					if (null != target.getAchivementPerc()) {
+						String tmp = target.getAchivementPerc().replaceAll("%","").trim();
+					    finalEnqAchivePerc = finalEnqAchivePerc + Double.parseDouble(tmp);
+					}
+				
+					if (null != target.getShortfall()) {
+						log.debug("Integer.parseInt(target.getShortfall())  "+Integer.parseInt(target.getShortfall()));
+						finalEnqShortfall = finalEnqShortfall + Integer.parseInt(target.getShortfall());
+						log.debug("finalEnqShortfall::"+finalEnqShortfall);
+					}
+					if (null != target.getShortFallPerc()) {
+						String tmp = target.getShortFallPerc().replaceAll("%","").trim();
+						finalEnqShortfallPerc = finalEnqShortfallPerc + Double.parseDouble(tmp);
+					}
+				}
+				if (target.getParamName().equalsIgnoreCase(TEST_DRIVE)) {
+					if (null != target.getAchievment()) {
+						finalTD = finalTD + Integer.parseInt(target.getAchievment());
+					}
+					if (null != target.getTarget()) {
+						finalTDTarget = finalTDTarget + Integer.parseInt(target.getTarget());
+					}
+					if (null != target.getAchivementPerc()) {
+						String tmp = target.getAchivementPerc().replaceAll("%","").trim();
+						finalTDAchivePerc = finalTDAchivePerc + Double.parseDouble(tmp);
+					}
+					if (null != target.getShortfall()) {
+						finalTDShortfall = finalTDShortfall + Integer.parseInt(target.getShortfall());
+					}
+					if (null != target.getShortFallPerc()) {
+						String tmp = target.getShortFallPerc().replaceAll("%","").trim();
+						finalTDShortfallPerc = finalTDShortfallPerc + Double.parseDouble(tmp);
+					}
+				}
+
+				if (target.getParamName().equalsIgnoreCase(FINANCE)) {
+					if (null != target.getAchievment()) {
+						finalFIN = finalFIN + Integer.parseInt(target.getAchievment());
+					}
+					if (null != target.getTarget()) {
+						finalFINTarget = finalFINTarget + Integer.parseInt(target.getTarget());
+					}
+					if (null != target.getAchivementPerc()) {
+						String tmp = target.getAchivementPerc().replaceAll("%","").trim();
+						finalFINAchivePerc = finalFINAchivePerc + Double.parseDouble(tmp);
+					}
+					if (null != target.getShortfall()) {
+						finalFINShortfall = finalFINShortfall + Integer.parseInt(target.getShortfall());
+					}
+					if (null != target.getShortFallPerc()) {
+						String tmp = target.getShortFallPerc().replaceAll("%","").trim();
+						finalFINShortfallPerc = finalFINShortfallPerc + Double.parseDouble(tmp);
+					}
+
+				}
+
+				if (target.getParamName().equalsIgnoreCase(BOOKING)) {
+
+					if (null != target.getAchievment()) {
+						finalBOOK = finalBOOK + Integer.parseInt(target.getAchievment());
+					}
+					if (null != target.getTarget()) {
+						finalBOOKTarget = finalBOOKTarget + Integer.parseInt(target.getTarget());
+					}
+					if (null != target.getAchivementPerc()) {
+						String tmp = target.getAchivementPerc().replaceAll("%","").trim();
+						finalBOOKAchivePerc = finalBOOKAchivePerc + Double.parseDouble(tmp);
+					}
+					if (null != target.getShortfall()) {
+						finalBOOKShortfall = finalBOOKShortfall + Integer.parseInt(target.getShortfall());
+					}
+					if (null != target.getShortFallPerc()) {
+						String tmp = target.getShortFallPerc().replaceAll("%","").trim();
+						finalBOOKShortfallPerc = finalBOOKShortfallPerc + Double.parseDouble(tmp);
+					}
+				}
+
+				if (target.getParamName().equalsIgnoreCase(HOME_VISIT)) {
+					if (null != target.getAchievment()) {
+						finalHV = finalHV + Integer.parseInt(target.getAchievment());
+					}
+					if (null != target.getTarget()) {
+						finalHVTarget = finalHVTarget + Integer.parseInt(target.getTarget());
+					}
+					if (null != target.getAchivementPerc()) {
+						String tmp = target.getAchivementPerc().replaceAll("%","").trim();
+						finalHVAchivePerc = finalHVAchivePerc + Double.parseDouble(tmp);
+					}
+					if (null != target.getShortfall()) {
+						finalHVShortfall = finalHVShortfall + Integer.parseInt(target.getShortfall());
+					}
+					if (null != target.getShortFallPerc()) {
+						String tmp = target.getShortFallPerc().replaceAll("%","").trim();
+						finalHVShortfallPerc = finalHVShortfallPerc + Double.parseDouble(tmp);
+					}
+
+				}
+
+				if (target.getParamName().equalsIgnoreCase(INSURANCE)) {
+
+					if (null != target.getAchievment()) {
+						finalINS = finalINS + Integer.parseInt(target.getAchievment());
+					}
+					if (null != target.getTarget()) {
+						finalINSTarget = finalINSTarget + Integer.parseInt(target.getTarget());
+					}
+					if (null != target.getAchivementPerc()) {
+						String tmp = target.getAchivementPerc().replaceAll("%","").trim();
+						finalINSAchivePerc = finalINSAchivePerc + Double.parseDouble(tmp);
+					}
+					if (null != target.getShortfall()) {
+						finalINSShortfall = finalINSShortfall + Integer.parseInt(target.getShortfall());
+					}
+					if (null != target.getShortFallPerc()) {
+						String tmp = target.getShortFallPerc().replaceAll("%","").trim();
+						finalINSShortfallPerc = finalINSShortfallPerc + Double.parseDouble(tmp);
+					}
+				}
+
+				if (target.getParamName().equalsIgnoreCase(INVOICE)) {
+
+					if (null != target.getAchievment()) {
+						finalRETAIL = finalRETAIL + Integer.parseInt(target.getAchievment());
+					}
+					if (null != target.getTarget()) {
+						finalRETAILTarget = finalRETAILTarget + Integer.parseInt(target.getTarget());
+					}
+					if (null != target.getAchivementPerc()) {
+						String tmp = target.getAchivementPerc().replaceAll("%","").trim();
+						finalRETAILAchivePerc = finalRETAILAchivePerc + Double.parseDouble(tmp);
+					}
+					if (null != target.getShortfall()) {
+						finalRETAILShortfall = finalRETAILShortfall + Integer.parseInt(target.getShortfall());
+					}
+					if (null != target.getShortFallPerc()) {
+						String tmp = target.getShortFallPerc().replaceAll("%","").trim();
+						finalRETAILShortfallPerc = finalRETAILShortfallPerc
+								+ Double.parseDouble(tmp);
+					}
+				}
+
+				if (target.getParamName().equalsIgnoreCase(EXCHANGE)) {
+
+					if (null != target.getAchievment()) {
+						finalEXC = finalEXC + Integer.parseInt(target.getAchievment());
+					}
+					if (null != target.getTarget()) {
+						finalEXCTarget = finalEXCTarget + Integer.parseInt(target.getTarget());
+					}
+					if (null != target.getAchivementPerc()) {
+						String tmp = target.getAchivementPerc().replaceAll("%","").trim();
+						finalEXCAchivePerc = finalEXCAchivePerc + Double.parseDouble(tmp);
+					}
+					if (null != target.getShortfall()) {
+						finalEXCShortfall = finalEXCShortfall + Integer.parseInt(target.getShortfall());
+					}
+					if (null != target.getShortFallPerc()) {
+						String tmp = target.getShortFallPerc().replaceAll("%","").trim();
+						finalEXCShortfallPerc = finalEXCShortfallPerc + Double.parseDouble(tmp);
+					}
+				}
+
+				if (target.getParamName().equalsIgnoreCase(EXCHANGE)) {
+
+					if (null != target.getAchievment()) {
+						finalACC = finalACC + Integer.parseInt(target.getAchievment());
+					}
+					if (null != target.getTarget()) {
+						finalACCTarget = finalACCTarget + Integer.parseInt(target.getTarget());
+					}
+					if (null != target.getAchivementPerc()) {
+						String tmp = target.getAchivementPerc().replaceAll("%","").trim();
+						finalACCAchivePerc = finalACCAchivePerc + Double.parseDouble(tmp);
+					}
+					if (null != target.getShortfall()) {
+						finalACCShortfall = finalACCShortfall + Integer.parseInt(target.getShortfall());
+					}
+					if (null != target.getShortFallPerc()) {
+						String tmp = target.getShortFallPerc().replaceAll("%","").trim();
+						finalACCShortfallPerc = finalACCShortfallPerc + Double.parseDouble(tmp);
+					}
+				}
+
+			}
+
+		}
+
+		TargetAchivementModelandSource targetEnq = new TargetAchivementModelandSource();
+		targetEnq.setParamName(ENQUIRY);
+		targetEnq.setParamShortName("Enq");
+		targetEnq.setAchievment(String.valueOf(finalEnq));
+		targetEnq.setTarget(String.valueOf(finalEnqTarget));
+		targetEnq.setAchivementPerc(String.valueOf(finalEnqAchivePerc));
+		targetEnq.setShortfall(String.valueOf(finalEnqShortfall));
+		targetEnq.setShortFallPerc(String.valueOf(finalEnqShortfallPerc));
+
+		TargetAchivementModelandSource targetTD = new TargetAchivementModelandSource();
+		targetTD.setParamName(TEST_DRIVE);
+		targetTD.setParamShortName("Tdr");
+		targetTD.setAchievment(String.valueOf(finalTD));
+		targetTD.setTarget(String.valueOf(finalTDTarget));
+		targetTD.setAchivementPerc(String.valueOf(finalTDAchivePerc));
+		targetTD.setShortfall(String.valueOf(finalTDShortfall));
+		targetTD.setShortFallPerc(String.valueOf(finalTDShortfallPerc));
+
+		resList.add(targetEnq);
+		resList.add(targetTD);
+
+		TargetAchivementModelandSource targetFIN = new TargetAchivementModelandSource();
+		targetFIN.setParamName(FINANCE);targetTD.setParamShortName("Fin");
+		targetFIN.setAchievment(String.valueOf(finalFIN));
+		targetFIN.setTarget(String.valueOf(finalFINTarget));
+		targetFIN.setAchivementPerc(String.valueOf(finalFINAchivePerc));
+		targetFIN.setShortfall(String.valueOf(finalFINShortfall));
+		targetFIN.setShortFallPerc(String.valueOf(finalFINShortfallPerc));
+
+		resList.add(targetFIN);
+
+		TargetAchivementModelandSource targetINS = new TargetAchivementModelandSource();
+		targetINS.setParamName(INSURANCE);targetTD.setParamShortName("Ins");
+		targetINS.setAchievment(String.valueOf(finalINS));
+		targetINS.setTarget(String.valueOf(finalINSTarget));
+		targetINS.setAchivementPerc(String.valueOf(finalINSAchivePerc));
+		targetINS.setShortfall(String.valueOf(finalINSShortfall));
+		targetINS.setShortFallPerc(String.valueOf(finalINSShortfallPerc));
+
+		resList.add(targetINS);
+
+		TargetAchivementModelandSource targetHV = new TargetAchivementModelandSource();
+		targetHV.setParamName(HOME_VISIT);targetTD.setParamShortName("Hvt");
+		targetHV.setAchievment(String.valueOf(finalHV));
+		targetHV.setTarget(String.valueOf(finalHVTarget));
+		targetHV.setAchivementPerc(String.valueOf(finalHVAchivePerc));
+		targetHV.setShortfall(String.valueOf(finalHVShortfall));
+		targetHV.setShortFallPerc(String.valueOf(finalHVShortfallPerc));
+
+		resList.add(targetHV);
+
+		TargetAchivementModelandSource targetBOOK = new TargetAchivementModelandSource();
+		targetBOOK.setParamName(BOOKING);
+		targetTD.setParamShortName("Bkg");
+		targetBOOK.setAchievment(String.valueOf(finalBOOK));
+		targetBOOK.setTarget(String.valueOf(finalBOOKTarget));
+		targetBOOK.setAchivementPerc(String.valueOf(finalBOOKAchivePerc));
+		targetBOOK.setShortfall(String.valueOf(finalBOOKShortfall));
+		targetBOOK.setShortFallPerc(String.valueOf(finalBOOKShortfallPerc));
+
+		resList.add(targetBOOK);
+
+		TargetAchivementModelandSource targetEXC = new TargetAchivementModelandSource();
+		targetEXC.setParamName(EXCHANGE);
+		targetTD.setParamShortName("Exg");
+		targetEXC.setAchievment(String.valueOf(finalEXC));
+		targetEXC.setTarget(String.valueOf(finalEXCTarget));
+		targetEXC.setAchivementPerc(String.valueOf(finalEXCAchivePerc));
+		targetEXC.setShortfall(String.valueOf(finalEXCShortfall));
+		targetEXC.setShortFallPerc(String.valueOf(finalEXCShortfallPerc));
+
+		
+		resList.add(targetEXC);
+
+		TargetAchivementModelandSource targetRETAIL = new TargetAchivementModelandSource();
+		targetRETAIL.setParamName(INVOICE);
+		targetTD.setParamShortName("Ret");
+		targetRETAIL.setAchievment(String.valueOf(finalRETAIL));
+		targetRETAIL.setTarget(String.valueOf(finalRETAILTarget));
+		targetRETAIL.setAchivementPerc(String.valueOf(finalRETAILAchivePerc));
+		targetRETAIL.setShortfall(String.valueOf(finalRETAILShortfall));
+		targetRETAIL.setShortFallPerc(String.valueOf(finalRETAILShortfallPerc));
+
+		resList.add(targetRETAIL);
+
+		TargetAchivementModelandSource targetACC = new TargetAchivementModelandSource();
+		targetACC.setParamName(ACCCESSORIES);
+		targetTD.setParamShortName("Acc");
+		targetACC.setAchievment(String.valueOf(finalACC));
+		targetACC.setTarget(String.valueOf(finalACCTarget));
+		targetACC.setAchivementPerc(String.valueOf(finalACCAchivePerc));
+		targetACC.setShortfall(String.valueOf(finalACCShortfall));
+		targetACC.setShortFallPerc(String.valueOf(finalACCShortfallPerc));
+
+		resList.add(targetACC);
+
+		return resList;
+	}
+
+	public List<TargetAchivementModelandSource> getTargetAchivementParamsForMultipleEmpmodelandSource(
+			List<Integer> empIdsUnderReporting, DashBoardReqV2 req,String orgId,List<VehicleModelRes> vehicleModelData, List<LeadSourceRes> leadSourceData) throws ParseException, DynamicFormsServiceException {
+		List<TargetAchivementModelandSource> resList = new ArrayList<>();
+		List<String> empNamesList = dmsEmployeeRepo.findEmpNamesById(empIdsUnderReporting);
+		log.debug("empNamesList::" + empNamesList);
+		log.debug("Calling getTargetAchivementParamsForMultipleEmp");
+		final String startDate;
+		final String endDate;
+		if (null == req.getStartDate() && null == req.getEndDate()) {
+			startDate = getFirstDayOfMonth();
+			endDate = getLastDayOfMonth();
+		} else {
+			startDate = req.getStartDate()+" 00:00:00";
+			endDate = req.getEndDate()+" 23:59:59";
+		}
+
+		
+		log.info("StartDate " + startDate + ", EndDate " + endDate);
+		Map<String, Integer> map = new ConcurrentHashMap<>();
+		Map<String, Integer> finalMap = new ConcurrentHashMap<>();
+		
+		if(empIdsUnderReporting.size()>0) {
+			List<List<Integer>> empIdPartionList = partitionList(empIdsUnderReporting);
+			log.debug("empIdPartionList ::" + empIdPartionList.size());
+			ExecutorService executor = Executors.newFixedThreadPool(empIdPartionList.size());
+			
+			List<CompletableFuture<Map<String, Integer>>> futureList = empIdPartionList.stream()
+					.map(strings -> CompletableFuture.supplyAsync(() -> processTargetMap(strings,map,startDate,endDate), executor))
+					.collect(Collectors.toList());
+			
+			CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0])).join();
+			Stream<Map<String, Integer>> dataStream = (Stream<Map<String, Integer>>) futureList.stream().map(CompletableFuture::join);
+			dataStream.forEach(x -> {
+				finalMap.putAll(map);
+			});
+		}
+		
+		/*
+		for(Integer empId : empIdsUnderReporting) {
+			log.debug("Getting target params for user "+empId);
+			Map<String, Integer> innerMap = getTargetParams(String.valueOf(empId), startDate, endDate);
+			log.debug("innerMap::"+innerMap);
+			map = validateAndUpdateMapData(ENQUIRY,innerMap,map);
+			map = validateAndUpdateMapData(TEST_DRIVE,innerMap,map);
+			map = validateAndUpdateMapData(HOME_VISIT,innerMap,map);
+			map = validateAndUpdateMapData(VIDEO_CONFERENCE,innerMap,map);
+			map = validateAndUpdateMapData(BOOKING,innerMap,map);
+			map = validateAndUpdateMapData(EXCHANGE,innerMap,map);
+			map = validateAndUpdateMapData(FINANCE,innerMap,map);
+			map = validateAndUpdateMapData(INSURANCE,innerMap,map);
+			map = validateAndUpdateMapData(ACCCESSORIES,innerMap,map);
+			map = validateAndUpdateMapData(EVENTS,innerMap,map);
+			map = validateAndUpdateMapData(INVOICE,innerMap,map);
+			
+		}
+		*/
+		//List<DmsLead> dmsLeadList = dmsLeadDao.getAllEmployeeLeads(empNamesList, startDate, endDate, ENQUIRY);
+	
+		
+		
+		return getTaskAndBuildTargetAchievementsmodelandSource(empIdsUnderReporting, orgId, resList, empNamesList, startDate, endDate,map,vehicleModelData, leadSourceData);
+	}
+	
+	private List<TargetAchivementModelandSource> getTaskAndBuildTargetAchievementsmodelandSource(List<Integer> empIdsUnderReporting, String orgId,
+			List<TargetAchivementModelandSource> resList, List<String> empNamesList, String startDate, String endDate,
+			Map<String, Integer> map,List<VehicleModelRes> vehicleModelData, List<LeadSourceRes> leadSourceData) {
+		Long enqLeadCnt = 0L;
+		Long preBookCount = 0L;
+		Long bookCount = 0L;
+		Long invCount = 0L;
+		Long preDeliveryCnt = 0L;
+		Long delCnt = 0L;
+		Map<String,List<TargetAchivement>> targetMapSource=new LinkedHashMap<>();
+		Map<String,List<TargetAchivement>> targetMapModel=new LinkedHashMap<>();
+		TargetAchivementResponseDto targetAchivementResponse=new TargetAchivementResponseDto();
+		System.out.println(orgId);
+		Map<Integer, String> vehicleDataMap = dashBoardUtil.getVehilceDetails(orgId).get("main");
+		List<Integer> dmsLeadList = dmsLeadDao.getLeadIdsByEmpNames(empNamesList);
+		log.debug("dmsLeadList::"+dmsLeadList);
+		
+		
+		
+		List<LeadStageRefEntity> leadRefList  =  leadStageRefDao.getLeadsByStageandDate(orgId,dmsLeadList,startDate,endDate);
+		if(null!=leadRefList && !leadRefList.isEmpty()) {
+			
+			log.debug("Total leads in LeadReF table is ::"+leadRefList.size());
+			//enqLeadCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY")).count();
+			enqLeadCnt = leadRefList.stream().filter(x-> x.getLeadStatus()!=null &&  x.getLeadStatus().equalsIgnoreCase(enqCompStatus)).count();
+			preBookCount =leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREBOOKING")).count();
+			//bookCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("BOOKING")).count();
+			bookCount = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(bookCompStatus)).count();
+			//invCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("INVOICE")).count();
+			invCount = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(invCompStatus)).count();
+			preDeliveryCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREDELIVERY")).count();
+			//delCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("DELIVERY")).count();
+			delCnt = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(delCompStatus)).count();
+	
+			
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	
+		List<DmsWFTask> wfTaskList = dmsWfTaskDao.getWfTaskByAssigneeIdList(empIdsUnderReporting, startDate, endDate);
+		//return buildTargetAchivements(resList, map, finalEnqLeadCnt,finalBookCnt, finalInvCount,wfTaskList);
+		List<TargetAchivementModelandSource> buildTargetAchivementsModelAndSource =null;
+		
+		System.out.println("----- model -------------"+vehicleModelData.size());
+		
+		for(VehicleModelRes vehicalmodelresult : vehicleModelData) {
+			String source=null;
+			
+			List<DmsLead> dmsLeadList1 = dmsLeadDao.getAllEmployeeLeadsWithModel(orgId,empNamesList,startDate, endDate,vehicalmodelresult.getModel());
+				List<Integer> dmsLeadIdList = dmsLeadList1.stream().map(DmsLead::getId).collect(Collectors.toList());
+				log.debug("dmsLeadList::"+dmsLeadList1);
+			    leadRefList  =  leadStageRefDao.getLeadsByStageandDate(orgId,dmsLeadIdList,startDate,endDate);
+				if(null!=leadRefList && !leadRefList.isEmpty()) {
+					log.debug("Total leads in LeadReF table is ::"+leadRefList.size());
+//					System.out.println("Total leads in LeadReF table is ------ ::"+leadRefList.size());
+//					for(LeadStageRefEntity refentity : leadRefList) {
+//						System.out.println("-------------"+refentity.getStageName());
+//					}
+				
+				}
+				
+			
+			enqLeadCnt=vehicalmodelresult.getE();
+			bookCount=vehicalmodelresult.getB();
+		long testDriveCnt=vehicalmodelresult.getT();
+		long homeVistCnt=vehicalmodelresult.getV();
+		invCount=vehicalmodelresult.getR();
+		resList = buildTargetAchivementsModelAndSource(resList, map, enqLeadCnt,preBookCount, bookCount,invCount,preDeliveryCnt,delCnt,wfTaskList,leadRefList,testDriveCnt,homeVistCnt,vehicalmodelresult.getModel(),source);
+		//targetMapModel.put(vehicalmodelresult.getModel(), buildTargetAchivementsModelAndSource);
+		}
+		
+		//targetAchivementResponse.setTargetMapModel(targetMapModel);
+		
+		Map<String, Integer> leadTypes = getLeadTypes(orgId);
+			
+	System.out.println("------------------ enetered into --------"+leadSourceData.size());	
+		
+		for( LeadSourceRes  leadSourceRes : leadSourceData) {
+			
+			String model=null;
+			
+			Integer v = leadTypes.get(leadSourceRes.getLead());
+			
+			List<DmsLead> dmsAllLeadList = dmsLeadDao.getAllEmployeeLeadsBasedOnEnquiry(orgId, empNamesList, startDate, endDate, v);
+			List<Integer> dmsLeadList2 = dmsAllLeadList.stream().map(DmsLead::getId).collect(Collectors.toList());
+			log.debug("dmsLeadList::"+dmsLeadList);
+				
+			 leadRefList  =  leadStageRefDao.getLeadsByStageandDate(orgId,dmsLeadList,startDate,endDate);
+			 
+			 enqLeadCnt=leadSourceRes.getE();
+				bookCount=leadSourceRes.getB();
+			long testDriveCnt=leadSourceRes.getT();
+			long homeVistCnt=leadSourceRes.getV();
+			invCount=leadSourceRes.getR();
+		
+			resList = buildTargetAchivementsModelAndSource(resList, map, enqLeadCnt,preBookCount, bookCount,invCount,preDeliveryCnt,delCnt,wfTaskList,leadRefList,testDriveCnt,homeVistCnt,model,leadSourceRes.getLead());
+		
+			//targetMapSource.put(leadSourceRes.getLead(), buildTargetAchivementsModelAndSource);
+		}
+		
+		System.out.println("size of the target builded data---- "+resList.size());
+		
+		//targetAchivementResponse.setTargetMapSource(targetMapSource);
+		 return resList;
+		 
+	}
+	
+	private List<TargetAchivementModelandSource> buildTargetAchivementsModelAndSource(List<TargetAchivementModelandSource> resList,
+			Map<String, Integer> targetParamMap, Long enqLeadCnt,Long preBookCount, Long bookCount, Long invCount, Long preDeliveryCnt, Long delCnt, List<DmsWFTask> wfTaskList, List<LeadStageRefEntity> leadRefList,Long testDriveCnt,Long homeVistCnt,String model,String source) {
+		
+	
+
+		// Getting Test Drive Cnt
+		//Long testDriveCnt = getTestDriveCount(wfTaskList);
+		//Long financeCnt = getFinanceCount(wfTaskList);
+		//Long insuranceCnt =getInsuranceCount(wfTaskList);
+		
+		//Long bookingCnt = getBookingCount(wfTaskList);
+		//Long homeVistCnt = getHomeVisitCount(wfTaskList);
+		//Long videoConfCnt = wfTaskList.stream().filter(x->x.getTaskName().equalsIgnoreCase(VIDEO_CONFERENCE)).count();
+		//Long exchangeCnt = getExchangeCount(wfTaskList);
+		//Long invoceCnt = getInvoiceCountTarget(wfTaskList);
+		//Long retailCnt = 0L;
+		Long bookingCnt = bookCount;
+		Long invoceCnt = invCount;
+		
+		
+		Long exchangeCnt  = 0L;
+		Long insuranceCnt = 0L;
+		Long accessoriesCnt = 0L;
+		Long extendedWarntyCnt  =0L;
+		Long financeCnt = 0L;
+		
+		List<Integer> leadIdList = leadRefList.stream().map(x->x.getLeadId()).collect(Collectors.toList());
+
+		List<Integer> leadIdListV1 = leadRefList.stream().filter(x->null!=x.getLeadStatus() && x.getLeadStatus().equals("INVOICECOMPLETED")).map(x->x.getLeadId()).collect(Collectors.toList());
+
+		if(leadIdListV1!=null && !leadIdListV1.isEmpty()) {
+			exchangeCnt  = getExchangeCntSupportParam(leadIdListV1);
+			insuranceCnt = getInsuranceCntSupportParam(leadIdListV1);
+			accessoriesCnt = getAccessoriesCount(leadIdListV1);
+			if(accessoriesCnt==null || leadIdListV1.isEmpty())
+			{
+				accessoriesCnt = 0L;
+			}
+			financeCnt = getFinanceCntSupportParam(leadIdListV1);	
+		}
+		
+		extendedWarntyCnt  =getExtendedWarrntySupportParam(leadIdList);
+		TargetAchivementModelandSource enqTargetAchivement = new TargetAchivementModelandSource();
+		enqTargetAchivement.setParamName(ENQUIRY);
+		enqTargetAchivement.setParamShortName("Enq");
+		System.out.println("------------model data data"+model);
+		System.out.println("------------source data data"+source);
+		enqTargetAchivement.setModel(model);
+		enqTargetAchivement.setSource(source);;
+		enqTargetAchivement.setAchievment(String.valueOf(enqLeadCnt));;
+		if(targetParamMap.containsKey(ENQUIRY)) {
+			enqTargetAchivement.setTarget(String.valueOf(targetParamMap.get(ENQUIRY)));
+			
+			enqTargetAchivement.setAchivementPerc(getAchievmentPercentage(enqLeadCnt,targetParamMap.get(ENQUIRY)));
+			enqTargetAchivement.setShortfall(getShortFallCount(enqLeadCnt,targetParamMap.get(ENQUIRY)));
+			enqTargetAchivement.setShortFallPerc(getShortFallPercentage(enqLeadCnt,targetParamMap.get(ENQUIRY)));;
+		}else {
+			enqTargetAchivement.setTarget(String.valueOf("0"));
+			enqTargetAchivement.setAchivementPerc(String.valueOf("0"));
+			enqTargetAchivement.setShortfall(String.valueOf("0"));
+			enqTargetAchivement.setShortFallPerc(String.valueOf("0"));
+		}
+		//enqTargetAchivement.setData(buildDataList(leadRefList,ENQUIRY));
+	
+		resList.add(enqTargetAchivement);
+		
+		TargetAchivementModelandSource testDriveTA = new TargetAchivementModelandSource();
+	
+		testDriveTA.setParamName(TEST_DRIVE);
+		testDriveTA.setParamShortName("Tdr");
+		testDriveTA.setModel(model);
+		testDriveTA.setSource(source);;
+		testDriveTA.setAchievment(String.valueOf(testDriveCnt));
+		if(targetParamMap.containsKey(TEST_DRIVE)) {
+			testDriveTA.setTarget(String.valueOf(targetParamMap.get(TEST_DRIVE)));
+			testDriveTA.setAchivementPerc(getAchievmentPercentage(testDriveCnt,targetParamMap.get(TEST_DRIVE)));
+			testDriveTA.setShortfall(getShortFallCount(testDriveCnt,targetParamMap.get(TEST_DRIVE)));
+			testDriveTA.setShortFallPerc(getShortFallPercentage(testDriveCnt,targetParamMap.get(TEST_DRIVE)));
+		}else {
+			testDriveTA.setTarget(String.valueOf("0"));
+			testDriveTA.setAchivementPerc(String.valueOf("0"));
+			testDriveTA.setShortfall(String.valueOf("0"));
+			testDriveTA.setShortFallPerc(String.valueOf("0"));
+		}
+		//testDriveTA.setData(buildDataList(leadRefList,TEST_DRIVE));
+		resList.add(testDriveTA);
+		
+		
+		TargetAchivementModelandSource financeTA = new TargetAchivementModelandSource();
+		
+		financeTA.setParamName(FINANCE);
+		financeTA.setParamShortName("Fin");
+		financeTA.setModel(model);
+		financeTA.setSource(source);
+		financeTA.setAchievment(String.valueOf(financeCnt));
+		if(targetParamMap.containsKey(FINANCE)) {
+			financeTA.setTarget(String.valueOf(targetParamMap.get(FINANCE)));
+			financeTA.setAchivementPerc(getAchievmentPercentage(financeCnt,targetParamMap.get(FINANCE)));
+			financeTA.setShortfall(getShortFallCount(financeCnt,targetParamMap.get(FINANCE)));
+			financeTA.setShortFallPerc(getShortFallPercentage(financeCnt,targetParamMap.get(FINANCE)));
+		}else {
+			financeTA.setTarget(String.valueOf("0"));
+			financeTA.setAchivementPerc(String.valueOf("0"));
+			financeTA.setShortfall(String.valueOf("0"));
+			financeTA.setShortFallPerc(String.valueOf("0"));
+		}
+		//financeTA.setData(buildDataList(leadRefList,FINANCE));
+		resList.add(financeTA);
+		
+		TargetAchivementModelandSource insuranceTA = new TargetAchivementModelandSource();
+		
+		insuranceTA.setParamName(INSURANCE);
+		insuranceTA.setParamShortName("Ins");
+		insuranceTA.setModel(model);
+		insuranceTA.setSource(source);;
+		insuranceTA.setAchievment(String.valueOf(insuranceCnt));
+		if(targetParamMap.containsKey(INSURANCE)) {
+			insuranceTA.setTarget(String.valueOf(targetParamMap.get(INSURANCE)));
+			insuranceTA.setAchivementPerc(getAchievmentPercentage(insuranceCnt,targetParamMap.get(INSURANCE)));
+			insuranceTA.setShortfall(getShortFallCount(insuranceCnt,targetParamMap.get(INSURANCE)));
+			insuranceTA.setShortFallPerc(getShortFallPercentage(insuranceCnt,targetParamMap.get(INSURANCE)));
+		}else {
+			insuranceTA.setTarget(String.valueOf("0"));
+			insuranceTA.setAchivementPerc(String.valueOf("0"));
+			insuranceTA.setShortfall(String.valueOf("0"));
+			insuranceTA.setShortFallPerc(String.valueOf("0"));
+		}
+		//insuranceTA.setData(buildDataList(leadRefList,INSURANCE));
+		resList.add(insuranceTA);
+		
+		
+		TargetAchivementModelandSource accessoriesTA = new TargetAchivementModelandSource();
+		
+		accessoriesTA.setParamName(ACCCESSORIES);
+		accessoriesTA.setParamShortName("Acc");
+		accessoriesTA.setModel(model);
+		accessoriesTA.setSource(source);;
+		accessoriesTA.setAchievment(String.valueOf(accessoriesCnt));
+		if(targetParamMap.containsKey(ACCCESSORIES)) {
+			accessoriesTA.setTarget(String.valueOf(targetParamMap.get(ACCCESSORIES)));
+			accessoriesTA.setAchivementPerc(getAchievmentPercentage(accessoriesCnt,targetParamMap.get(ACCCESSORIES)));
+			accessoriesTA.setShortfall(getShortFallCount(accessoriesCnt,targetParamMap.get(ACCCESSORIES)));
+			accessoriesTA.setShortFallPerc(getShortFallPercentage(accessoriesCnt,targetParamMap.get(ACCCESSORIES)));
+		}else {
+			accessoriesTA.setTarget(String.valueOf("0"));
+			accessoriesTA.setAchivementPerc(String.valueOf("0"));
+			accessoriesTA.setShortfall(String.valueOf("0"));
+			accessoriesTA.setShortFallPerc(String.valueOf("0"));
+		}
+		//accessoriesTA.setData(buildDataList(leadRefList,ACCCESSORIES));
+		resList.add(accessoriesTA);
+		
+		
+		TargetAchivementModelandSource bookingTA = new TargetAchivementModelandSource();
+
+		bookingTA.setParamName(BOOKING);
+		bookingTA.setParamShortName("Bkg");
+		bookingTA.setModel(model);
+		bookingTA.setSource(source);;
+		bookingTA.setAchievment(String.valueOf(bookingCnt));
+		if(targetParamMap.containsKey(BOOKING)) {
+			bookingTA.setTarget(String.valueOf(targetParamMap.get(BOOKING)));
+			bookingTA.setAchivementPerc(getAchievmentPercentage(bookingCnt,targetParamMap.get(BOOKING)));
+			bookingTA.setShortfall(getShortFallCount(bookingCnt,targetParamMap.get(BOOKING)));
+			bookingTA.setShortFallPerc(getShortFallPercentage(bookingCnt,targetParamMap.get(BOOKING)));
+		}else {
+			bookingTA.setTarget(String.valueOf("0"));
+			bookingTA.setAchivementPerc(String.valueOf("0"));
+			bookingTA.setShortfall(String.valueOf("0"));
+			bookingTA.setShortFallPerc(String.valueOf("0"));
+		}
+		//bookingTA.setData(buildDataList(leadRefList,BOOKING));
+		resList.add(bookingTA);
+		
+		TargetAchivementModelandSource homeVisitTA = new TargetAchivementModelandSource();
+		
+		homeVisitTA.setParamName(HOME_VISIT);
+		homeVisitTA.setParamShortName("Hvt");
+		homeVisitTA.setModel(model);
+		homeVisitTA.setSource(source);;
+		homeVisitTA.setAchievment(String.valueOf(homeVistCnt));
+		if(targetParamMap.containsKey(BOOKING)) {
+			homeVisitTA.setTarget(String.valueOf(targetParamMap.get(HOME_VISIT)));
+			homeVisitTA.setAchivementPerc(getAchievmentPercentage(homeVistCnt,targetParamMap.get(HOME_VISIT)));
+			homeVisitTA.setShortfall(getShortFallCount(homeVistCnt,targetParamMap.get(HOME_VISIT)));
+			homeVisitTA.setShortFallPerc(getShortFallPercentage(homeVistCnt,targetParamMap.get(HOME_VISIT)));
+		}else {
+			homeVisitTA.setTarget(String.valueOf("0"));
+			homeVisitTA.setAchivementPerc(String.valueOf("0"));
+			homeVisitTA.setShortfall(String.valueOf("0"));
+			homeVisitTA.setShortFallPerc(String.valueOf("0"));
+		}
+		//homeVisitTA.setData(buildDataList(leadRefList,HOME_VISIT));
+		resList.add(homeVisitTA);
+		
+		TargetAchivementModelandSource exchangeTA = new TargetAchivementModelandSource();
+		exchangeTA.setParamName(EXCHANGE);
+		exchangeTA.setParamShortName("Exg");
+		exchangeTA.setModel(model);
+		exchangeTA.setSource(source);
+		exchangeTA.setAchievment(String.valueOf(exchangeCnt));
+		if(targetParamMap.containsKey(EXCHANGE)) {
+			exchangeTA.setTarget(String.valueOf(targetParamMap.get(EXCHANGE)));
+			exchangeTA.setAchivementPerc(getAchievmentPercentage(exchangeCnt,targetParamMap.get(EXCHANGE)));
+			exchangeTA.setShortfall(getShortFallCount(exchangeCnt,targetParamMap.get(EXCHANGE)));
+			exchangeTA.setShortFallPerc(getShortFallPercentage(exchangeCnt,targetParamMap.get(EXCHANGE)));
+		}else {
+			exchangeTA.setTarget(String.valueOf("0"));
+			exchangeTA.setAchivementPerc(String.valueOf("0"));
+			exchangeTA.setShortfall(String.valueOf("0"));
+			exchangeTA.setShortFallPerc(String.valueOf("0"));
+		}
+		resList.add(exchangeTA);
+		
+		/*
+		TargetAchivement vcTA = new TargetAchivement();
+		vcTA.setTarget(String.valueOf(targetParamMap.get(VIDEO_CONFERENCE)));
+		vcTA.setParamName(VIDEO_CONFERENCE);
+		vcTA.setParamShortName("VC");
+		vcTA.setAchievment(String.valueOf(0));
+		vcTA.setAchivementPerc(String.valueOf(0));
+		vcTA.setShortfall(String.valueOf(0));
+		vcTA.setShortFallPerc(String.valueOf(0));
+		resList.add(vcTA);*/
+		
+		TargetAchivementModelandSource rTa = new TargetAchivementModelandSource();
+		rTa.setParamName(INVOICE);
+		rTa.setParamShortName("Ret");
+		rTa.setModel(model);
+		rTa.setSource(source);
+		rTa.setAchievment(String.valueOf(invoceCnt));
+		if(targetParamMap.containsKey(INVOICE)) {
+			rTa.setTarget(String.valueOf(targetParamMap.get(INVOICE)));
+			rTa.setAchivementPerc(getAchievmentPercentage(invoceCnt,targetParamMap.get(INVOICE)));
+			rTa.setShortfall(getShortFallCount(invoceCnt,targetParamMap.get(INVOICE)));
+			rTa.setShortFallPerc(getShortFallPercentage(invoceCnt,targetParamMap.get(INVOICE)));
+		}else {
+			rTa.setTarget(String.valueOf("0"));
+			rTa.setAchivementPerc(String.valueOf("0"));
+			rTa.setShortfall(String.valueOf("0"));
+			rTa.setShortFallPerc(String.valueOf("0"));
+		}
+		
+		resList.add(rTa);
+		
+		
+		
+		
+		
+		TargetAchivementModelandSource extendedWarantyTA = new TargetAchivementModelandSource();
+		extendedWarantyTA.setParamName(EXTENDED_WARRANTY);
+		extendedWarantyTA.setParamShortName("ExW");
+		extendedWarantyTA.setModel(model);
+		extendedWarantyTA.setSource(source);;
+		extendedWarantyTA.setAchievment(String.valueOf(extendedWarntyCnt));
+		if(targetParamMap.containsKey(EXTENDED_WARRANTY)) {
+			extendedWarantyTA.setTarget(String.valueOf(targetParamMap.get(EXTENDED_WARRANTY)));
+			extendedWarantyTA.setAchivementPerc(getAchievmentPercentage(invoceCnt,targetParamMap.get(EXTENDED_WARRANTY)));
+			extendedWarantyTA.setShortfall(getShortFallCount(invoceCnt,targetParamMap.get(EXTENDED_WARRANTY)));
+			extendedWarantyTA.setShortFallPerc(getShortFallPercentage(invoceCnt,targetParamMap.get(EXTENDED_WARRANTY)));
+		}else {
+			extendedWarantyTA.setTarget(String.valueOf("0"));
+			extendedWarantyTA.setAchivementPerc(String.valueOf("0"));
+			extendedWarantyTA.setShortfall(String.valueOf("0"));
+			extendedWarantyTA.setShortFallPerc(String.valueOf("0"));
+		}
+		
+		resList.add(extendedWarantyTA);
+		return resList;
+	}
+	
+	
+	private List<VehicleModelRes> getVehicleModelDataModelandSource(List<Integer> empIdsUnderReporting, DashBoardReqV2 req,String orgId, String branchId,
+			List<String> vehicleModelList,Integer empId) {
+		List<VehicleModelRes> resList = new ArrayList<>();
+		empIdsUnderReporting.add(empId);
+		List<String> empNamesList = dmsEmployeeRepo.findEmpNamesById(empIdsUnderReporting);
+		log.info("empNamesList::" + empNamesList);
+		String startDate = getStartDate(req.getStartDate());
+		String endDate = getEndDate(req.getEndDate());
+		log.info("StartDate " + startDate + ", EndDate " + endDate);
+		log.info("vehicleModelList ::" + vehicleModelList);
+		for (String model : vehicleModelList) {
+			if (null != model) {
+				VehicleModelRes vehicleRes = new VehicleModelRes();
+				log.info("Generating data for model " + model);
+				List<DmsLead> dmsLeadList = dmsLeadDao.getAllEmployeeLeadsWithModel(orgId,empNamesList,startDate, endDate, model);
+				
+				
+				Long enqLeadCnt = 0L;
+				Long bookCount = 0L;
+			
+				List<Integer> dmsLeadIdList = dmsLeadList.stream().map(DmsLead::getId).collect(Collectors.toList());
+				log.debug("dmsLeadList::"+dmsLeadList);
+				List<LeadStageRefEntity> leadRefList  =  leadStageRefDao.getLeadsByStageandDate(orgId,dmsLeadIdList,startDate,endDate);
+				if(null!=leadRefList && !leadRefList.isEmpty()) {
+					log.debug("Total leads in LeadReF table is ::"+leadRefList.size());
+//					System.out.println("Total leads in LeadReF table is ------ ::"+leadRefList.size());
+//					for(LeadStageRefEntity refentity : leadRefList) {
+//						System.out.println("-------------"+refentity.getStageName());
+//					}
+					enqLeadCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY")).count();
+					bookCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("BOOKING")).count();
+				}
+				
+		
+				Long droppedCnt = 0L;
+				if (null != dmsLeadList) {
+					log.info("size of dmsLeadList " + dmsLeadList.size());
+					enqLeadCnt = getEnqLeadCount(dmsLeadList);
+					droppedCnt = getDroppedCount(dmsLeadList);
+					vehicleRes.setR(getInvoiceCount(dmsLeadList));
+
+					log.info("enqLeadCnt: " + enqLeadCnt + " ,droppedCnt : " + droppedCnt);
+				}
+				vehicleRes.setModel(model);
+				vehicleRes.setE(enqLeadCnt);
+				vehicleRes.setL(droppedCnt);
+
+				List<String> leadUniversalIdList = dmsLeadList.stream().map(DmsLead::getCrmUniversalId)
+						.collect(Collectors.toList());
+				log.info("leadUniversalIdList " + leadUniversalIdList);
+
+				List<DmsWFTask> wfTaskList = dmsWfTaskDao.getWfTaskByAssigneeIdListByModel(empIdsUnderReporting,
+						leadUniversalIdList, startDate, endDate);
+
+				vehicleRes.setT(getTestDriveCount(wfTaskList));
+				vehicleRes.setV(getHomeVisitCount(wfTaskList));
+			//	vehicleRes.setB(getBookingCount(wfTaskList));
+				vehicleRes.setB(bookCount);
+				resList.add(vehicleRes);
+			}
+		}
+		return resList;
+	}
+	
+
 	
 
 }
