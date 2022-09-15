@@ -327,4 +327,26 @@ public class DashBoardControllerV2 {
 			}
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		}
+	    
+	    @CrossOrigin
+		@PostMapping(value = "v2/get_target_params_for_emp_model_source")
+		public ResponseEntity<List<TargetAchivementModelandSource>> getTargetAchivementParamsForEmpModelAndSource3(@RequestBody DashBoardReqV2 req)
+				throws DynamicFormsServiceException {
+			List<TargetAchivementModelandSource> response = null;
+			if (Optional.of(req).isPresent()) {
+				response = dashBoardService.getTargetAchivementParamsForSingleEmpModelAndSource3(req);
+			} else {
+				throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
+			}
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
 }

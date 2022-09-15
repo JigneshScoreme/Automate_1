@@ -70,6 +70,7 @@ import com.automate.df.model.MyTaskReq;
 import com.automate.df.model.df.dashboard.DashBoardReqV2;
 import com.automate.df.model.df.dashboard.DropRes;
 import com.automate.df.model.df.dashboard.EmployeeTargetAchievement;
+import com.automate.df.model.df.dashboard.EmployeeTargetAchievementModelAndView;
 import com.automate.df.model.df.dashboard.EventDataRes;
 import com.automate.df.model.df.dashboard.LeadSourceRes;
 import com.automate.df.model.df.dashboard.LostRes;
@@ -4984,7 +4985,9 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	private List<VehicleModelRes> getVehicleModelDataModelandSource(List<Integer> empIdsUnderReporting, DashBoardReqV2 req,String orgId, String branchId,
 			List<String> vehicleModelList,Integer empId) {
 		List<VehicleModelRes> resList = new ArrayList<>();
-		empIdsUnderReporting.add(empId);
+		System.out.println(empIdsUnderReporting);
+		System.out.println("employee Id for reporting data "+empId);
+		//empIdsUnderReporting.add(empId);
 		List<String> empNamesList = dmsEmployeeRepo.findEmpNamesById(empIdsUnderReporting);
 		log.info("empNamesList::" + empNamesList);
 		String startDate = getStartDate(req.getStartDate());
@@ -5045,7 +5048,224 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		return resList;
 	}
 	
+	
+	public List<TargetAchivementModelandSource>  getTargetAchivementParamsForMultipleEmpAndEmpsModelAndSourceV4(
+			List<Integer> empIdsUnderReporting, DashBoardReqV2 req,String orgId,List<EmployeeTargetAchievementModelAndView> empTargetAchievements,String startDate,String endDate,List<VehicleModelRes> vehicleModelDataModelAndSource,List<LeadSourceRes> leadSourceData) throws ParseException, DynamicFormsServiceException {
+		log.debug("Calling getTargetAchivementParamsForMultipleEmp");
 
+		List<TargetAchivementModelandSource> resList = new ArrayList<>();
+		List<DmsEmployee> employees = dmsEmployeeRepo.findAllById(empIdsUnderReporting);
+		List<String> empNamesList = employees.stream().map(x->x.getEmpName()).collect(Collectors.toList());
+		
+		
+		Map<String, Integer> map = new LinkedHashMap<>();
+				
+		List<List<DmsEmployee>> empIdPartionList = partitionListEmp(employees);
+		log.debug("empIdPartionList ::" + empIdPartionList.size());
+		ExecutorService executor = Executors.newFixedThreadPool(empIdPartionList.size());
+		
+		List<CompletableFuture<List<EmployeeTargetAchievementModelAndView>>> futureList = empIdPartionList.stream()
+				.map(strings -> CompletableFuture.supplyAsync(() -> processTargetAchivementFormMultipleEmpModelAndSource(strings,map,startDate, endDate), executor))
+				.collect(Collectors.toList());
+		if (null != futureList) {
+			CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0])).join();
+			Stream<List<EmployeeTargetAchievementModelAndView>> dataStream = (Stream<List<EmployeeTargetAchievementModelAndView>>) futureList.stream().map(CompletableFuture::join);
+			dataStream.forEach(x -> {
+				empTargetAchievements.addAll(x);
+			});
+
+		}
+	
+		/*for(DmsEmployee employee : employees) {
+			EmployeeTargetAchievement employeeTargetAchievement = new EmployeeTargetAchievement();
+			log.debug("Getting target params for user "+employee.getEmp_id());
+			Map<String, Integer> innerMap = getTargetParams(String.valueOf(employee.getEmp_id()), startDate, endDate);
+			log.debug("innerMap::"+innerMap);
+			employeeTargetAchievement.setEmpId(employee.getEmp_id());
+			employeeTargetAchievement.setEmpName(employee.getEmpName());
+			employeeTargetAchievement.setBranchId(employee.getBranch());
+			employeeTargetAchievement.setOrgId(employee.getOrg());
+			employeeTargetAchievement.setTargetAchievementsMap(innerMap);
+			empTargetAchievements.add(employeeTargetAchievement);
+			/*map = validateAndUpdateMapData(ENQUIRY,innerMap,map);
+			map = validateAndUpdateMapData(TEST_DRIVE,innerMap,map);
+			map = validateAndUpdateMapData(HOME_VISIT,innerMap,map);
+			map = validateAndUpdateMapData(VIDEO_CONFERENCE,innerMap,map);
+			map = validateAndUpdateMapData(BOOKING,innerMap,map);
+			map = validateAndUpdateMapData(EXCHANGE,innerMap,map);
+			map = validateAndUpdateMapData(FINANCE,innerMap,map);
+			map = validateAndUpdateMapData(INSURANCE,innerMap,map);
+			map = validateAndUpdateMapData(ACCCESSORIES,innerMap,map);
+			map = validateAndUpdateMapData(EVENTS,innerMap,map);
+			map = validateAndUpdateMapData(INVOICE,innerMap,map);
+		}*/
+		return getTaskAndBuildTargetAchievementsmodelandSource(empIdsUnderReporting, orgId, resList, empNamesList, startDate, endDate,map,vehicleModelDataModelAndSource,leadSourceData);
+	}
+	
+	
+	public List<List<EmployeeTargetAchievementModelAndView>> partitionListEmpTargetModelAndSource(List<EmployeeTargetAchievementModelAndView> list) {
+		final int G = 5;
+		final int NG = (list.size() + G - 1) / G;
+		List<List<EmployeeTargetAchievementModelAndView>> result = IntStream.range(0, NG)
+			    .mapToObj(i -> list.subList(G * i, Math.min(G * i + G, list.size())))
+			    .collect(Collectors.toList());
+		return result;
+	}
+	
+	private List<EmployeeTargetAchievementModelAndView>  processTargetAchivementFormMultipleEmpModelAndSource(List<DmsEmployee> employees,Map<String, Integer> map,
+			 String startDate, String endDate) {
+		List<EmployeeTargetAchievementModelAndView> empTargetAchievements = new ArrayList<>();
+		try {
+			for (DmsEmployee employee : employees) {
+				EmployeeTargetAchievementModelAndView employeeTargetAchievement = new EmployeeTargetAchievementModelAndView();
+				log.debug("Getting target params for user " + employee.getEmp_id());
+				Map<String, Integer> innerMap = getTargetParams(String.valueOf(employee.getEmp_id()), startDate,
+						endDate);
+				log.debug("innerMap::" + innerMap);
+				employeeTargetAchievement.setEmpId(employee.getEmp_id());
+				employeeTargetAchievement.setEmpName(employee.getEmpName());
+				employeeTargetAchievement.setBranchId(employee.getBranch());
+				employeeTargetAchievement.setOrgId(employee.getOrg());
+				employeeTargetAchievement.setTargetAchievementsMap(innerMap);
+				empTargetAchievements.add(employeeTargetAchievement);
+				
+				map = validateAndUpdateMapData(ENQUIRY,innerMap,map);
+				map = validateAndUpdateMapData(TEST_DRIVE,innerMap,map);
+				map = validateAndUpdateMapData(HOME_VISIT,innerMap,map);
+				map = validateAndUpdateMapData(VIDEO_CONFERENCE,innerMap,map);
+				map = validateAndUpdateMapData(BOOKING,innerMap,map);
+				map = validateAndUpdateMapData(EXCHANGE,innerMap,map);
+				map = validateAndUpdateMapData(FINANCE,innerMap,map);
+				map = validateAndUpdateMapData(INSURANCE,innerMap,map);
+				map = validateAndUpdateMapData(ACCCESSORIES,innerMap,map);
+				map = validateAndUpdateMapData(EVENTS,innerMap,map);
+				map = validateAndUpdateMapData(INVOICE,innerMap,map);
+				map = validateAndUpdateMapData(EXTENDED_WARRANTY,innerMap,map);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			log.error("Exception in processTargetAchivementFormMultipleEmp ", e);
+		}
+		return empTargetAchievements;
+	}
+
+
+//	public List<EmployeeTargetAchievementModelAndView> processEmployeeTargetAchiveListModelAndView(List<EmployeeTargetAchievementModelAndView> empTargetAchievements,
+//			List<TargetAchivementModelandSource> resList, String startDt, String endDt) {
+//		List<EmployeeTargetAchievementModelAndView> res = new ArrayList<>();
+//		try {
+//			
+//				empTargetAchievements.stream().forEach(employeeTarget->{
+//					List<TargetAchivement> responseList = new ArrayList();
+//					employeeTarget.setTargetAchievements(getTaskAndBuildTargetAchievements(Arrays.asList(employeeTarget.getEmpId()), employeeTarget.getOrgId(), responseList, Arrays.asList(employeeTarget.getEmpName()), startDt,endDt, employeeTarget.getTargetAchievementsMap()));
+//					res.add(employeeTarget);
+//				});
+//				
+//			
+//		}catch(Exception e) {
+//			e.printStackTrace();
+//			log.error("Exception ",e);
+//			
+//		}
+//		return res;
+//	}
+//	
+	
+	public List<EmployeeTargetAchievementModelAndView> processEmployeeTargetAchiveListModelAndSource(List<EmployeeTargetAchievementModelAndView> empTargetAchievements,
+			List<TargetAchivementModelandSource> resList, String startDt, String endDt,List<VehicleModelRes> vehicleModelDataModelAndSourceFinal,List<LeadSourceRes> leadSourceDataFinal) {
+		List<EmployeeTargetAchievementModelAndView> res = new ArrayList<>();
+		try {
+			
+				empTargetAchievements.stream().forEach(employeeTarget->{
+					List<TargetAchivementModelandSource> responseList = new ArrayList();
+					employeeTarget.setTargetAchievements(getTaskAndBuildTargetAchievementsmodelandSource(Arrays.asList(employeeTarget.getEmpId()), employeeTarget.getOrgId(), responseList, Arrays.asList(employeeTarget.getEmpName()), startDt,endDt, employeeTarget.getTargetAchievementsMap(),vehicleModelDataModelAndSourceFinal,leadSourceDataFinal));
+					res.add(employeeTarget);
+				});
+				
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			log.error("Exception ",e);
+			
+		}
+		return res;
+	}
+	
+	
+	@Override
+	public List<TargetAchivementModelandSource> getTargetAchivementParamsForSingleEmpModelAndSource3(DashBoardReqV2 req) throws DynamicFormsServiceException {
+		log.info("Inside getTargetAchivementParams(){}");
+		List<TargetAchivementModelandSource> resList = new ArrayList<>();
+		try {
+			List<List<TargetAchivementModelandSource>> allTargets = new ArrayList<>();
+			Integer empId = req.getLoggedInEmpId();
+			log.debug("Getting Target Data, LoggedIn emp id "+empId );
+			TargetRoleRes tRole = salesGapServiceImpl.getEmpRoleDataV2(empId);
+			String orgId = tRole.getOrgId();
+			String branchId = tRole.getBranchId();
+			log.debug("Fetching empReportingIdList for logged in emp in else :"+req.getLoggedInEmpId());
+			log.debug("empReportingIdList for emp "+req.getLoggedInEmpId());
+			resList = getTargetAchivementParamsForEmpModelAndSource3(req.getLoggedInEmpId(),req,orgId,branchId);
+			}catch(Exception e) {
+			e.printStackTrace();
+			throw new DynamicFormsServiceException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return resList;
+	}
+	
+	
+	private List<TargetAchivementModelandSource> getTargetAchivementParamsForEmpModelAndSource3(
+			Integer empId, DashBoardReqV2 req,String orgId,String branchId) throws ParseException, DynamicFormsServiceException {
+		List<TargetAchivementModelandSource> resList = new ArrayList<>();
+		Optional<DmsEmployee> dmsEmployee = dmsEmployeeRepo.findById(empId);
+		String empName="";
+		if(dmsEmployee.isPresent()) {
+			empName = dmsEmployee.get().getEmpName();
+		}
+		log.info("Calling getTargetAchivementParamsForEmp");
+		String startDate = null;
+		String endDate = null;
+		if (null == req.getStartDate() && null == req.getEndDate()) {
+			startDate = getFirstDayOfMonth();
+			endDate = getLastDayOfMonth();
+		} else {
+			startDate = req.getStartDate()+" 00:00:00";
+			endDate = req.getEndDate()+" 23:59:59";
+		}
+		log.info("StartDate " + startDate + ", EndDate " + endDate);
+		Map<String, Integer> map = new LinkedHashMap<>();
+		log.debug("Getting target params for user "+empId);
+		Map<String, Integer> innerMap = getTargetParams(String.valueOf(empId), startDate, endDate);
+		log.debug("innerMap::"+innerMap);
+		map = validateAndUpdateMapData(ENQUIRY,innerMap,map);
+		map = validateAndUpdateMapData(TEST_DRIVE,innerMap,map);
+		map = validateAndUpdateMapData(HOME_VISIT,innerMap,map);
+		map = validateAndUpdateMapData(VIDEO_CONFERENCE,innerMap,map);
+		map = validateAndUpdateMapData(BOOKING,innerMap,map);
+		map = validateAndUpdateMapData(EXCHANGE,innerMap,map);
+		map = validateAndUpdateMapData(FINANCE,innerMap,map);
+		map = validateAndUpdateMapData(INSURANCE,innerMap,map);
+		map = validateAndUpdateMapData(ACCCESSORIES,innerMap,map);
+		map = validateAndUpdateMapData(EVENTS,innerMap,map);
+		map = validateAndUpdateMapData(INVOICE,innerMap,map);
+		map = validateAndUpdateMapData(EXTENDED_WARRANTY,innerMap,map);
+		Map<Integer, String> vehicleDataMap = dashBoardUtil.getVehilceDetails(orgId).get("main");
+		List<String> vehicleModelList = new ArrayList<>();
+		vehicleDataMap.forEach((k, v) -> {
+			vehicleModelList.add(v);
+		});
+		
+		
+		 List<VehicleModelRes> vehicleModelData = getVehicleModelDataModelandSource(Arrays.asList(empId), req, orgId, branchId, vehicleModelList,empId);
+		 List<LeadSourceRes> leadSourceData = getLeadSourceData(req); 
+		return getTaskAndBuildTargetAchievementsmodelandSource(Arrays.asList(empId), orgId, resList, Arrays.asList(empName), startDate, endDate,
+				map,vehicleModelData,leadSourceData);
+	}
+
+	
+	
+	
+	
 	
 
 }
