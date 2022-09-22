@@ -3,6 +3,7 @@ package com.automate.df.service;
 import java.util.List;
 import java.util.Map;
 
+import com.automate.df.dao.dashboard.TargetAchivementModelandSource;
 import com.automate.df.exception.DynamicFormsServiceException;
 import com.automate.df.model.MyTaskReq;
 import com.automate.df.model.df.dashboard.DashBoardReq;
@@ -56,5 +57,9 @@ public interface DashBoardServiceV2 {
 	List<TargetRankingRes> getEmployeeTargetRankingByOrgAndBranch(Integer orgId,Integer branchId,DashBoardReqV2 req) throws DynamicFormsServiceException;
 
 	Map<String, Object> getTodaysPendingUpcomingDataDetailV3(MyTaskReq req) throws DynamicFormsServiceException;
+	
+	List<TargetAchivementModelandSource> getTargetAchivementParamsModelAndSource(DashBoardReqV2 req) throws DynamicFormsServiceException;
+
+	List<TargetAchivementModelandSource> getTargetAchivementParamsForSingleEmpModelAndSource3(DashBoardReqV2 req) throws DynamicFormsServiceException;
 
 }

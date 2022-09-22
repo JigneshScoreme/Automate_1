@@ -155,6 +155,7 @@ public class DashBoardUtil {
 	}
 	
 	public Map<String,Map<Integer,String>> getVehilceDetails(String orgId) {
+		System.out.println("organization id details ---------"+orgId);
 		List<Object[]> list = entityManager
 				.createNativeQuery(vehicleDetailQuery.replaceAll("<ID>",orgId)).getResultList();
 		Map<String,Map<Integer,String>> resMap = new HashMap<>();
