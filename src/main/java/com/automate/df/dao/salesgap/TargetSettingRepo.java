@@ -75,7 +75,7 @@ public interface TargetSettingRepo extends JpaRepository<TargetEntity, Integer> 
 			@Param(value = "designation") String designation);
 
 	
-	@Query(value = "SELECT * FROM dms_target_setting where org_id=:orgId", nativeQuery = true)
+	@Query(value = "SELECT * FROM dms_target_setting where org_id=:orgId ORDER BY id desc", nativeQuery = true)
 	List<TargetEntity> getTargetmappingDataOrg(@Param(value = "orgId") Integer orgId,Pageable pageable);
 
 }
