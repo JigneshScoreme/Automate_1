@@ -904,7 +904,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		if(null!=leadRefList && !leadRefList.isEmpty()) {
 			
 			log.debug("Total leads in LeadReF table is ::"+leadRefList.size());
-			enqLeadCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY") && x.getStageName().equalsIgnoreCase("PREENQUIRY")).count();
+			enqLeadCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY") && x.getStageName().equalsIgnoreCase("PREBOOKING")).count();
 			//enqLeadCnt = leadRefList.stream().filter(x-> x.getLeadStatus()!=null &&  x.getLeadStatus().equalsIgnoreCase(preenqCompStatus)).count();
 			preBookCount =leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREBOOKING")).count();
 			bookCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("BOOKING") && (x.getStageName().equalsIgnoreCase("INVOICE") && x.getLeadStatus().equalsIgnoreCase("BOOKINGCOMPLETED"))).count();
@@ -1349,7 +1349,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		if (null != leadRefList && !leadRefList.isEmpty()) {
 
 			List<LeadStageRefEntity> tmpList = leadRefList.stream()
-					.filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY") && x.getStageName().equalsIgnoreCase("PREENQUIRY")).collect(Collectors.toList());
+					.filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY") && x.getStageName().equalsIgnoreCase("PREBOOKING")).collect(Collectors.toList());
 			for (LeadStageRefEntity l : tmpList) {
 				String uId = l.getUniversalId();
 				log.debug("universalID "+uId);			
@@ -4683,7 +4683,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		if(null!=leadRefList && !leadRefList.isEmpty()) {
 			
 			log.debug("Total leads in LeadReF table is ::"+leadRefList.size());
-			enqLeadCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY") && x.getStageName().equalsIgnoreCase("PREENQUIRY")).count();
+			enqLeadCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY") && x.getStageName().equalsIgnoreCase("PREBOOKING")).count();
 			//enqLeadCnt = leadRefList.stream().filter(x-> x.getLeadStatus()!=null &&  x.getLeadStatus().equalsIgnoreCase(preenqCompStatus)).count();
 			preBookCount =leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREBOOKING")).count();
 			bookCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("BOOKING") && (x.getStageName().equalsIgnoreCase("INVOICE") && x.getLeadStatus().equalsIgnoreCase("BOOKINGCOMPLETED"))).count();
