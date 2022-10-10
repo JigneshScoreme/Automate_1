@@ -25,5 +25,6 @@ public class DynamicFormConstants {
 	public static final String UPCOMING_DATA = "upcomingData";
 	public static final String PENDING_DATA = "pendingData";
 	public static final String RESCHEDULED_DATA = "rescheduledData";
+	public static final String COMPLETED_DATA = "completedData";
 	 
 }

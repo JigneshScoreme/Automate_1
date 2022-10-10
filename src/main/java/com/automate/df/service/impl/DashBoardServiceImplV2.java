@@ -3536,6 +3536,9 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			else if(dataType.equalsIgnoreCase(DynamicFormConstants.RESCHEDULED_DATA)) {
 				map.put("rescheduledData", processTodaysUpcomingPendingData(req,empIdsUnderReporting,DynamicFormConstants.RESCHEDULED_DATA));
 			}
+			else if(dataType.equalsIgnoreCase(DynamicFormConstants.COMPLETED_DATA)) {
+				map.put("completedData", processTodaysUpcomingPendingData(req,empIdsUnderReporting,DynamicFormConstants.COMPLETED_DATA));
+			}
 			
 			
 			} catch (Exception e) {
@@ -3618,6 +3621,34 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		}
 		return todaysRes;
 	}
+	private List<TodaysTaskRes> processCompletededData(MyTaskReq req,List<Integer> empIdsUnderReporting) {
+		log.debug("Inside getRescheduledDataV2::()");
+		List<TodaysTaskRes> todaysRes = new ArrayList<>();
+		for (Integer empId : empIdsUnderReporting) {
+			String empName = salesGapServiceImpl.getEmpName(String.valueOf(empId));
+			log.debug("generating data for empId " + empId + " and empName:" + empName);
+			String startDate = req.getStartDate()+" 00:00:00";
+			String endDate = req.getEndDate()+" 23:59:59";
+			
+			List<DmsWFTask> wfTaskList  =null;
+			if(req.isIgnoreDateFilter()) {
+				wfTaskList = dmsWfTaskDao.findAllByCompletedStatusWithNoDate (String.valueOf(empId));
+			}else if(!req.isIgnoreDateFilter() && req.getStartDate()!=null && req.getEndDate()!=null) {
+				wfTaskList =dmsWfTaskDao.findAllByCompletedStatus(empId,startDate,endDate);
+			}
+			else {
+				wfTaskList = dmsWfTaskDao.findAllByCompletedStatusWithNoDate (String.valueOf(empId));
+			}
+			
+			
+			
+			//List<DmsWFTask> wfTaskList = dmsWfTaskDao.findAllByRescheduledStatus(empId,startDate,endDate);
+			log.debug("wfTaskList size ingetPendingDataV2 "+wfTaskList.size());
+			//wfTaskList = wfTaskList.stream().filter(wfTask->validatePendingTask(wfTask.getTaskUpdatedTime(), wfTask.getTaskCreatedTime())).collect(Collectors.toList());
+			todaysRes.add(buildMyTaskObj(wfTaskList,empId,empName));    
+		}
+		return todaysRes;
+	}
 
 
 
@@ -3669,6 +3700,11 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			else if(dataType.equalsIgnoreCase(DynamicFormConstants.RESCHEDULED_DATA)) {
 				futureList = empIdPartionList.stream()
 						.map(strings -> CompletableFuture.supplyAsync(() -> processResechduledData(req,strings), executor))
+						.collect(Collectors.toList());
+			}
+			else if(dataType.equalsIgnoreCase(DynamicFormConstants.COMPLETED_DATA)) {
+				futureList = empIdPartionList.stream()
+						.map(strings -> CompletableFuture.supplyAsync(() -> processCompletededData(req,strings), executor))
 						.collect(Collectors.toList());
 			}
 			if (null != futureList) {
