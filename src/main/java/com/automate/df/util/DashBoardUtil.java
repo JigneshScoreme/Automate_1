@@ -164,7 +164,7 @@ public class DashBoardUtil {
 		
 		int cnt=1;
 		for(Object[] arr :list){
-				if(cnt>100) {
+				if(cnt>50) {
 					otherMap.put((Integer)arr[0], (String)arr[1]);
 				}else {
 					map.put((Integer)arr[0], (String)arr[1]);
