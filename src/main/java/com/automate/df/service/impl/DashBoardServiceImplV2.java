@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -248,7 +249,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 					empReportingIdList.add(eId);
 					//empIdList = getEmployeeHiearachyData(orgId,req.getLoggedInEmpId());
 					empReportingIdList.addAll(getEmployeeHiearachyData(Integer.parseInt(orgId),eId));
-					log.debug("empReportingIdList for given selectedEmpIdList " + empReportingIdList);
+					log.info("&&&&&&&&&&&&&&&&&&empReportingIdList for given selectedEmpIdList " + empReportingIdList);
 					List<TargetAchivement> targetList = getTargetAchivementParamsForMultipleEmp(empReportingIdList, req,
 							orgId);
 					log.debug("targetList::::::" + targetList);
@@ -709,7 +710,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			List<Integer> empIdsUnderReporting, DashBoardReqV2 req,String orgId) throws ParseException, DynamicFormsServiceException {
 		List<TargetAchivement> resList = new ArrayList<>();
 		List<String> empNamesList = dmsEmployeeRepo.findEmpNamesById(empIdsUnderReporting);
-		log.debug("empNamesList::" + empNamesList);
+		log.info("$$$$$$$$$$$$$$$$empNamesList::" + empNamesList);
 		log.debug("Calling getTargetAchivementParamsForMultipleEmp");
 		final String startDate;
 		final String endDate;
@@ -728,7 +729,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		
 		if(empIdsUnderReporting.size()>0) {
 			List<List<Integer>> empIdPartionList = partitionList(empIdsUnderReporting);
-			log.debug("empIdPartionList ::" + empIdPartionList.size());
+			log.info("$$$$$$$$$$$$$$$$$$$$$$$$empIdPartionList ::" + empIdPartionList.size());
 			ExecutorService executor = Executors.newFixedThreadPool(empIdPartionList.size());
 			
 			List<CompletableFuture<Map<String, Integer>>> futureList = empIdPartionList.stream()
@@ -888,6 +889,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	private List<TargetAchivement> getTaskAndBuildTargetAchievements(List<Integer> empIdsUnderReporting, String orgId,
 			List<TargetAchivement> resList, List<String> empNamesList, String startDate, String endDate,
 			Map<String, Integer> map) {
+		Long dropLeadCnt = 0L;
 		Long enqLeadCnt = 0L;
 		Long preBookCount = 0L;
 		Long bookCount = 0L;
@@ -895,32 +897,52 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		Long preDeliveryCnt = 0L;
 		Long delCnt = 0L;
 		
-		List<Integer> dmsLeadList = dmsLeadDao.getLeadIdsByEmpNames(empNamesList);
-		log.debug("dmsLeadList::"+dmsLeadList);
+		List<Integer> dmsLeadList = dmsLeadDao.getLeadIdsByEmpNamesWithOutDrop(empNamesList);
+		log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$dmsLeadList::"+dmsLeadList);
+		
+		List<Integer> dmsLeadListDropped = dmsLeadDao.getLeadIdsByEmpNamesWithDrop(empNamesList);
 		
 		
 		
 		List<LeadStageRefEntity> leadRefList  =  leadStageRefDao.getLeadsByStageandDate(orgId,dmsLeadList,startDate,endDate);
+		
+		List<LeadStageRefEntity> leadRefListDropped  =  leadStageRefDao.getLeadsByStageandDate(orgId,dmsLeadListDropped,startDate,endDate);
+		
+		Set<Integer> hashSet = new LinkedHashSet(leadRefList);
+		List<LeadStageRefEntity> leadRefListNoDuplicates = new ArrayList(hashSet);
+        //log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$Total leads in leadRefListNoDuplicates table is ::"+leadRefListNoDuplicates.size());
+		log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$Total leads in leadRefListNoDuplicates table is ::"+leadRefListNoDuplicates);
+		
 		if(null!=leadRefList && !leadRefList.isEmpty()) {
-			
+			//log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$Total leads in LeadReF table is ::"+leadRefList.size());
+			log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$Total leads in LeadReF table is ::"+leadRefList);
 			log.debug("Total leads in LeadReF table is ::"+leadRefList.size());
-			enqLeadCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY") && x.getStageName().equalsIgnoreCase("PREBOOKING")).count();
+			
+			enqLeadCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY") /*&& x.getStageName().equalsIgnoreCase("PREBOOKING")*/).count();
 			//enqLeadCnt = leadRefList.stream().filter(x-> x.getLeadStatus()!=null &&  x.getLeadStatus().equalsIgnoreCase(preenqCompStatus)).count();
 			preBookCount =leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREBOOKING")).count();
-			bookCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("BOOKING") && (x.getStageName().equalsIgnoreCase("INVOICE") && x.getLeadStatus().equalsIgnoreCase("BOOKINGCOMPLETED"))).count();
+			bookCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("BOOKING")).count();
+			//bookCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("BOOKING") && (x.getStageName().equalsIgnoreCase("INVOICE") && x.getLeadStatus().equalsIgnoreCase("BOOKINGCOMPLETED"))).count();
 			//bookCount = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(preBookCompStatus)).count();
-			invCount = leadRefList.stream().filter(x->(x.getStageName().equalsIgnoreCase("INVOICE") && x.getLeadStatus().equalsIgnoreCase("INVOICECOMPLETED")) && (x.getStageName().equalsIgnoreCase("PREDELIVERY")) && (x.getStageName().equalsIgnoreCase("DELIVERY") && x.getLeadStatus().equalsIgnoreCase("PREDELIVERYCOMPLETED"))).count();
-			//invCount = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(invCompStatus)).count();
+			//invCount = leadRefList.stream().filter(x->(x.getStageName().equalsIgnoreCase("INVOICE") && x.getLeadStatus().equalsIgnoreCase("INVOICECOMPLETED")) && (x.getStageName().equalsIgnoreCase("PREDELIVERY")) && (x.getStageName().equalsIgnoreCase("DELIVERY") && x.getLeadStatus().equalsIgnoreCase("PREDELIVERYCOMPLETED"))).count();
+			//invCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("INVOICE") 
+			//		&& x.getLeadStatus().equalsIgnoreCase("INVOICECOMPLETED")).count();
+			//invCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREDELIVERY") 
+			//		&& x.getLeadStatus().equalsIgnoreCase("INVOICECOMPLETED") && x.getLeadStatus().equalsIgnoreCase("PREDELIVERYCOMPLETED")).count();
+			invCount = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(invCompStatus)).count();
 			preDeliveryCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREDELIVERY")).count();
-			delCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("DELIVERY") && x.getLeadStatus().equalsIgnoreCase("DELIVERYCOMPLETED")).count();
-			//delCnt = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(delCompStatus)).count();
-	
+			//delCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("DELIVERY") && x.getLeadStatus().equalsIgnoreCase("DELIVERYCOMPLETED")).count();
+			delCnt = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(delCompStatus)).count();
 			
+			if(null!=leadRefListDropped && !leadRefListDropped.isEmpty()) {
+				
+				dropLeadCnt = leadRefListDropped.stream().count();
+			}
 		}
 		
 		List<DmsWFTask> wfTaskList = dmsWfTaskDao.getWfTaskByAssigneeIdList(empIdsUnderReporting, startDate, endDate);
 		//return buildTargetAchivements(resList, map, finalEnqLeadCnt,finalBookCnt, finalInvCount,wfTaskList);
-		return buildTargetAchivements(resList, map, enqLeadCnt,preBookCount, bookCount,invCount,preDeliveryCnt,delCnt,wfTaskList,leadRefList);
+		return buildTargetAchivements(resList, map, dropLeadCnt,enqLeadCnt,preBookCount, bookCount,invCount,preDeliveryCnt,delCnt,wfTaskList,leadRefList);
 	}
 
 
@@ -998,7 +1020,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	
 	
 	private List<TargetAchivement> buildTargetAchivements(List<TargetAchivement> resList,
-			Map<String, Integer> targetParamMap, Long enqLeadCnt,Long preBookCount, Long bookCount, Long invCount, Long preDeliveryCnt, Long delCnt, List<DmsWFTask> wfTaskList, List<LeadStageRefEntity> leadRefList) {
+			Map<String, Integer> targetParamMap, Long dropLeadCnt, Long enqLeadCnt,Long preBookCount, Long bookCount, Long invCount, Long preDeliveryCnt, Long delCnt, List<DmsWFTask> wfTaskList, List<LeadStageRefEntity> leadRefList) {
 		
 
 		// Getting Test Drive Cnt
@@ -1038,6 +1060,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		}
 		
 		extendedWarntyCnt  =getExtendedWarrntySupportParam(leadIdList);
+		
 		TargetAchivement enqTargetAchivement = new TargetAchivement();
 		enqTargetAchivement.setParamName(ENQUIRY);
 		enqTargetAchivement.setParamShortName("Enq");
@@ -1055,9 +1078,31 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			enqTargetAchivement.setShortFallPerc(String.valueOf("0"));
 		}
 		//enqTargetAchivement.setData(buildDataList(leadRefList,ENQUIRY));
-		enqTargetAchivement.setData(buildEnqDataList(leadRefList,ENQUIRY));
+		//enqTargetAchivement.setData(buildEnqDataList(leadRefList,ENQUIRY));
 	
 		resList.add(enqTargetAchivement);
+		
+		
+		TargetAchivement lostTargetAchivement = new TargetAchivement();
+		lostTargetAchivement.setParamName(DROPPED);
+		lostTargetAchivement.setParamShortName("Lost Leads");
+		lostTargetAchivement.setAchievment(String.valueOf(dropLeadCnt));;
+		if(targetParamMap.containsKey(DROPPED)) {
+			lostTargetAchivement.setTarget(String.valueOf(targetParamMap.get(DROPPED)));
+			
+			lostTargetAchivement.setAchivementPerc(getAchievmentPercentage(dropLeadCnt,targetParamMap.get(DROPPED)));
+			lostTargetAchivement.setShortfall(getShortFallCount(dropLeadCnt,targetParamMap.get(DROPPED)));
+			lostTargetAchivement.setShortFallPerc(getShortFallPercentage(dropLeadCnt,targetParamMap.get(DROPPED)));;
+		}else {
+			lostTargetAchivement.setTarget(String.valueOf("0"));
+			lostTargetAchivement.setAchivementPerc(String.valueOf("0"));
+			lostTargetAchivement.setShortfall(String.valueOf("0"));
+			lostTargetAchivement.setShortFallPerc(String.valueOf("0"));
+		}
+		//enqTargetAchivement.setData(buildDataList(leadRefList,ENQUIRY));
+		//enqTargetAchivement.setData(buildEnqDataList(leadRefList,DROPPED));
+	
+		resList.add(lostTargetAchivement);
 		
 		TargetAchivement testDriveTA = new TargetAchivement();
 	
@@ -1075,7 +1120,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			testDriveTA.setShortfall(String.valueOf("0"));
 			testDriveTA.setShortFallPerc(String.valueOf("0"));
 		}
-		testDriveTA.setData(buildDataList(leadRefList,TEST_DRIVE));
+		//testDriveTA.setData(buildDataList(leadRefList,TEST_DRIVE));
 		resList.add(testDriveTA);
 		
 		
@@ -1095,7 +1140,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			financeTA.setShortfall(String.valueOf("0"));
 			financeTA.setShortFallPerc(String.valueOf("0"));
 		}
-		financeTA.setData(buildDataList(leadRefList,FINANCE));
+		//financeTA.setData(buildDataList(leadRefList,FINANCE));
 		resList.add(financeTA);
 		
 		TargetAchivement insuranceTA = new TargetAchivement();
@@ -1114,7 +1159,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			insuranceTA.setShortfall(String.valueOf("0"));
 			insuranceTA.setShortFallPerc(String.valueOf("0"));
 		}
-		insuranceTA.setData(buildDataList(leadRefList,INSURANCE));
+		//insuranceTA.setData(buildDataList(leadRefList,INSURANCE));
 		resList.add(insuranceTA);
 		
 		
@@ -1134,7 +1179,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			accessoriesTA.setShortfall(String.valueOf("0"));
 			accessoriesTA.setShortFallPerc(String.valueOf("0"));
 		}
-		accessoriesTA.setData(buildDataList(leadRefList,ACCCESSORIES));
+		//accessoriesTA.setData(buildDataList(leadRefList,ACCCESSORIES));
 		resList.add(accessoriesTA);
 		
 		
@@ -1154,7 +1199,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			bookingTA.setShortfall(String.valueOf("0"));
 			bookingTA.setShortFallPerc(String.valueOf("0"));
 		}
-		bookingTA.setData(buildBkgDataList(leadRefList,BOOKING));
+		//bookingTA.setData(buildBkgDataList(leadRefList,BOOKING));
 		resList.add(bookingTA);
 		
 		TargetAchivement homeVisitTA = new TargetAchivement();
@@ -1173,7 +1218,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			homeVisitTA.setShortfall(String.valueOf("0"));
 			homeVisitTA.setShortFallPerc(String.valueOf("0"));
 		}
-		homeVisitTA.setData(buildDataList(leadRefList,HOME_VISIT));
+		//homeVisitTA.setData(buildDataList(leadRefList,HOME_VISIT));
 		resList.add(homeVisitTA);
 		
 		TargetAchivement exchangeTA = new TargetAchivement();
@@ -1191,7 +1236,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			exchangeTA.setShortfall(String.valueOf("0"));
 			exchangeTA.setShortFallPerc(String.valueOf("0"));
 		}
-		exchangeTA.setData(buildDataList(leadRefList,EXCHANGE));
+		//exchangeTA.setData(buildDataList(leadRefList,EXCHANGE));
 		resList.add(exchangeTA);
 		
 		/*
@@ -1220,7 +1265,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			rTa.setShortfall(String.valueOf("0"));
 			rTa.setShortFallPerc(String.valueOf("0"));
 		}
-		rTa.setData(buildInvDataList(leadRefList,INVOICE));
+		//rTa.setData(buildInvDataList(leadRefList,INVOICE));
 		resList.add(rTa);
 		
 		
@@ -1242,7 +1287,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			extendedWarantyTA.setShortfall(String.valueOf("0"));
 			extendedWarantyTA.setShortFallPerc(String.valueOf("0"));
 		}
-		extendedWarantyTA.setData(buildDataList(leadRefList,EXTENDED_WARRANTY));
+		//extendedWarantyTA.setData(buildDataList(leadRefList,EXTENDED_WARRANTY));
 		resList.add(extendedWarantyTA);
 		return resList;
 	}
@@ -1314,10 +1359,11 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		if (null != leadRefList && !leadRefList.isEmpty()) {
 
 			List<LeadStageRefEntity> tmpList = leadRefList.stream()
-					.filter(x->(x.getStageName().equalsIgnoreCase("INVOICE") && x.getLeadStatus().equalsIgnoreCase("INVOICECOMPLETED")) && (x.getStageName().equalsIgnoreCase("PREDELIVERY")) && (x.getStageName().equalsIgnoreCase("DELIVERY") && x.getLeadStatus().equalsIgnoreCase("PREDELIVERYCOMPLETED"))).collect(Collectors.toList());
+					.filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase("INVOICECOMPLETED")).collect(Collectors.toList());
 			for (LeadStageRefEntity l : tmpList) {
 				String uId = l.getUniversalId();
-				log.debug("universalID "+uId);			
+				log.debug("universalID "+uId);	
+				log.info("LeadId "+l.getLeadId());
 				if (uId != null && uId.length() > 0) {
 					dataList.add(getLeadData(uId));
 				}
@@ -1331,10 +1377,11 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		if (null != leadRefList && !leadRefList.isEmpty()) {
 
 			List<LeadStageRefEntity> tmpList = leadRefList.stream()
-					.filter(x->x.getStageName().equalsIgnoreCase("BOOKING") && (x.getStageName().equalsIgnoreCase("INVOICE") && x.getLeadStatus().equalsIgnoreCase("BOOKINGCOMPLETED"))).collect(Collectors.toList());
+					.filter(x->x.getStageName().equalsIgnoreCase("BOOKING")).collect(Collectors.toList());
 			for (LeadStageRefEntity l : tmpList) {
 				String uId = l.getUniversalId();
-				log.debug("universalID "+uId);			
+				log.debug("universalID "+uId);	
+				log.info("LeadId "+l.getLeadId());
 				if (uId != null && uId.length() > 0) {
 					dataList.add(getLeadData(uId));
 				}
@@ -1349,10 +1396,11 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		if (null != leadRefList && !leadRefList.isEmpty()) {
 
 			List<LeadStageRefEntity> tmpList = leadRefList.stream()
-					.filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY") && x.getStageName().equalsIgnoreCase("PREBOOKING")).collect(Collectors.toList());
+					.filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY")).collect(Collectors.toList());
 			for (LeadStageRefEntity l : tmpList) {
 				String uId = l.getUniversalId();
-				log.debug("universalID "+uId);			
+				log.debug("universalID "+uId);	
+				log.info("Enquiry LeadId "+l.getLeadId());
 				if (uId != null && uId.length() > 0) {
 					dataList.add(getLeadData(uId));
 				}
@@ -2732,7 +2780,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		log.info("Inside buildDeliveries(){}");
 		Long cnt=0L;
 		try {
-			List<Integer> dmsLeadList = dmsLeadDao.getLeadIdsByEmpNames(empNamesList);
+			List<Integer> dmsLeadList = dmsLeadDao.getLeadIdsByEmpNamesWithOutDrop(empNamesList);
 			log.debug("dmsLeadList::"+dmsLeadList);
 			List<LeadStageRefEntity> leadRefList  =  leadStageRefDao.getLeadsByDeliveryStage(dmsLeadList,startDate,endDate);
 			log.debug("leadRefList in buildDeliveries "+leadRefList.size());
@@ -2754,7 +2802,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		log.info("Inside buildLivebookings(){}");
 		Long cnt=0L;
 		try {
-			List<Integer> dmsLeadList = dmsLeadDao.getLeadIdsByEmpNames(empNamesList);
+			List<Integer> dmsLeadList = dmsLeadDao.getLeadIdsByEmpNamesWithOutDrop(empNamesList);
 			log.debug("dmsLeadList::"+dmsLeadList);
 			List<LeadStageRefEntity> leadRefList  =  leadStageRefDao.getLeadsByBookingStage(dmsLeadList,startDate,endDate);
 			
@@ -4699,6 +4747,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	private List<TargetAchivementModelandSource> getTaskAndBuildTargetAchievementsmodelandSource(List<Integer> empIdsUnderReporting, String orgId,
 			List<TargetAchivementModelandSource> resList, List<String> empNamesList, String startDate, String endDate,
 			Map<String, Integer> map,List<VehicleModelRes> vehicleModelData, List<LeadSourceRes> leadSourceData) {
+		Long dropLeadCnt = 0L;
 		Long enqLeadCnt = 0L;
 		Long preBookCount = 0L;
 		Long bookCount = 0L;
@@ -4710,24 +4759,64 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		TargetAchivementResponseDto targetAchivementResponse=new TargetAchivementResponseDto();
 		System.out.println(orgId);
 		Map<Integer, String> vehicleDataMap = dashBoardUtil.getVehilceDetails(orgId).get("main");
-		List<Integer> dmsLeadList = dmsLeadDao.getLeadIdsByEmpNames(empNamesList);
-		log.debug("dmsLeadList::"+dmsLeadList);
+		List<Integer> dmsLeadList = dmsLeadDao.getLeadIdsByEmpNamesWithOutDrop(empNamesList);
+		log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$dmsLeadList::"+dmsLeadList);
+		
+		List<Integer> dmsLeadListDropped = dmsLeadDao.getLeadIdsByEmpNamesWithDrop(empNamesList);
 		
 		
 		
 		List<LeadStageRefEntity> leadRefList  =  leadStageRefDao.getLeadsByStageandDate(orgId,dmsLeadList,startDate,endDate);
+		
+		List<LeadStageRefEntity> leadRefListDropped  =  leadStageRefDao.getLeadsByStageandDate(orgId,dmsLeadListDropped,startDate,endDate);
 		if(null!=leadRefList && !leadRefList.isEmpty()) {
 			
 			log.debug("Total leads in LeadReF table is ::"+leadRefList.size());
-			enqLeadCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY") && x.getStageName().equalsIgnoreCase("PREBOOKING")).count();
+			enqLeadCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY") /*&& x.getStageName().equalsIgnoreCase("PREBOOKING")*/).count();
 			//enqLeadCnt = leadRefList.stream().filter(x-> x.getLeadStatus()!=null &&  x.getLeadStatus().equalsIgnoreCase(preenqCompStatus)).count();
 			preBookCount =leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREBOOKING")).count();
-			bookCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("BOOKING") && (x.getStageName().equalsIgnoreCase("INVOICE") && x.getLeadStatus().equalsIgnoreCase("BOOKINGCOMPLETED"))).count();
+			bookCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("BOOKING")).count();
+			//bookCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("BOOKING") && (x.getStageName().equalsIgnoreCase("INVOICE") && x.getLeadStatus().equalsIgnoreCase("BOOKINGCOMPLETED"))).count();
 			//bookCount = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(preBookCompStatus)).count();
-			invCount = leadRefList.stream().filter(x->(x.getStageName().equalsIgnoreCase("INVOICE") && x.getLeadStatus().equalsIgnoreCase("INVOICECOMPLETED")) && (x.getStageName().equalsIgnoreCase("PREDELIVERY")) && (x.getStageName().equalsIgnoreCase("DELIVERY") && x.getLeadStatus().equalsIgnoreCase("PREDELIVERYCOMPLETED"))).count();
-			//invCount = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(invCompStatus)).count();
+			//invCount = leadRefList.stream().filter(x->(x.getStageName().equalsIgnoreCase("INVOICE") && x.getLeadStatus().equalsIgnoreCase("INVOICECOMPLETED")) && (x.getStageName().equalsIgnoreCase("PREDELIVERY")) && (x.getStageName().equalsIgnoreCase("DELIVERY") && x.getLeadStatus().equalsIgnoreCase("PREDELIVERYCOMPLETED"))).count();
+			//invCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("INVOICE") 
+			//		&& x.getLeadStatus().equalsIgnoreCase("INVOICECOMPLETED")).count();
+			//invCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREDELIVERY") 
+			//		&& x.getLeadStatus().equalsIgnoreCase("INVOICECOMPLETED") && x.getLeadStatus().equalsIgnoreCase("PREDELIVERYCOMPLETED")).count();
+			invCount = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(invCompStatus)).count();
 			preDeliveryCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREDELIVERY")).count();
-			delCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("DELIVERY") && x.getLeadStatus().equalsIgnoreCase("DELIVERYCOMPLETED")).count();
+			//delCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("DELIVERY") && x.getLeadStatus().equalsIgnoreCase("DELIVERYCOMPLETED")).count();
+			delCnt = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(delCompStatus)).count();
+			
+			if(null!=leadRefListDropped && !leadRefListDropped.isEmpty()) {
+							
+							dropLeadCnt = leadRefListDropped.stream().count();
+						}
+			/*
+			 * enqLeadCnt =
+			 * leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY")
+			 * && x.getStageName().equalsIgnoreCase("PREBOOKING")).count(); //enqLeadCnt =
+			 * leadRefList.stream().filter(x-> x.getLeadStatus()!=null &&
+			 * x.getLeadStatus().equalsIgnoreCase(preenqCompStatus)).count(); preBookCount
+			 * =leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase(
+			 * "PREBOOKING")).count(); bookCount =
+			 * leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("BOOKING")
+			 * && (x.getStageName().equalsIgnoreCase("INVOICE") &&
+			 * x.getLeadStatus().equalsIgnoreCase("BOOKINGCOMPLETED"))).count(); //bookCount
+			 * = leadRefList.stream().filter(x->x.getLeadStatus()!=null &&
+			 * x.getLeadStatus().equalsIgnoreCase(preBookCompStatus)).count(); invCount =
+			 * leadRefList.stream().filter(x->(x.getStageName().equalsIgnoreCase("INVOICE")
+			 * && x.getLeadStatus().equalsIgnoreCase("INVOICECOMPLETED")) &&
+			 * (x.getStageName().equalsIgnoreCase("PREDELIVERY")) &&
+			 * (x.getStageName().equalsIgnoreCase("DELIVERY") &&
+			 * x.getLeadStatus().equalsIgnoreCase("PREDELIVERYCOMPLETED"))).count();
+			 * //invCount = leadRefList.stream().filter(x->x.getLeadStatus()!=null &&
+			 * x.getLeadStatus().equalsIgnoreCase(invCompStatus)).count(); preDeliveryCnt =
+			 * leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase(
+			 * "PREDELIVERY")).count(); delCnt =
+			 * leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("DELIVERY")
+			 * && x.getLeadStatus().equalsIgnoreCase("DELIVERYCOMPLETED")).count();
+			 */
 			//delCnt = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(delCompStatus)).count();
 			
 		/*	log.debug("Total leads in LeadReF table is ::"+leadRefList.size());
@@ -4784,7 +4873,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		long testDriveCnt=vehicalmodelresult.getT();
 		long homeVistCnt=vehicalmodelresult.getV();
 		invCount=vehicalmodelresult.getR();
-		resList = buildTargetAchivementsModelAndSource(resList, map, enqLeadCnt,preBookCount, bookCount,invCount,preDeliveryCnt,delCnt,wfTaskList,leadRefList,testDriveCnt,homeVistCnt,vehicalmodelresult.getModel(),source);
+		resList = buildTargetAchivementsModelAndSource(resList, map,dropLeadCnt, enqLeadCnt,preBookCount, bookCount,invCount,preDeliveryCnt,delCnt,wfTaskList,leadRefList,testDriveCnt,homeVistCnt,vehicalmodelresult.getModel(),source);
 		//targetMapModel.put(vehicalmodelresult.getModel(), buildTargetAchivementsModelAndSource);
 		}
 		
@@ -4812,7 +4901,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			long homeVistCnt=leadSourceRes.getV();
 			invCount=leadSourceRes.getR();
 		
-			resList = buildTargetAchivementsModelAndSource(resList, map, enqLeadCnt,preBookCount, bookCount,invCount,preDeliveryCnt,delCnt,wfTaskList,leadRefList,testDriveCnt,homeVistCnt,model,leadSourceRes.getLead());
+			resList = buildTargetAchivementsModelAndSource(resList, map, dropLeadCnt, enqLeadCnt,preBookCount, bookCount,invCount,preDeliveryCnt,delCnt,wfTaskList,leadRefList,testDriveCnt,homeVistCnt,model,leadSourceRes.getLead());
 		
 			//targetMapSource.put(leadSourceRes.getLead(), buildTargetAchivementsModelAndSource);
 		}
@@ -4825,7 +4914,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	}
 	
 	private List<TargetAchivementModelandSource> buildTargetAchivementsModelAndSource(List<TargetAchivementModelandSource> resList,
-			Map<String, Integer> targetParamMap, Long enqLeadCnt,Long preBookCount, Long bookCount, Long invCount, Long preDeliveryCnt, Long delCnt, List<DmsWFTask> wfTaskList, List<LeadStageRefEntity> leadRefList,Long testDriveCnt,Long homeVistCnt,String model,String source) {
+			Map<String, Integer> targetParamMap, Long dropLeadCnt, Long enqLeadCnt,Long preBookCount, Long bookCount, Long invCount, Long preDeliveryCnt, Long delCnt, List<DmsWFTask> wfTaskList, List<LeadStageRefEntity> leadRefList,Long testDriveCnt,Long homeVistCnt,String model,String source) {
 		
 	
 
@@ -4886,9 +4975,36 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			enqTargetAchivement.setShortfall(String.valueOf("0"));
 			enqTargetAchivement.setShortFallPerc(String.valueOf("0"));
 		}
-		enqTargetAchivement.setData(buildEnqDataList(leadRefList,ENQUIRY));
+		//enqTargetAchivement.setData(buildEnqDataList(leadRefList,ENQUIRY));
 	
 		resList.add(enqTargetAchivement);
+		
+		TargetAchivementModelandSource lostDropTargetAchivement = new TargetAchivementModelandSource();
+		lostDropTargetAchivement.setParamName(DROPPED);
+		lostDropTargetAchivement.setParamShortName("Enq");
+		System.out.println("------------model data data"+model);
+		System.out.println("------------source data data"+source);
+		lostDropTargetAchivement.setModel(model);
+		lostDropTargetAchivement.setSource(source);;
+		lostDropTargetAchivement.setAchievment(String.valueOf(dropLeadCnt));;
+		if(targetParamMap.containsKey(DROPPED)) {
+			lostDropTargetAchivement.setTarget(String.valueOf(targetParamMap.get(DROPPED)));
+			
+			lostDropTargetAchivement.setAchivementPerc(getAchievmentPercentage(dropLeadCnt,targetParamMap.get(DROPPED)));
+			lostDropTargetAchivement.setShortfall(getShortFallCount(dropLeadCnt,targetParamMap.get(DROPPED)));
+			lostDropTargetAchivement.setShortFallPerc(getShortFallPercentage(dropLeadCnt,targetParamMap.get(DROPPED)));;
+		}else {
+			lostDropTargetAchivement.setTarget(String.valueOf("0"));
+			lostDropTargetAchivement.setAchivementPerc(String.valueOf("0"));
+			lostDropTargetAchivement.setShortfall(String.valueOf("0"));
+			lostDropTargetAchivement.setShortFallPerc(String.valueOf("0"));
+		}
+		//enqTargetAchivement.setData(buildEnqDataList(leadRefList,ENQUIRY));
+	
+		resList.add(lostDropTargetAchivement);
+		
+		
+		
 		
 		TargetAchivementModelandSource testDriveTA = new TargetAchivementModelandSource();
 	
@@ -4908,7 +5024,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			testDriveTA.setShortfall(String.valueOf("0"));
 			testDriveTA.setShortFallPerc(String.valueOf("0"));
 		}
-		testDriveTA.setData(buildDataList(leadRefList,TEST_DRIVE));
+		//testDriveTA.setData(buildDataList(leadRefList,TEST_DRIVE));
 		resList.add(testDriveTA);
 		
 		
@@ -4930,7 +5046,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			financeTA.setShortfall(String.valueOf("0"));
 			financeTA.setShortFallPerc(String.valueOf("0"));
 		}
-		financeTA.setData(buildDataList(leadRefList,FINANCE));
+		//financeTA.setData(buildDataList(leadRefList,FINANCE));
 		resList.add(financeTA);
 		
 		TargetAchivementModelandSource insuranceTA = new TargetAchivementModelandSource();
@@ -4951,7 +5067,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			insuranceTA.setShortfall(String.valueOf("0"));
 			insuranceTA.setShortFallPerc(String.valueOf("0"));
 		}
-		insuranceTA.setData(buildDataList(leadRefList,INSURANCE));
+		//insuranceTA.setData(buildDataList(leadRefList,INSURANCE));
 		resList.add(insuranceTA);
 		
 		
@@ -4973,7 +5089,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			accessoriesTA.setShortfall(String.valueOf("0"));
 			accessoriesTA.setShortFallPerc(String.valueOf("0"));
 		}
-		accessoriesTA.setData(buildDataList(leadRefList,ACCCESSORIES));
+		//accessoriesTA.setData(buildDataList(leadRefList,ACCCESSORIES));
 		resList.add(accessoriesTA);
 		
 		
@@ -4995,7 +5111,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			bookingTA.setShortfall(String.valueOf("0"));
 			bookingTA.setShortFallPerc(String.valueOf("0"));
 		}
-		bookingTA.setData(buildBkgDataList(leadRefList,BOOKING));
+		//bookingTA.setData(buildBkgDataList(leadRefList,BOOKING));
 		resList.add(bookingTA);
 		
 		TargetAchivementModelandSource homeVisitTA = new TargetAchivementModelandSource();
@@ -5016,7 +5132,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			homeVisitTA.setShortfall(String.valueOf("0"));
 			homeVisitTA.setShortFallPerc(String.valueOf("0"));
 		}
-		homeVisitTA.setData(buildDataList(leadRefList,HOME_VISIT));
+		//homeVisitTA.setData(buildDataList(leadRefList,HOME_VISIT));
 		resList.add(homeVisitTA);
 		
 		TargetAchivementModelandSource exchangeTA = new TargetAchivementModelandSource();
@@ -5036,7 +5152,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			exchangeTA.setShortfall(String.valueOf("0"));
 			exchangeTA.setShortFallPerc(String.valueOf("0"));
 		}
-		exchangeTA.setData(buildDataList(leadRefList,EXCHANGE));
+		//exchangeTA.setData(buildDataList(leadRefList,EXCHANGE));
 		resList.add(exchangeTA);
 		
 		/*
@@ -5067,7 +5183,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			rTa.setShortfall(String.valueOf("0"));
 			rTa.setShortFallPerc(String.valueOf("0"));
 		}
-		rTa.setData(buildInvDataList(leadRefList,INVOICE));
+		//rTa.setData(buildInvDataList(leadRefList,INVOICE));
 		resList.add(rTa);
 		
 		
@@ -5091,7 +5207,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			extendedWarantyTA.setShortfall(String.valueOf("0"));
 			extendedWarantyTA.setShortFallPerc(String.valueOf("0"));
 		}
-		extendedWarantyTA.setData(buildDataList(leadRefList,EXTENDED_WARRANTY));
+		//extendedWarantyTA.setData(buildDataList(leadRefList,EXTENDED_WARRANTY));
 		resList.add(extendedWarantyTA);
 		return resList;
 	}

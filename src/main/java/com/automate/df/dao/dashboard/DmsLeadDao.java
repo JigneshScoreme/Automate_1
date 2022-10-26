@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.automate.df.entity.LeadStageRefEntity;
 import com.automate.df.entity.dashboard.DmsLead;
 
 public interface DmsLeadDao extends JpaRepository<DmsLead, Integer> {
@@ -35,8 +36,11 @@ public interface DmsLeadDao extends JpaRepository<DmsLead, Integer> {
 	
 	
 
-	@Query(value = "SELECT id FROM dms_lead where sales_consultant in(:empNamesList) ", nativeQuery = true)
-	List<Integer> getLeadIdsByEmpNames(@Param(value = "empNamesList") List<String> empNamesList);
+	@Query(value = "SELECT id FROM dms_lead where sales_consultant in(:empNamesList) and lead_stage not in ('DROPPED') ", nativeQuery = true)
+	List<Integer> getLeadIdsByEmpNamesWithOutDrop(@Param(value = "empNamesList") List<String> empNamesList);
+	
+	@Query(value = "SELECT id FROM dms_lead where sales_consultant in(:empNamesList) and lead_stage in ('DROPPED') ", nativeQuery = true)
+	List<Integer> getLeadIdsByEmpNamesWithDrop(@Param(value = "empNamesList") List<String> empNamesList);
 	
 	
 	// Vehicle model query starts here 
