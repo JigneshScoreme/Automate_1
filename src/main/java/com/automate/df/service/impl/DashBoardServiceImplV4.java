@@ -257,13 +257,13 @@ public class DashBoardServiceImplV4 implements DashBoardServiceV4{
 			final List<TargetAchivement> resListFinal = resList;
 			final String startDt = startDate;
 			final String endDt = endDate;
-			
+			int empId1 = req.getLoggedInEmpId();
 			if(empTargetAchievements.size()>1) {
 			List<List<EmployeeTargetAchievement>> targetAchiPartList = dashBoardServiceImplV2.partitionListEmpTarget(empTargetAchievements);
 			ExecutorService executor = Executors.newFixedThreadPool(targetAchiPartList.size());
 			
 			List<CompletableFuture<List<EmployeeTargetAchievement>>> futureList  = targetAchiPartList.stream()
-					.map(strings -> CompletableFuture.supplyAsync(() -> dashBoardServiceImplV2.processEmployeeTargetAchiveList(strings,resListFinal,startDt,endDt), executor))
+					.map(strings -> CompletableFuture.supplyAsync(() -> dashBoardServiceImplV2.processEmployeeTargetAchiveList(strings,resListFinal,startDt,endDt,empId1), executor))
 					.collect(Collectors.toList());
 			
 			if (null != futureList) {
@@ -532,10 +532,10 @@ public class DashBoardServiceImplV4 implements DashBoardServiceV4{
 			if(empTargetAchievements.size()>1) {
 			List<List<EmployeeTargetAchievementModelAndView>> targetAchiPartList = dashBoardServiceImplV2.partitionListEmpTargetModelAndSource(empTargetAchievements);
 			ExecutorService executor = Executors.newFixedThreadPool(targetAchiPartList.size());
-			
+			int empId1=req.getLoggedInEmpId();
 			
 			List<CompletableFuture<List<EmployeeTargetAchievementModelAndView>>> futureList  = targetAchiPartList.stream()
-					.map(strings -> CompletableFuture.supplyAsync(() -> dashBoardServiceImplV2.processEmployeeTargetAchiveListModelAndSource(strings,resListFinal,startDt,endDt,vehicleModelDataModelAndSourceFinal,leadSourceDataFinal), executor))
+					.map(strings -> CompletableFuture.supplyAsync(() -> dashBoardServiceImplV2.processEmployeeTargetAchiveListModelAndSource(strings,resListFinal,startDt,endDt,vehicleModelDataModelAndSourceFinal,leadSourceDataFinal, empId1), executor))
 					.collect(Collectors.toList()); 
 			
 			if (null != futureList) {
