@@ -59,6 +59,16 @@ public interface DmsLeadDao extends JpaRepository<DmsLead, Integer> {
 			@Param(value = "endDate") String endDate,
 			@Param(value = "model") String model);
 	
+	@Query(value = "SELECT * FROM dms_lead where sales_consultant in(:empNamesList) and createddatetime>=:startDate\r\n"
+			+ "and createddatetime<=:endDate and model=:model and organization_id=:orgId ", nativeQuery = true)
+	List<Integer> getAllEmployeeLeadsWithModel1(
+			@Param(value = "orgId") String orgId,
+			
+			@Param(value = "empNamesList") List<String> empNamesList,
+			@Param(value = "startDate") String startDate,
+			@Param(value = "endDate") String endDate,
+			@Param(value = "model") String model);
+	
 	// Vehicle model query ends here
 	
 	
@@ -67,6 +77,16 @@ public interface DmsLeadDao extends JpaRepository<DmsLead, Integer> {
 	@Query(value = "SELECT * FROM dms_lead where sales_consultant in(:empNamesList) and createddatetime>=:startDate\r\n"
 			+ "and createddatetime<=:endDate and source_of_enquiry=:enqId and organization_id=:orgId", nativeQuery = true)
 	List<DmsLead> getAllEmployeeLeadsBasedOnEnquiry(
+			@Param(value = "orgId") String orgId,
+		
+			@Param(value = "empNamesList") List<String> empNamesList,
+			@Param(value = "startDate") String startDate,
+			@Param(value = "endDate") String endDate,
+			@Param(value = "enqId") Integer enqId);
+	
+	@Query(value = "SELECT * FROM dms_lead where sales_consultant in(:empNamesList) and createddatetime>=:startDate\r\n"
+			+ "and createddatetime<=:endDate and source_of_enquiry=:enqId and organization_id=:orgId", nativeQuery = true)
+	List<Integer> getAllEmployeeLeadsBasedOnEnquiry1(
 			@Param(value = "orgId") String orgId,
 		
 			@Param(value = "empNamesList") List<String> empNamesList,
