@@ -85,14 +85,15 @@ public interface DmsLeadDao extends JpaRepository<DmsLead, Integer> {
 			@Param(value = "enqId") Integer enqId);
 	
 	@Query(value = "SELECT * FROM dms_lead where sales_consultant in(:empNamesList) and createddatetime>=:startDate\r\n"
-			+ "and createddatetime<=:endDate and source_of_enquiry=:enqId and organization_id=:orgId", nativeQuery = true)
+			+ "and createddatetime<=:endDate and source_of_enquiry=:enqId and model in(:vehicleModelList) and organization_id=:orgId", nativeQuery = true)
 	List<Integer> getAllEmployeeLeadsBasedOnEnquiry1(
 			@Param(value = "orgId") String orgId,
 		
 			@Param(value = "empNamesList") List<String> empNamesList,
 			@Param(value = "startDate") String startDate,
 			@Param(value = "endDate") String endDate,
-			@Param(value = "enqId") Integer enqId);
+			@Param(value = "enqId") Integer enqId,
+			@Param(value = "vehicleModelList") List<String> vehicleModelList);
 	
 	
 	// Lead Source and  EventSource query ends here
