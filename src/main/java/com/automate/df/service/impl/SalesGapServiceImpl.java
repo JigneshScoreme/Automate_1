@@ -135,6 +135,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 			+ " FROM dms_role role " + " INNER JOIN dms_employee_role_mapping rolemap ON rolemap.role_id=role.role_id "
 			+ " AND rolemap.emp_id=<EMP_ID> " + " ORDER BY role.precedence ";
 	final String dmsEmpByidQuery = "SELECT * FROM dms_employee where emp_id=<EMP_ID>";
+	final String dmsEmpimmediateByidQuery = "SELECT * FROM dms_employee where emp_id in <EMP_ID>";
 	final String getSalForEmp = "select salary from dms_emp_sal_mapping where emp_id=<ID>";
 
 	@Override
@@ -2866,6 +2867,23 @@ public class SalesGapServiceImpl implements SalesGapService {
 	public TargetRoleRes getEmpRoleDataV2(int empId) throws DynamicFormsServiceException {
 
 		String tmpQuery = dmsEmpByidQuery.replaceAll("<EMP_ID>", String.valueOf(empId));
+
+		tmpQuery = roleMapQuery.replaceAll("<EMP_ID>", String.valueOf(empId));
+		List<Object[]> data = entityManager.createNativeQuery(tmpQuery).getResultList();
+		TargetRoleRes trRoot = new TargetRoleRes();
+		for (Object[] arr : data) {
+			trRoot.setOrgId(String.valueOf(arr[0]));
+			trRoot.setRoleName(String.valueOf(arr[3]));
+			trRoot.setRoleId(String.valueOf(arr[4]));
+			trRoot.setBranchId(String.valueOf(arr[1]));
+		}
+
+		return trRoot;
+	}
+	////Immediate Hierarchy
+	public TargetRoleRes getEmpRoleDataV2ImmediateHirarchy(List<Integer> empId) throws DynamicFormsServiceException {
+
+		String tmpQuery = dmsEmpimmediateByidQuery.replaceAll("<EMP_ID>", String.valueOf(empId));
 
 		tmpQuery = roleMapQuery.replaceAll("<EMP_ID>", String.valueOf(empId));
 		List<Object[]> data = entityManager.createNativeQuery(tmpQuery).getResultList();

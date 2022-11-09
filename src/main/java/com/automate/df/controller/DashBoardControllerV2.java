@@ -22,6 +22,7 @@ import com.automate.df.dao.dashboard.TargetAchivementModelandSource;
 import com.automate.df.entity.DmsTargetParamSchedular;
 import com.automate.df.exception.DynamicFormsServiceException;
 import com.automate.df.model.MyTaskReq;
+import com.automate.df.model.df.dashboard.DashBoardReqImmediateHierarchyV2;
 import com.automate.df.model.df.dashboard.DashBoardReqV2;
 import com.automate.df.model.df.dashboard.EventDataRes;
 import com.automate.df.model.df.dashboard.LeadSourceRes;
@@ -108,6 +109,19 @@ public class DashBoardControllerV2 {
 		List<TargetAchivement> response = null;
 		if (Optional.of(req).isPresent()) {
 			response = dashBoardService.getTargetAchivementParamsForSingleEmp(req);
+		} else {
+			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	/////Immediate Hierarchy
+	@CrossOrigin
+	@PostMapping(value = "v2/get_target_params_for_emp_immediatehierarchy")
+	public ResponseEntity<List<TargetAchivement>> getTargetAchivementParamsForEmpImmediateHirarchy(@RequestBody DashBoardReqImmediateHierarchyV2 req)
+			throws DynamicFormsServiceException {
+		List<TargetAchivement> response = null;
+		if (Optional.of(req).isPresent()) {
+			response = dashBoardService.getTargetAchivementParamsForSingleEmpImmediateHierarchy(req);
 		} else {
 			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
 		}

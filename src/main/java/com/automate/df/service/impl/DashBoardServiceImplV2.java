@@ -71,6 +71,7 @@ import com.automate.df.entity.salesgap.TargetRoleReq;
 import com.automate.df.entity.sales.allocation.DmsEmployeeAllocation;
 import com.automate.df.exception.DynamicFormsServiceException;
 import com.automate.df.model.MyTaskReq;
+import com.automate.df.model.df.dashboard.DashBoardReqImmediateHierarchyV2;
 import com.automate.df.model.df.dashboard.DashBoardReqV2;
 import com.automate.df.model.df.dashboard.DropRes;
 import com.automate.df.model.df.dashboard.EmployeeTargetAchievement;
@@ -515,7 +516,27 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		}
 		return resList;
 	}
-
+/////Immediate Hierarchy
+	@Override
+	public List<TargetAchivement> getTargetAchivementParamsForSingleEmpImmediateHierarchy(DashBoardReqImmediateHierarchyV2 req) throws DynamicFormsServiceException {
+		log.info("Inside getTargetAchivementParams(){}");
+		List<TargetAchivement> resList = new ArrayList<>();
+		 List<Integer> loggedInEmpId =req.getLoggedInEmpId();
+		try {
+			List<List<TargetAchivement>> allTargets = new ArrayList<>();
+			List<Integer> empId = req.getLoggedInEmpId();
+			log.debug("Getting Target Data, LoggedIn emp id "+empId );
+			TargetRoleRes tRole = salesGapServiceImpl.getEmpRoleDataV2ImmediateHirarchy(empId);
+			String orgId = tRole.getOrgId();
+			log.debug("Fetching empReportingIdList for logged in emp in else :"+req.getLoggedInEmpId());
+			log.debug("empReportingIdList for emp "+req.getLoggedInEmpId());
+			resList = getTargetAchivementParamsForEmpImmediateHierarchy(loggedInEmpId,req,orgId);
+			}catch(Exception e) {
+			e.printStackTrace();
+			throw new DynamicFormsServiceException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return resList;
+	}
 	
 /*	@Override
 	public List<TargetRankingRes> getEmployeeTargetRankingByOrg(Integer orgId,DashBoardReqV2 req) throws DynamicFormsServiceException {
@@ -992,7 +1013,107 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		//return buildTargetAchivements(resList, map, finalEnqLeadCnt,finalBookCnt, finalInvCount,wfTaskList);
 		return buildTargetAchivements(resList, map, dropLeadCnt,enqLeadCnt,preBookCount, bookCount,invCount,preDeliveryCnt,delCnt,wfTaskList,leadRefList);
 	}
+	
+///Immediate Hierarchy
+	private List<TargetAchivement> getTaskAndBuildTargetAchievementsImmediateHierarchy(List<Integer> empIdsUnderReporting, String orgId,
+			List<TargetAchivement> resList, List<String> empNamesList, String startDate, String endDate,
+			Map<String, Integer> map, List<Integer> empId) {
+		Long dropLeadCnt = 0L;
+		Long enqLeadCnt = 0L;
+		Long preBookCount = 0L;
+		Long bookCount = 0L;
+		Long invCount = 0L;
+		Long preDeliveryCnt = 0L;
+		Long delCnt = 0L;
+		List<DmsEmployeeAllocation> dmsEmployeeAllocations = employeeAllocation.findByEmployeeIdImmediate(empId);
+		
+		
+		
+		List<Integer> dmsLeadList = dmsLeadDao.getLeadIdsByEmpNamesWithOutDrop(empNamesList);
+        System.out.println("dmsLeadList Before Adding"+dmsLeadList.size());
+        System.out.println("empNamesList"+empNamesList.toString());
+		dmsLeadList.addAll(dmsEmployeeAllocations.stream().filter(res -> !res.getDmsLead().getLeadStage().equalsIgnoreCase("DROPPED")
+				&& empNamesList.equals(res.getDmsLead().getSalesConsultant())).map(res -> res.getDmsLead().getId()).collect(Collectors.toList()));
 
+		//dmsLeadList.addAll(dmsEmployeeAllocations.stream().filter(res -> !res.getDmsLead().getLeadStage().equalsIgnoreCase("DROPPED")).map(res -> res.getDmsLead().getId()).collect(Collectors.toList()));
+		
+		System.out.println("dmsLeadList After Adding"+dmsLeadList.size());	
+		
+		List<Integer> dmsLeadListDropped = dmsLeadDao.getLeadIdsByEmpNamesWithDrop(empNamesList);
+		
+		System.out.println("dmsLeadListDropped Before Adding"+dmsLeadListDropped.size());
+		
+		dmsLeadListDropped.addAll(dmsEmployeeAllocations.stream().filter(res -> res.getDmsLead().getLeadStage().equalsIgnoreCase("DROPPED")).map(res -> res.getDmsLead().getId()).collect(Collectors.toList()));
+		
+		System.out.println("dmsLeadListDropped After Adding"+dmsLeadListDropped.size());
+		
+		dmsLeadList = dmsLeadList.stream().distinct().collect(Collectors.toList());
+		
+		System.out.println("dmsLeadList After Deleting Duplicates"+dmsLeadList.size());
+		
+		dmsLeadListDropped = dmsLeadListDropped.stream().distinct().collect(Collectors.toList());
+		
+		System.out.println("dmsLeadListDropped After Deleting Duplicates"+dmsLeadListDropped.size());
+		
+		List<LeadStageRefEntity> leadRefList  =  leadStageRefDao.getLeadsByStageandDate(orgId,dmsLeadList,startDate,endDate);
+		
+		System.out.println("leadRefList Before Duplicates"+leadRefList.size());
+		
+		leadRefList = leadRefList.stream().distinct().collect(Collectors.toList());
+		
+		System.out.println("leadRefList After Duplicates"+leadRefList.size());
+		
+		List<LeadStageRefEntity> leadRefListDropped  =  leadStageRefDao.getLeadsByStageandDate(orgId,dmsLeadListDropped,startDate,endDate);
+		leadRefListDropped = leadRefListDropped.stream().distinct().collect(Collectors.toList());
+		Set<Integer> hashSet = new LinkedHashSet(leadRefList);
+		List<LeadStageRefEntity> leadRefListNoDuplicates = new ArrayList(hashSet);
+        //log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$Total leads in leadRefListNoDuplicates table is ::"+leadRefListNoDuplicates.size());
+		log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$Total leads in leadRefListNoDuplicates table is ::"+leadRefListNoDuplicates);
+		
+		if(null!=leadRefList && !leadRefList.isEmpty()) {
+			//log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$Total leads in LeadReF table is ::"+leadRefList.size());
+			log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$Total leads in LeadReF table is ::"+leadRefList);
+			log.debug("Total leads in LeadReF table is ::"+leadRefList.size());
+			
+			enqLeadCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY")).distinct().count();
+			//enqLeadCnt = leadRefList.stream().filter(x-> x.getLeadStatus()!=null &&  x.getLeadStatus().equalsIgnoreCase(preenqCompStatus)).count();
+			preBookCount =leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREBOOKING")).count();
+			bookCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("BOOKING")).distinct().count();
+			//bookCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("BOOKING") && (x.getStageName().equalsIgnoreCase("INVOICE") && x.getLeadStatus().equalsIgnoreCase("BOOKINGCOMPLETED"))).count();
+			//bookCount = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(preBookCompStatus)).count();
+			//invCount = leadRefList.stream().filter(x->(x.getStageName().equalsIgnoreCase("INVOICE") && x.getLeadStatus().equalsIgnoreCase("INVOICECOMPLETED")) && (x.getStageName().equalsIgnoreCase("PREDELIVERY")) && (x.getStageName().equalsIgnoreCase("DELIVERY") && x.getLeadStatus().equalsIgnoreCase("PREDELIVERYCOMPLETED"))).count();
+			//invCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("INVOICE") 
+			//		&& x.getLeadStatus().equalsIgnoreCase("INVOICECOMPLETED")).count();
+			//invCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREDELIVERY") 
+			//		&& x.getLeadStatus().equalsIgnoreCase("INVOICECOMPLETED") && x.getLeadStatus().equalsIgnoreCase("PREDELIVERYCOMPLETED")).count();
+			invCount = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(invCompStatus)).distinct().count();
+			preDeliveryCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREDELIVERY")).count();
+			//delCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("DELIVERY") && x.getLeadStatus().equalsIgnoreCase("DELIVERYCOMPLETED")).count();
+			delCnt = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(delCompStatus)).count();
+			
+			if(null!=leadRefListDropped && !leadRefListDropped.isEmpty()) {
+				
+				dropLeadCnt = leadRefListDropped.stream().count();
+			}
+		}
+		System.out.println("Enq :"+leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY")).map(res -> res.getLeadId()).collect(Collectors.toList()));
+		System.out.println("Enq :"+leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY")).map(res -> res.getLeadId()).distinct().collect(Collectors.toList()));
+		System.out.println("EnqDist : "+leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY")).distinct().count());
+		
+		/*
+		 * List<Object> dataList = new ArrayList<>(); List<LeadStageRefEntity> tmpList =
+		 * leadRefList.stream()
+		 * .filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY")).collect(Collectors.
+		 * toList());
+		 * 
+		 * for (LeadStageRefEntity l : tmpList) { String uId = l.getUniversalId();
+		 * log.debug("universalID "+uId); //log.info("Enquiry LeadId "+l.getLeadId());
+		 * if (uId != null && uId.length() > 0) { dataList.add(getLeadData(uId)); } }
+		 */
+		List<DmsWFTask> wfTaskList = dmsWfTaskDao.getWfTaskByAssigneeIdList(empIdsUnderReporting, startDate, endDate);
+		//return buildTargetAchivements(resList, map, finalEnqLeadCnt,finalBookCnt, finalInvCount,wfTaskList);
+		return buildTargetAchivements(resList, map, dropLeadCnt,enqLeadCnt,preBookCount, bookCount,invCount,preDeliveryCnt,delCnt,wfTaskList,leadRefList);
+	}
 
 	private List<TargetAchivement> getTargetAchivementParamsForEmp(
 			Integer empId, DashBoardReqV2 req,String orgId) throws ParseException, DynamicFormsServiceException {
@@ -1033,7 +1154,47 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		return getTaskAndBuildTargetAchievements(Arrays.asList(empId), orgId, resList, Arrays.asList(empName), startDate, endDate,
 				map,empId1);
 	}
-
+///////////Immediate Hierarchy
+	
+	private List<TargetAchivement> getTargetAchivementParamsForEmpImmediateHierarchy(
+			List<Integer> empId, DashBoardReqImmediateHierarchyV2 req,String orgId) throws ParseException, DynamicFormsServiceException {
+		List<TargetAchivement> resList = new ArrayList<>();
+		Optional<DmsEmployee> dmsEmployee = dmsEmployeeRepo.findByImmediateId(empId);
+		String empName="";
+		List<Integer> empId1 = req.getLoggedInEmpId();
+		if(dmsEmployee.isPresent()) {
+			empName = dmsEmployee.get().getEmpName();
+		}
+		log.info("Calling getTargetAchivementParamsForEmp");
+		String startDate = null;
+		String endDate = null;
+		if (null == req.getStartDate() && null == req.getEndDate()) {
+			startDate = getFirstDayOfMonth();
+			endDate = getLastDayOfMonth();
+		} else {
+			startDate = req.getStartDate()+" 00:00:00";
+			endDate = req.getEndDate()+" 23:59:59";
+		}
+		log.info("StartDate " + startDate + ", EndDate " + endDate);
+		Map<String, Integer> map = new LinkedHashMap<>();
+		log.debug("Getting target params for user "+empId);
+		Map<String, Integer> innerMap = getTargetParams(String.valueOf(empId), startDate, endDate);
+		log.debug("innerMap::"+innerMap);
+		map = validateAndUpdateMapData(ENQUIRY,innerMap,map);
+		map = validateAndUpdateMapData(TEST_DRIVE,innerMap,map);
+		map = validateAndUpdateMapData(HOME_VISIT,innerMap,map);
+		map = validateAndUpdateMapData(VIDEO_CONFERENCE,innerMap,map);
+		map = validateAndUpdateMapData(BOOKING,innerMap,map);
+		map = validateAndUpdateMapData(EXCHANGE,innerMap,map);
+		map = validateAndUpdateMapData(FINANCE,innerMap,map);
+		map = validateAndUpdateMapData(INSURANCE,innerMap,map);
+		map = validateAndUpdateMapData(ACCCESSORIES,innerMap,map);
+		map = validateAndUpdateMapData(EVENTS,innerMap,map);
+		map = validateAndUpdateMapData(INVOICE,innerMap,map);
+		map = validateAndUpdateMapData(EXTENDED_WARRANTY,innerMap,map);
+		return getTaskAndBuildTargetAchievementsImmediateHierarchy(empId, orgId, resList, Arrays.asList(empName), startDate, endDate,
+				map,empId1);
+	}
 
 	private Map<String, Integer> validateAndUpdateMapData(String targetParmType, Map<String, Integer> innerMap,
 			Map<String, Integer> map) {

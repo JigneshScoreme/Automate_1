@@ -14,6 +14,9 @@ JpaSpecificationExecutor<DmsEmployeeAllocation> {
 @Query(value = "select * from dms_employee_allocation where lead_id=?1", nativeQuery = true)
 List<DmsEmployeeAllocation> findByLeadId(int id);
 
+@Query(value = "select * from dms_employee_allocation where employee_id in (:empId)", nativeQuery = true)
+List<DmsEmployeeAllocation> findByEmployeeIdImmediate(List<Integer> empId);
+
 List<DmsEmployeeAllocation> findByEmployeeId(int empId);
 
 List<DmsEmployeeAllocation> findByEmployeeIdIn(List<Integer> empId);
