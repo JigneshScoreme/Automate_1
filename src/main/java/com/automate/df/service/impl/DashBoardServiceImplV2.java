@@ -1134,7 +1134,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		
 		TargetAchivement lostTargetAchivement = new TargetAchivement();
 		lostTargetAchivement.setParamName(DROPPED);
-		lostTargetAchivement.setParamShortName("Lost Leads");
+		lostTargetAchivement.setParamShortName("Lost");
 		lostTargetAchivement.setAchievment(String.valueOf(dropLeadCnt));;
 		if(targetParamMap.containsKey(DROPPED)) {
 			lostTargetAchivement.setTarget(String.valueOf(targetParamMap.get(DROPPED)));
