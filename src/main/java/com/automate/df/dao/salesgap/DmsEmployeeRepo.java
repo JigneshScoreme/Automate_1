@@ -15,8 +15,8 @@ public interface DmsEmployeeRepo extends JpaRepository<DmsEmployee, Integer> {
 	@Query(value = "SELECT emp_name FROM dms_employee where emp_id in (:eidList)", nativeQuery = true)
 	List<String> findEmpNamesById(@Param(value = "eidList") List<Integer> eidList);
 	
-	@Query(value = "SELECT emp_name FROM dms_employee where emp_id in (empId)", nativeQuery = true)
-	Optional<DmsEmployee> findByImmediateId(@Param(value = "empId") List<Integer> empId);
+	@Query(value = "SELECT emp_name FROM dms_employee where emp_id in (:empId)", nativeQuery = true)
+	List<DmsEmployee> findByImmediateId(@Param(value = "empId") List<Integer> empId);
 
 /*	@Query(value = "SELECT * FROM dms_employee where org=:orgId and branch=:branchId", nativeQuery = true)
 	List<DmsEmployee> getEmployeesByOrgBranch(@Param(value = "orgId") Integer orgId,
