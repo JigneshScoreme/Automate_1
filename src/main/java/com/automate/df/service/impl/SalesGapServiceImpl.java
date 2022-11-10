@@ -36,7 +36,6 @@ import com.automate.df.constants.GsAppConstants;
 import com.automate.df.dao.oh.DmsBranchDao;
 import com.automate.df.dao.oh.DmsDesignationRepo;
 import com.automate.df.dao.salesgap.DmsEmployeeRepo;
-import com.automate.df.dao.salesgap.DmsEmployeeRoleMappingRepo;
 import com.automate.df.dao.salesgap.DmsRoleRepo;
 import com.automate.df.dao.salesgap.TargetSettingRepo;
 import com.automate.df.dao.salesgap.TargetUserRepo;
@@ -87,8 +86,6 @@ public class SalesGapServiceImpl implements SalesGapService {
 	@Autowired
 	TargetSettingRepo targetSettingRepo;
 	
-	@Autowired
-	DmsEmployeeRoleMappingRepo dmsEmployeeRoleMappingRepo;
 
 	@Autowired
 	TargetUserRepo targetUserRepo;
@@ -1076,6 +1073,37 @@ public class SalesGapServiceImpl implements SalesGapService {
 			trRoot.setHrmsRole(emp.getHrmsRole());
 			// trRoot.setLevel(getEmpLevel(emp.getEmp_id()));
 
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return trRoot;
+	}
+
+	
+	///immidiate hirr
+	private TargetRoleRes buildTargetRoleResemps(TargetRoleRes trRoot, List<DmsEmployee> emp) {
+		try {
+			for(DmsEmployee singleEmp : emp) {
+			trRoot.setSalary(getEmpSal(singleEmp.getEmp_id()));
+
+			// trRoot.setSalary(emp.getBasicSal());
+			trRoot.setLocationId(singleEmp.getLocationId());
+			trRoot.setDesignationId(singleEmp.getDesignationId());
+			trRoot.setDesignationName(getDesignationName(singleEmp.getDesignationId())); // trRoot.setDesignationName(getDesignationName(emp.getDesignationId()));
+			trRoot.setExperience(calcualteExperience(singleEmp.getPrevExperience(), singleEmp.getJoiningDate()));
+			trRoot.setDeptId(singleEmp.getDeptId());
+			trRoot.setDeptName(getDeptName(singleEmp.getDeptId()));
+			trRoot.setBranchId(singleEmp.getBranch());
+			// trRoot.setBranchId(trRoot.getOrgMapBranches());
+			List<String> l = trRoot.getOrgMapBranches();
+			log.debug("ORG MAP BRANCHES in buildTargetRoleRes " + trRoot.getOrgMapBranches());
+			if (null != l && !l.isEmpty()) {
+				trRoot.setBranchId(l.get(0));
+			}
+
+			trRoot.setHrmsRole(singleEmp.getHrmsRole());
+			// trRoot.setLevel(getEmpLevel(emp.getEmp_id()));
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -3031,6 +3059,62 @@ public class SalesGapServiceImpl implements SalesGapService {
 		}
 		return list;
 	}
+	
+	///immidiate hirar
+	
+	public List<TargetSettingRes> getTSDataForRoleForEmps(List<Integer> empId) throws DynamicFormsServiceException {
+		log.debug("Inside getTSDataForRoleV3()");
+		List<TargetSettingRes> list = new ArrayList<>();
+		TargetRoleRes tRole = getEmpRoleDataV3Emps(empId);
+		try {
+			log.debug("tRole.getOrgMapBranches()::" + tRole.getOrgMapBranches());
+
+			for (String orgMapBranchID : tRole.getOrgMapBranches()) {
+				log.debug("orgMapBranchID::" + orgMapBranchID);
+
+				log.debug("tRole.getDesignationId() " + tRole.getDesignationId());
+				log.debug("tRole.getOrgId()::" + tRole.getOrgId());
+				log.debug("tRole.getBranchId()::" + tRole.getBranchId());
+				log.debug("tRole.getLocationId()::" + tRole.getLocationId());
+
+				List<TargetEntityUser> userTargetList = targetUserRepo.getUserTargetDataV2(tRole.getOrgId(),
+						tRole.getDeptId(), tRole.getDesignationId(), orgMapBranchID, String.valueOf(empId));
+				tRole.setBranchId(orgMapBranchID);
+				tRole.setLocationId(orgMapBranchID);
+				log.info("userTargetListis not empty " + userTargetList.size());
+				for (TargetEntityUser teUser : userTargetList) {
+					log.debug("TargetEntityUser:::" + teUser);
+					log.debug("user targets " + teUser.getTargets());
+					modelMapper.getConfiguration().setAmbiguityIgnored(true);
+					TargetSettingRes tsRes = modelMapper.map(teUser, TargetSettingRes.class);
+					log.debug("tsRes:::" + tsRes);
+					tsRes = convertTargetStrToObj(teUser.getTargets(), tsRes);
+					tsRes.setEmpName(getEmpName(tRole.getEmpId()));
+					tsRes.setEmployeeId(tRole.getEmpId());
+					tsRes.setId(teUser.getGeneratedId());
+
+					if (null != tRole.getLocationId()) {
+						tsRes.setLocationName(getLocationName(tRole.getLocationId()));
+					}
+					if (null != tRole.getBranchId()) {
+						tsRes.setBranchName(getBranchName(tRole.getBranchId()));
+					}
+					if (null != tRole.getDeptId()) {
+						tsRes.setDepartmentName(getDeptName(tRole.getDeptId()));
+					}
+					if (null != tRole.getDesignationId()) {
+						tsRes.setDesignationName(getDesignationName(tRole.getDesignationId()));
+					}
+					list.add(tsRes);
+				}
+
+			}
+
+		} catch (Exception e) {
+			log.error("getTargetSettingData() ", e);
+		}
+		return list;
+	}
 	/*
 	 * public List<TargetSettingRes> getTSDataForRoleV3(Integer empId) throws
 	 * DynamicFormsServiceException { log.debug("Inside getTSDataForRoleV2()");
@@ -3103,6 +3187,53 @@ public class SalesGapServiceImpl implements SalesGapService {
 		if (empOpt.isPresent()) {
 			emp = empOpt.get();
 			trRoot = buildTargetRoleRes(trRoot, emp);
+		} else {
+			throw new DynamicFormsServiceException("No Empoloyee with given empId in DB", HttpStatus.BAD_REQUEST);
+
+		}
+		log.debug("trRoot " + trRoot);
+
+		return trRoot;
+	}
+	
+	
+///immidiate hirrar	
+	public TargetRoleRes getEmpRoleDataV3Emps(List<Integer> empId) throws DynamicFormsServiceException {
+
+		String tmpQuery = dmsEmpimmediateByidQuery.replaceAll("<EMP_ID>", String.valueOf(empId));
+
+		tmpQuery = roleMapQueryimmediate.replaceAll("EMP_ID", String.valueOf(empId));
+		String ss =tmpQuery.replaceAll("\\[", "(").replaceAll("\\]", ")");
+		List<Object[]> data = entityManager.createNativeQuery(ss).getResultList();
+		TargetRoleRes trRoot = new TargetRoleRes();
+		for (Object[] arr : data) {
+			trRoot.setOrgId(String.valueOf(arr[0]));
+			trRoot.setBranchId(String.valueOf(arr[1]));
+			trRoot.setEmpId(String.valueOf(arr[2]));
+			trRoot.setRoleName(String.valueOf(arr[3]));
+			trRoot.setRoleId(String.valueOf(arr[4]));
+			trRoot.setPrecedence(Integer.parseInt(arr[5].toString()));
+		}
+
+		String branchQuery = "select branch_id,name from dms_branch where org_map_id in  (select location_node_data_id from emp_location_mapping where emp_id in "
+				+ empId + ");";
+		String sss = branchQuery.replaceAll("\\[", "(").replaceAll("\\]", ")");
+		// String branchQuery = "select location_node_data_id,org_id from
+		// emp_location_mapping where emp_id="+empId;
+		List<Object[]> branchdata = entityManager.createNativeQuery(sss).getResultList();
+		List<String> orgMapBranchIds = new ArrayList<>();
+
+		for (Object[] arr : branchdata) {
+
+			orgMapBranchIds.add(String.valueOf(arr[0]));
+		}
+		log.debug("orgMapBranchIds::" + orgMapBranchIds);
+		trRoot.setOrgMapBranches(orgMapBranchIds);
+
+		List<DmsEmployee> empOpt = dmsEmployeeRepo.findByImmediateId(empId);
+		List<DmsEmployee> emp = null;
+		if (!empOpt.isEmpty()) {
+			trRoot = buildTargetRoleResemps(trRoot, emp);
 		} else {
 			throw new DynamicFormsServiceException("No Empoloyee with given empId in DB", HttpStatus.BAD_REQUEST);
 

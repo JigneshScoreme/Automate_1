@@ -1159,11 +1159,13 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	private List<TargetAchivement> getTargetAchivementParamsForEmpImmediateHierarchy(
 			List<Integer> empId, DashBoardReqImmediateHierarchyV2 req,String orgId) throws ParseException, DynamicFormsServiceException {
 		List<TargetAchivement> resList = new ArrayList<>();
-		Optional<DmsEmployee> dmsEmployee = dmsEmployeeRepo.findByImmediateId(empId);
-		String empName="";
+		List<DmsEmployee> dmsEmployee = dmsEmployeeRepo.findByImmediateId(empId);
+		ArrayList<String> empName =new ArrayList<>();
+		
 		List<Integer> empId1 = req.getLoggedInEmpId();
-		if(dmsEmployee.isPresent()) {
-			empName = dmsEmployee.get().getEmpName();
+		if(!dmsEmployee.isEmpty()) {
+//		       empName = dmsEmployee.stream().map(res -> res.getEmpName()).collect(Collectors.toList());
+			empName.addAll(dmsEmployee.stream().map(res -> res.getEmpName()).collect(Collectors.toList()));
 		}
 		log.info("Calling getTargetAchivementParamsForEmp");
 		String startDate = null;
@@ -1178,7 +1180,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		log.info("StartDate " + startDate + ", EndDate " + endDate);
 		Map<String, Integer> map = new LinkedHashMap<>();
 		log.debug("Getting target params for user "+empId);
-		Map<String, Integer> innerMap = getTargetParams(String.valueOf(empId), startDate, endDate);
+		Map<String, Integer> innerMap = getTargetParamsHir(empId, startDate, endDate);
 		log.debug("innerMap::"+innerMap);
 		map = validateAndUpdateMapData(ENQUIRY,innerMap,map);
 		map = validateAndUpdateMapData(TEST_DRIVE,innerMap,map);
@@ -1192,7 +1194,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		map = validateAndUpdateMapData(EVENTS,innerMap,map);
 		map = validateAndUpdateMapData(INVOICE,innerMap,map);
 		map = validateAndUpdateMapData(EXTENDED_WARRANTY,innerMap,map);
-		return getTaskAndBuildTargetAchievementsImmediateHierarchy(empId, orgId, resList, Arrays.asList(empName), startDate, endDate,
+		return getTaskAndBuildTargetAchievementsImmediateHierarchy(empId, orgId, resList,empName, startDate, endDate,
 				map,empId1);
 	}
 
@@ -1722,6 +1724,87 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		//map.put(RETAIL_TARGET, retailTarget);
 		return map;
 	}
+	///immidiate hira
+	private Map<String,Integer> getTargetParamsHir(List<Integer> empId, String start, String end) throws ParseException, DynamicFormsServiceException {
+		TargetRoleReq targetRoleReq = new TargetRoleReq();
+	     for(int singleEmp : empId ) {
+	    	 
+	    	 targetRoleReq.setEmpId(singleEmp);
+	     }
+		targetRoleReq.setPageNo(1);
+		targetRoleReq.setSize(10);
+	///	Map<String, Object> tagetAdminMap = salesGapServiceImpl.getTargetDataWithRole(targetRoleReq);
+		List<TargetSettingRes> adminTargetSettingData = salesGapServiceImpl.getTSDataForRoleForEmps(empId);
+		log.info("size of adminTargetSettingData for empID  "+ empId+ " is "+adminTargetSettingData.size());
+		Date startDate = parseDate(start);  
+		Date endDate = parseDate(end); 
+		log.info("startDate:"+startDate+",endDate:"+endDate);
+		List<TargetSettingRes> filteredList = new ArrayList<>();
+		for(TargetSettingRes res :adminTargetSettingData) {
+			
+			Date resStartDate = parseDate(res.getStartDate());
+			Date resEndDate = parseDate(res.getEndDate());
+			log.info("resStartDate:"+resStartDate+",resEndDate:"+resEndDate);
+			//System.out.println("startDate equals "+startDate.equals(resStartDate));
+
+
+			if((resStartDate.after(startDate) || resStartDate.equals(startDate)) 
+					&& (resStartDate.before(endDate) || resStartDate.equals(endDate)) 
+					&& ( resEndDate.before(endDate)|| resEndDate.equals(endDate)) 
+					&& ( resEndDate.equals(startDate) || resEndDate.after(startDate))) {
+				filteredList.add(res);
+			}
+		}
+		log.info("filteredList for given date range "+filteredList.size());
+		log.debug("filteredList::"+filteredList);
+		Integer retailTarget = 0;
+		Integer enquiry=0;
+		Integer testdrive=0;
+		Integer homeVisit=0;
+		Integer videoConf=0;
+		Integer booking=0;
+		Integer exchange=0;
+		Integer finance=0;
+		Integer insurance=0;
+		Integer accessories=0;
+		Integer events = 0;
+		Integer invoice=0;
+		Integer exwarranty=0;
+		
+		for(TargetSettingRes res :filteredList) {
+			retailTarget += validateNumber(res.getRetailTarget());
+			enquiry += validateNumber(res.getEnquiry());
+			testdrive += validateNumber(res.getTestDrive());
+			homeVisit += validateNumber(res.getHomeVisit());
+			videoConf += validateNumber(res.getVideoConference());
+			booking += validateNumber(res.getBooking());
+			exchange += validateNumber(res.getExchange());
+			finance += validateNumber(res.getFinance());
+			insurance += validateNumber(res.getInsurance());
+			accessories += validateNumber(res.getAccessories());
+			//exW += Integer.valueOf(res.getExchange());
+			events += validateNumber(res.getEvents());
+			invoice += validateNumber(res.getInvoice());
+			exwarranty += validateNumber(res.getExWarranty());
+		}
+		
+		Map<String,Integer> map = new HashMap<>();
+		map.put(ENQUIRY,enquiry);
+		map.put(TEST_DRIVE, testdrive);
+		map.put(HOME_VISIT, homeVisit);
+		map.put(VIDEO_CONFERENCE, videoConf);
+		map.put(BOOKING, booking);
+		map.put(EXCHANGE, exchange);
+		map.put(FINANCE, finance);
+		map.put(INSURANCE, insurance);
+		map.put(ACCCESSORIES, accessories);
+		map.put(EVENTS, events);
+		map.put(INVOICE, retailTarget);
+		map.put(EXTENDED_WARRANTY, exwarranty);
+		//map.put(RETAIL_TARGET, retailTarget);
+		return map;
+	}
+
 
 	private Integer validateNumber(String retailTarget) {
 		if(null!=retailTarget) {
