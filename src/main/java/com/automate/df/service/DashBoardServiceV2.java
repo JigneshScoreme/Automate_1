@@ -7,6 +7,7 @@ import com.automate.df.dao.dashboard.TargetAchivementModelandSource;
 import com.automate.df.exception.DynamicFormsServiceException;
 import com.automate.df.model.MyTaskReq;
 import com.automate.df.model.df.dashboard.DashBoardReq;
+import com.automate.df.model.df.dashboard.DashBoardReqImmediateHierarchyV2;
 import com.automate.df.model.df.dashboard.DashBoardReqV2;
 import com.automate.df.model.df.dashboard.EventDataRes;
 import com.automate.df.model.df.dashboard.LeadSourceRes;
@@ -23,6 +24,8 @@ public interface DashBoardServiceV2 {
 	OverAllTargetAchivements getTargetAchivementParamsWithEmps(DashBoardReqV2 req) throws DynamicFormsServiceException;
 	
 	List<TargetAchivement> getTargetAchivementParamsForSingleEmp(DashBoardReqV2 req) throws DynamicFormsServiceException;
+	
+	List<TargetAchivement> getTargetAchivementParamsForSingleEmpImmediateHierarchy(DashBoardReqImmediateHierarchyV2 req) throws DynamicFormsServiceException;
 
 	List<VehicleModelRes> getVehicleModelData(DashBoardReqV2 req) throws DynamicFormsServiceException;
 
