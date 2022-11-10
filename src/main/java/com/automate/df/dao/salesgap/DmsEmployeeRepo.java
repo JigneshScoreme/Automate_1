@@ -57,5 +57,8 @@ public interface DmsEmployeeRepo extends JpaRepository<DmsEmployee, Integer> {
 	
 	@Query(value = "SELECT hrms_role FROM dms_employee where emp_id=:id ", nativeQuery = true)
 	Integer getEmpHrmsRole(@Param(value = "id") Integer id);
+	
+	@Query(value = "SELECT * FROM dms_employee where emp_id in (:empId)", nativeQuery = true)
+	List<Integer> dmsEmpimmediateByidQuery(@Param(value = "empId") List<Integer> empId);
 
 }
