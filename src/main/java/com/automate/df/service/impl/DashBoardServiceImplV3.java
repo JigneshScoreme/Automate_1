@@ -52,7 +52,7 @@ public class DashBoardServiceImplV3  implements DashBoardServiceV3{
 			str = new Gson().toJson(auto.getData());
 			str = str.replace("\\", "");
 			str = str.replaceAll("^\"|\"$", "");
-			System.out.println("str " + str);
+			//System.out.println("str " + str);
 			auto.setData(str);
 			// convertedObject = new Gson().fromJson(auto.getData(), JsonObject.class);
 		} else {
@@ -77,7 +77,7 @@ public class DashBoardServiceImplV3  implements DashBoardServiceV3{
 			str = new Gson().toJson(auto.getData());
 			str = str.replace("\\", "");
 			str = str.replaceAll("^\"|\"$", "");
-			System.out.println("str " + str);
+			//System.out.println("str " + str);
 			auto.setData(str);
 			// convertedObject = new Gson().fromJson(auto.getData(), JsonObject.class);
 		} else {
@@ -98,7 +98,7 @@ public class DashBoardServiceImplV3  implements DashBoardServiceV3{
 			str = new Gson().toJson(auto.getData());
 			str = str.replace("\\", "");
 			str = str.replaceAll("^\"|\"$", "");
-			System.out.println("str " + str);
+			//System.out.println("str " + str);
 			auto.setData(str);
 			// convertedObject = new Gson().fromJson(auto.getData(), JsonObject.class);
 		} else {
@@ -118,7 +118,7 @@ public class DashBoardServiceImplV3  implements DashBoardServiceV3{
 			str = new Gson().toJson(auto.getData());
 			str = str.replace("\\", "");
 			str = str.replaceAll("^\"|\"$", "");
-			System.out.println("str " + str);
+			//System.out.println("str " + str);
 			auto.setData(str);
 			// convertedObject = new Gson().fromJson(auto.getData(), JsonObject.class);
 		} else {
@@ -139,7 +139,7 @@ public class DashBoardServiceImplV3  implements DashBoardServiceV3{
 			str = new Gson().toJson(auto.getData());
 			str = str.replace("\\", "");
 			str = str.replaceAll("^\"|\"$", "");
-			System.out.println("str " + str);
+			//System.out.println("str " + str);
 			auto.setData(str);
 			// convertedObject = new Gson().fromJson(auto.getData(), JsonObject.class);
 		} else {
@@ -160,7 +160,7 @@ public class DashBoardServiceImplV3  implements DashBoardServiceV3{
 			str = new Gson().toJson(auto.getData());
 			str = str.replace("\\", "");
 			str = str.replaceAll("^\"|\"$", "");
-			System.out.println("str " + str);
+			//System.out.println("str " + str);
 			auto.setData(str);
 			// convertedObject = new Gson().fromJson(auto.getData(), JsonObject.class);
 		} else {

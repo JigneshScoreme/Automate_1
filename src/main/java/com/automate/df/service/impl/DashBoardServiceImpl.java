@@ -551,7 +551,7 @@ public class DashBoardServiceImpl implements DashBoardService{
 			Date resStartDate = parseDate(res.getStartDate());
 			Date resEndDate = parseDate(res.getEndDate());
 			log.info("resStartDate:"+resStartDate+",resEndDate:"+resEndDate);
-			System.out.println("startDate equals "+startDate.equals(resStartDate));
+			//System.out.println("startDate equals "+startDate.equals(resStartDate));
 			if((startDate.equals(resStartDate)||startDate.after(resStartDate)) 
 					&&(endDate.equals(resEndDate) || endDate.before(resEndDate))) {
 				filteredList.add(res);
@@ -740,7 +740,7 @@ public class DashBoardServiceImpl implements DashBoardService{
 			}
 			
 			if(salesGapServiceImpl.validateGeneralMgr(designation) && null!=req) {
-				System.out.println("req.getBranchmangerId() "+req.getBranchmangerId());
+				//System.out.println("req.getBranchmangerId() "+req.getBranchmangerId());
 				if(null== req.getBranchId() && null==req.getLocationId() && null==req.getBranchmangerId() && null==req.getManagerId() && null==req.getTeamLeadId() && null == req.getEmployeeId() && empId!=null) {
 					log.info("General Manager PageLoad");
 					list=buildVehicleModelForGeneralMgr(tRole,req,vehicleModelList);
@@ -1044,7 +1044,7 @@ public class DashBoardServiceImpl implements DashBoardService{
 			}
 			
 			if(salesGapServiceImpl.validateGeneralMgr(designation) && null!=req) {
-				System.out.println("req.getBranchmangerId() "+req.getBranchmangerId());
+				//System.out.println("req.getBranchmangerId() "+req.getBranchmangerId());
 				if(null== req.getBranchId() && null==req.getLocationId() && null==req.getBranchmangerId() && null==req.getManagerId() && null==req.getTeamLeadId() && null == req.getEmployeeId() && empId!=null) {
 					log.info("General Manager PageLoad");
 					list=buildLeadSourceForGeneralMgr(tRole,req);
@@ -1336,7 +1336,7 @@ public class DashBoardServiceImpl implements DashBoardService{
 			}
 			
 			if(salesGapServiceImpl.validateGeneralMgr(designation) && null!=req) {
-				System.out.println("req.getBranchmangerId() "+req.getBranchmangerId());
+				//System.out.println("req.getBranchmangerId() "+req.getBranchmangerId());
 				if(null== req.getBranchId() && null==req.getLocationId() && null==req.getBranchmangerId() && null==req.getManagerId() && null==req.getTeamLeadId() && null == req.getEmployeeId() && empId!=null) {
 					log.info("General Manager PageLoad");
 					list=buildEventSourceForGeneralMgr(tRole,req);
@@ -1684,7 +1684,7 @@ public class DashBoardServiceImpl implements DashBoardService{
 			}
 			
 			if(salesGapServiceImpl.validateGeneralMgr(designation) && null!=req) {
-				System.out.println("req.getBranchmangerId() "+req.getBranchmangerId());
+				//System.out.println("req.getBranchmangerId() "+req.getBranchmangerId());
 				if(null== req.getBranchId() && null==req.getLocationId() && null==req.getBranchmangerId() && null==req.getManagerId() && null==req.getTeamLeadId() && null == req.getEmployeeId() && empId!=null) {
 					log.info("General Manager PageLoad");
 					list=buildLostDropForGeneralMgr(tRole,req);
@@ -2097,7 +2097,7 @@ public class DashBoardServiceImpl implements DashBoardService{
 			}
 			
 			if(salesGapServiceImpl.validateGeneralMgr(designation) && null!=req) {
-				System.out.println("req.getBranchmangerId() "+req.getBranchmangerId());
+				//System.out.println("req.getBranchmangerId() "+req.getBranchmangerId());
 				if(null== req.getBranchId() && null==req.getLocationId() && null==req.getBranchmangerId() && null==req.getManagerId() && null==req.getTeamLeadId() && null == req.getEmployeeId() && empId!=null) {
 					log.info("General Manager PageLoad");
 					list=buildTodaysDataForGeneralMgr(tRole,req);

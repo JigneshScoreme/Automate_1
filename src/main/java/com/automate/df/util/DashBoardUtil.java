@@ -155,7 +155,7 @@ public class DashBoardUtil {
 	}
 	
 	public Map<String,Map<Integer,String>> getVehilceDetails(String orgId) {
-		System.out.println("organization id details ---------"+orgId);
+		//System.out.println("organization id details ---------"+orgId);
 		List<Object[]> list = entityManager
 				.createNativeQuery(vehicleDetailQuery.replaceAll("<ID>",orgId)).getResultList();
 		Map<String,Map<Integer,String>> resMap = new HashMap<>();
@@ -195,7 +195,7 @@ public class DashBoardUtil {
 		tmp = tmp.replaceAll("<VARIENT_ID>", String.valueOf(variantId));
 		List<BigDecimal> list = entityManager
 				.createNativeQuery(tmp).getResultList();
-		System.out.println("list "+list);
+		//System.out.println("list "+list);
 		BigDecimal bd = null;
 		for(BigDecimal arr :list){
 			bd = arr;

@@ -208,14 +208,14 @@ public class AuditServiceImpl implements AuditService {
 			MapDifference<String, Object> difference = Maps.difference(leftFlatMap, rightFlatMap);
 
 			/*
-			 * System.out.println("Entries only on the left\n--------------------------");
+			 * //System.out.println("Entries only on the left\n--------------------------");
 			 * difference.entriesOnlyOnLeft() .forEach((key, value) ->
-			 * System.out.println(key + ": " + value));
+			 * //System.out.println(key + ": " + value));
 			 * 
 			 * System.out.
 			 * println("\n\nEntries only on the right\n--------------------------");
 			 * difference.entriesOnlyOnRight() .forEach((key, value) ->
-			 * System.out.println(key + ": " + value));
+			 * //System.out.println(key + ": " + value));
 			 */
 			log.debug("\n\nEntries differing\n--------------------------");
 			difference.entriesDiffering().forEach((key, value) -> log.debug(key + ": " + value));

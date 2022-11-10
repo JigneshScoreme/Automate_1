@@ -451,7 +451,7 @@ public class GenericServiceImpl implements GenericService {
 			DataFormatter formatter = new DataFormatter();
 			while (iterator.hasNext()) {
 				Row currentRow = iterator.next();
-				System.out.println("cnt " + cnt);
+				//System.out.println("cnt " + cnt);
 				if (cnt != 0) {
 					String customerType = getStringCellValue(currentRow.getCell(10));
 					String emailId = getStringCellValue(currentRow.getCell(7));
@@ -587,7 +587,7 @@ public class GenericServiceImpl implements GenericService {
 			if (cellType == 0) {
 				Double d = cell.getNumericCellValue();
 
-				System.out.println("phone " + d + " int " + String.valueOf(d));
+				//System.out.println("phone " + d + " int " + String.valueOf(d));
 				return d.intValue();
 
 			}
@@ -668,7 +668,7 @@ public class GenericServiceImpl implements GenericService {
 									AutoLeadSecondCallRoot.class);
 
 						}
-						System.out.println(" Second status code " + secondRootEntity.getStatusCode().toString());
+						//System.out.println(" Second status code " + secondRootEntity.getStatusCode().toString());
 						String secondCallResponseString = new Gson().toJson(secondRootEntity);
 						log.debug("SECOND RESPONSE STRING " + secondCallResponseString);
 						;
@@ -677,7 +677,7 @@ public class GenericServiceImpl implements GenericService {
 							log.debug("response of second call " + secondRootEntity.getBody());
 							log.debug("Making Third call of auto alloction ");
 							String thirdTmpUrl = autoLeadThridUrl.replace("<LEAD_ID>", leadId);
-							System.out.println("third url  " + thirdTmpUrl);
+							//System.out.println("third url  " + thirdTmpUrl);
 
 							HttpHeaders headers3 = new HttpHeaders();
 							headers3.setContentType(MediaType.APPLICATION_JSON);
@@ -692,12 +692,12 @@ public class GenericServiceImpl implements GenericService {
 							// String.class);
 							if (null != autoLeadThirdEntity) {
 								String thirdresponse = autoLeadThirdEntity;
-								System.out.println("thrid response " + thirdresponse);
+								//System.out.println("thrid response " + thirdresponse);
 								ObjectMapper om = new ObjectMapper();
 								AutoLeadSecondCallRoot thridAutoLeadDmsEntity = om.readValue(thirdresponse,
 										AutoLeadSecondCallRoot.class);
 								// AutoLeadDmsEntity thridAutoLeadDmsEntity = autoLeadThirdEntity.getBody();
-								System.out.println("thridAutoLeadDmsEntity " + thridAutoLeadDmsEntity);
+								//System.out.println("thridAutoLeadDmsEntity " + thridAutoLeadDmsEntity);
 								if (null != thridAutoLeadDmsEntity.getDmsEntity().getTask()) {
 									autoRes.setAllocatedEmpName(
 											thridAutoLeadDmsEntity.getDmsEntity().getTask().getAssignee().getEmpName());
@@ -754,7 +754,7 @@ public class GenericServiceImpl implements GenericService {
 			req.setEnquirySource(leadMap.getEnquirySource());
 			req.setReferencenumber(leadMap.getReferencenumber());
 			req.setBranchId(leadMap.getBranchId());
-			System.out.println("Setting logged in name "+loggedInEmpName);
+			//System.out.println("Setting logged in name "+loggedInEmpName);
 			req.setCreatedBy(loggedInEmpName);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -816,7 +816,7 @@ public class GenericServiceImpl implements GenericService {
 							log.debug("response of second call " + secondRootEntity.getBody());
 							log.debug("Making Third call of auto alloction ");
 							String thirdTmpUrl = autoLeadThridUrl.replace("<LEAD_ID>", leadId);
-							System.out.println("third url  " + thirdTmpUrl);
+							//System.out.println("third url  " + thirdTmpUrl);
 
 							// String autoLeadThirdEntity =
 							// restTemplate.postForObject(thirdTmpUrl,"{}",String.class);
@@ -835,12 +835,12 @@ public class GenericServiceImpl implements GenericService {
 							// String.class);
 							if (null != autoLeadThirdEntity) {
 								String thirdresponse = autoLeadThirdEntity;
-								System.out.println("thrid response " + thirdresponse);
+								//System.out.println("thrid response " + thirdresponse);
 								ObjectMapper om = new ObjectMapper();
 								AutoLeadSecondCallRoot thridAutoLeadDmsEntity = om.readValue(thirdresponse,
 										AutoLeadSecondCallRoot.class);
 								// AutoLeadDmsEntity thridAutoLeadDmsEntity = autoLeadThirdEntity.getBody();
-								System.out.println("thridAutoLeadDmsEntity " + thridAutoLeadDmsEntity);
+								//System.out.println("thridAutoLeadDmsEntity " + thridAutoLeadDmsEntity);
 								if (null != thridAutoLeadDmsEntity.getDmsEntity().getTask()) {
 									autoRes.setAllocatedEmpName(
 											thridAutoLeadDmsEntity.getDmsEntity().getTask().getAssignee().getEmpName());

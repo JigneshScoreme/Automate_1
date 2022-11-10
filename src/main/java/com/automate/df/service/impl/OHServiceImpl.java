@@ -159,7 +159,7 @@ public class OHServiceImpl implements OHService {
 			List<LocationNodeDef> opList = locationNodeDefDao.getNodeDefData(orgId,
 					locationNodeDataDao.getEmpLevelData(leadIdList));
 			String topLevel = null;
-			System.out.println("opList " + opList);
+			//System.out.println("opList " + opList);
 			if (null != opList && !opList.isEmpty()) {
 				topLevel = opList.get(0).getLocationNodeDefType();
 			} else {
@@ -222,7 +222,7 @@ public class OHServiceImpl implements OHService {
 					locationNodeDataDao.getEmpLevelData(leadIdList));
 			String leastLevelMinusOne = null;
 			if (null != opList && !opList.isEmpty()) {
-				System.out.println("opList " + opList);
+				//System.out.println("opList " + opList);
 				leastLevelMinusOne = opList.get(opList.size() - 2).getLocationNodeDefType();
 			} else {
 				throw new DynamicFormsServiceException("No Level Data found for the given empId and OrgId",
@@ -358,13 +358,13 @@ public class OHServiceImpl implements OHService {
 									levelName = levelName.replaceAll(" ", "");
 									ResponseEntity<String> resEntity = restTemplate.getForEntity(
 											"https://api.postalpincode.in/pincode/" + levelName, String.class);
-									System.out.println("root " + resEntity.getBody());
+									//System.out.println("root " + resEntity.getBody());
 									if (resEntity.getStatusCodeValue() == 200) {
 										ObjectMapper om = new ObjectMapper();
 										PostOfficeRoot[] proot = om.readValue(resEntity.getBody(),
 												PostOfficeRoot[].class);
 										List<PostOfficeRoot> pList = Arrays.asList(proot);
-										System.out.println("plist " + pList);
+										//System.out.println("plist " + pList);
 										if (null != pList && !pList.isEmpty()) {
 											postOfficeObj = proot[0].getPostOffice();
 											if (null != postOfficeObj && !postOfficeObj.isEmpty()) {
@@ -392,7 +392,7 @@ public class OHServiceImpl implements OHService {
 								lData.setType(levelType);
 								lData.setOrgId(orgId);
 								lData.setActive("Y");
-								System.out.println("defList ::" + defList);
+								//System.out.println("defList ::" + defList);
 								Integer levelDefId = defList.stream()
 										.filter(x -> (x.getLocationNodeDefType().equalsIgnoreCase(levelType)
 												&& x.getOrgId() == req.getOrgId()))
@@ -499,11 +499,11 @@ public class OHServiceImpl implements OHService {
 
 			empLocationMappingDao.removeActiveMappings(req.getOrgId(), levels);
 
-			System.out.println("leafData" + leafData);
+			//System.out.println("leafData" + leafData);
 			for (LocationNodeData data : leafData) {
 
 				String cName = data.getCananicalName();
-				System.out.println("cName " + cName);
+				//System.out.println("cName " + cName);
 				if (null != cName) {
 
 					String[] tmp = cName.split("/");
@@ -557,7 +557,7 @@ public class OHServiceImpl implements OHService {
 							List<LocationNodeData> nodeData = locationNodeDataDao.getNodeDataByParentId(req.getOrgId(),
 									level, levelIdmap.get(previousLevel));
 							List<Integer> idLists = nodeData.stream().map(x -> x.getId()).collect(Collectors.toList());
-							System.out.println("idLists  " + idLists);
+							//System.out.println("idLists  " + idLists);
 							levelIdmap.put(level, idLists);
 							list.addAll(nodeData);
 						}
@@ -635,7 +635,7 @@ public class OHServiceImpl implements OHService {
 							List<LocationNodeData> nodeData = locationNodeDataDao.getNodeDataByParentId(req.getOrgId(),
 									level, levelIdmap.get(previousLevel));
 							List<Integer> idLists = nodeData.stream().map(x -> x.getId()).collect(Collectors.toList());
-							System.out.println("idLists  " + idLists);
+							//System.out.println("idLists  " + idLists);
 							levelIdmap.put(level, idLists);
 							list.addAll(nodeData);
 						}
@@ -894,7 +894,7 @@ public class OHServiceImpl implements OHService {
 							lData.setType(lr.getLevelDefType());
 							lData.setOrgId(orgId);
 							lData.setActive("Y");
-							System.out.println("saving node data");
+							//System.out.println("saving node data");
 							Optional<LocationNodeData> dbNodeParentlevelData = locationNodeDataDao
 									.verifyLevelDataRecord(orgId, lr.getLevelDefType(), levelDDData.getCode());
 							if (!dbNodeParentlevelData.isPresent()) {
@@ -912,7 +912,7 @@ public class OHServiceImpl implements OHService {
 
 							String parentMappingCode = levelDDData.getParentMappingCode();
 							log.debug("parentMappingCode " + parentMappingCode);
-							System.out.println(
+							//System.out.println(
 									"levelDDData.getParentMappingCode() " + levelDDData.getParentMappingCode());
 							Optional<LocationNodeData> dbNodeParetDataOpt = locationNodeDataDao
 									.verifyLevelDataRecord(orgId, parentLevel, levelDDData.getParentMappingCode());
@@ -1345,7 +1345,7 @@ public class OHServiceImpl implements OHService {
 			}
 
 			List<Integer> datanodes = req.getRemoveDataNodes();
-			System.out.println("datanodes " + datanodes);
+			//System.out.println("datanodes " + datanodes);
 			if (null != datanodes && !datanodes.isEmpty()) {
 				List<String> levels = getOrgLevels(orgId).stream().map(x -> x.getLocationNodeDefType())
 						.collect(Collectors.toList());
@@ -1583,7 +1583,7 @@ public class OHServiceImpl implements OHService {
 				log.debug("branchId::" + branchId);
 				List<DmsEmployee> branchEmpList = dmsEmployeeRepo.getEmployeesByOrg(orgId);
 				Optional<DmsEmployee> empOpt = branchEmpList.stream().filter(x -> x.getEmp_id() == empId).findAny();
-				System.out.println("empOpt ::" + empOpt.isPresent());
+				//System.out.println("empOpt ::" + empOpt.isPresent());
 				if (empOpt.isPresent()) {
 					DmsEmployee emp = empOpt.get();
 					//Map<String, Object> reportingHierarchyMap = getReportingHierarchy(emp, branchId, orgId);
@@ -1632,7 +1632,7 @@ public class OHServiceImpl implements OHService {
 								log.debug("branchEmpList size ::" + branchEmpList.size());
 								Optional<DmsEmployee> empOpt = branchEmpList.stream()
 										.filter(x -> x.getEmp_id() == empId).findAny();
-								System.out.println("empOpt ::" + empOpt.isPresent());
+								//System.out.println("empOpt ::" + empOpt.isPresent());
 								if (empOpt.isPresent()) {
 									DmsEmployee emp = empOpt.get();
 									Map<String, Object> reportingHierarchyMap = getReportingHierarchy(emp, branchId,
@@ -1791,7 +1791,7 @@ public class OHServiceImpl implements OHService {
 				flag = true;
 			}
 		}
-		System.out.println("flag:::" + flag);
+		//System.out.println("flag:::" + flag);
 		return flag;
 
 	}
@@ -1956,7 +1956,7 @@ public class OHServiceImpl implements OHService {
 	
 	
 	private String getLevelName(String level, Integer orgId) {
-		System.out.println("level:"+level+",orgId:"+orgId);
+		//System.out.println("level:"+level+",orgId:"+orgId);
 		return locationNodeDefDao.getLevelnameByType(level,orgId);
 	}
 
@@ -1990,7 +1990,7 @@ public class OHServiceImpl implements OHService {
 										.getNodeDataByParentId(req.getOrgId(), level, levelIdmap.get(previousLevel));
 								List<Integer> idLists = nodeData.stream().map(x -> x.getId())
 										.collect(Collectors.toList());
-								System.out.println("idLists  " + idLists);
+								//System.out.println("idLists  " + idLists);
 								levelIdmap.put(level, idLists);
 								list.addAll(nodeData);
 							}

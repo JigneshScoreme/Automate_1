@@ -110,28 +110,28 @@ public class DFSaveServiceImpl implements DFSaveService {
 			List<String> paramNames = dfSave.getParams().stream().map(DField::getFieldName)
 					.collect(Collectors.toList());
 			List<Object> paramVals = dfSave.getParams().stream().map(DField::getValue).collect(Collectors.toList());
-			System.out.println("paramVals " + paramVals);
+			//System.out.println("paramVals " + paramVals);
 
 			Map<String, Class<?>> paramMapping = new HashMap<>();
 
 			for (Object obj : paramVals) {
 				if (obj instanceof String) {
-					System.out.println("String");
+					//System.out.println("String");
 					// paramMapping.pu
 				}
 				if (obj instanceof Integer) {
-					System.out.println("int");
+					//System.out.println("int");
 				}
 			}
 
 			for (DField dField : dfSave.getParams()) {
 				Object obj = dField.getValue();
 				if (obj instanceof String) {
-					System.out.println("String");
+					//System.out.println("String");
 					paramMapping.put(dField.getFieldName(), String.class);
 				}
 				if (obj instanceof Integer) {
-					System.out.println("int");
+					//System.out.println("int");
 					paramMapping.put(dField.getFieldName(), Integer.class);
 
 				}
@@ -145,7 +145,7 @@ public class DFSaveServiceImpl implements DFSaveService {
 
 			int cnt = 0;
 			for (final Method method : clazz.getDeclaredMethods()) {
-				System.out.println("Method name :" + method);
+				//System.out.println("Method name :" + method);
 				// method.in
 				if (method.getName().contains("set")) {
 					method.invoke(obj, paramVals.get(cnt));
@@ -154,13 +154,13 @@ public class DFSaveServiceImpl implements DFSaveService {
 
 			}
 
-			System.out.println("After setting values ");
+			//System.out.println("After setting values ");
 
 			
 			  for (final Method method : clazz.getDeclaredMethods()) {
 			  if(method.getName().contains("get")) { String value =
 			  (String)method.invoke(obj);
-			  System.out.println("method name "+method.getName()+" &value :"+value); } }
+			  //System.out.println("method name "+method.getName()+" &value :"+value); } }
 			 
 
 			// validatePojo(map);
@@ -182,12 +182,12 @@ public class DFSaveServiceImpl implements DFSaveService {
 
 		Object obj = clazz.newInstance();
 
-		System.out.println("Clazz: " + clazz);
-		System.out.println("Object: " + obj);
-		System.out.println("Serializable? " + (obj instanceof Serializable));
+		//System.out.println("Clazz: " + clazz);
+		//System.out.println("Object: " + obj);
+		//System.out.println("Serializable? " + (obj instanceof Serializable));
 
 		for (final Method method : clazz.getDeclaredMethods()) {
-			System.out.println(method);
+			//System.out.println(method);
 		}
 	}
 	*/

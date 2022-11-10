@@ -25,7 +25,7 @@ public class DBUtil {
 			
 			int result = jdbcTemplate.update(sql, arr);
 			if (result > 0) {
-				System.out.println("A new row has been inserted.");
+				//System.out.println("A new row has been inserted.");
 			}
 			
 		}
@@ -35,7 +35,7 @@ public class DBUtil {
 			int result = jdbcTemplate.update(sql);
 			if (result > 0) {
 
-				System.out.println("Data has been updated");
+				//System.out.println("Data has been updated");
 				return "Updated Successfully";
 			}
 			return null;
@@ -46,7 +46,7 @@ public class DBUtil {
 			int result = jdbcTemplate.update(sql);
 			if (result > 0) {
 
-				System.out.println("Data has been Deleted");
+				//System.out.println("Data has been Deleted");
 				return "Deleted Successfully";
 			}
 			return null;

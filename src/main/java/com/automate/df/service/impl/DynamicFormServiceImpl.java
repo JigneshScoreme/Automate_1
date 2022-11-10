@@ -105,7 +105,7 @@ public class DynamicFormServiceImpl implements DynamicFormService {
 			String mode = mappings.getMode();
 
 			page = orgRepo.findByUUIDValAndPage(mappings.getOrgIdentifier(), mappings.getPageIdentifier());
-			System.out.println("page::" + page);
+			//System.out.println("page::" + page);
 
 			Map<String, Object> map = new HashMap<>();
 			for (PageGroupFieldRoleAccess pageRole : pageGroupRepo.findForPageLevel(pageId, roleId, mode)) {
@@ -155,14 +155,14 @@ public class DynamicFormServiceImpl implements DynamicFormService {
 
 				}
 			}
-			System.out.println("fieldGroupRoleMap " + fieldGroupRoleMap);
+			//System.out.println("fieldGroupRoleMap " + fieldGroupRoleMap);
 			map.put("field-group", fieldGroupRoleMap);
 
 			res = buildResObj(page, map);
 			res = filterObject(map, res, mappings.getMode(), mappings.getRoleIdentifier());
 
 			pageRes = buildPageRes(res);
-			System.out.println("map::" + map);
+			//System.out.println("map::" + map);
 		} catch (DataAccessException e) {
 			log.error("Failed to process login in request ", e);
 			throw new DynamicFormsServiceException(env.getProperty("INTERNAL_SERVER_ERROR"),
@@ -213,7 +213,7 @@ public class DynamicFormServiceImpl implements DynamicFormService {
 		if (null != fieldObj) {
 			fieldMap = (Map<Integer, Role>) fieldObj;
 		}
-		System.out.println("fieldMap size ::" + fieldMap);
+		//System.out.println("fieldMap size ::" + fieldMap);
 
 		if (fieldMap != null && fieldMap.isEmpty()) {
 			List<OrgVerticalLocationPageGroupResponse> pageGroupResList = new ArrayList<>();
@@ -239,7 +239,7 @@ public class DynamicFormServiceImpl implements DynamicFormService {
 					// }
 				}
 				pageGroupRes.setFieldList(pageGroupFieldResList);
-				System.out.println("pageGroupRes.getRole() ::" + pageGroupRes.getRole());
+				//System.out.println("pageGroupRes.getRole() ::" + pageGroupRes.getRole());
 				if (pageGroupRes.getRole() != null) {
 					pageGroupResList.add(pageGroupRes);
 				}
@@ -312,9 +312,9 @@ public class DynamicFormServiceImpl implements DynamicFormService {
 			fieldGroupMap = (Map<Integer, List<Role>>) fieldGroupObj;
 		}
 
-		System.out.println("fieldGroupMap::" + fieldGroupMap);
-		System.out.println("fieldMap size ::" + fieldMap);
-		System.out.println("groupMap::" + groupMap);
+		//System.out.println("fieldGroupMap::" + fieldGroupMap);
+		//System.out.println("fieldMap size ::" + fieldMap);
+		//System.out.println("groupMap::" + groupMap);
 
 		Map<Integer, List<Role>> tempMap = new HashMap<>();
 		List<OrgVerticalLocationPageGroupResponse> pageGroupResList = new ArrayList<>();
@@ -322,7 +322,7 @@ public class DynamicFormServiceImpl implements DynamicFormService {
 
 			List<Role> filedGroupRoles = fieldGroupMap.get(pageGroup.getId());
 
-			System.out.println("Group id " + pageGroup.getId() + " filedGroupRoles " + filedGroupRoles);
+			//System.out.println("Group id " + pageGroup.getId() + " filedGroupRoles " + filedGroupRoles);
 			OrgVerticalLocationPageGroupResponse pageGroupRes = new OrgVerticalLocationPageGroupResponse();
 			pageGroupRes.setGroup(pageGroup.getPageGroupId());
 			pageGroupRes.setIconClass(pageGroup.getIconClass());
@@ -338,10 +338,10 @@ public class DynamicFormServiceImpl implements DynamicFormService {
 			}
 
 			boolean flag = false;
-			System.out.println("filedGroupRoles " + filedGroupRoles);
+			//System.out.println("filedGroupRoles " + filedGroupRoles);
 			if (null != filedGroupRoles) {
 				for (Role x : filedGroupRoles) {
-					System.out.println("x.getFieldId() " + x.getFieldId());
+					//System.out.println("x.getFieldId() " + x.getFieldId());
 					if (x.getFieldId() != 0) {
 						flag = true;
 					}
@@ -370,17 +370,17 @@ public class DynamicFormServiceImpl implements DynamicFormService {
 				for (OrgVerticalLocationPageGroupField pgGrpField : pageGroup.getFieldList()) {
 					OrgVerticalLocationPageGroupFieldResponse fieldRes = modelMapper.map(pgGrpField,
 							OrgVerticalLocationPageGroupFieldResponse.class);
-					System.out.println("Flag ::" + flag);
+					//System.out.println("Flag ::" + flag);
 					if (flag) {
-						System.out.println("Inside flag true loop ");
-						System.out.println("filedGroupRoles:: " + filedGroupRoles + ", pGrp " + pgGrpField.getId());
+						//System.out.println("Inside flag true loop ");
+						//System.out.println("filedGroupRoles:: " + filedGroupRoles + ", pGrp " + pgGrpField.getId());
 						boolean insideFlag = false;
 						for (Role r : filedGroupRoles) {
 							if (r.getFieldId() == pgGrpField.getId()) {
 								insideFlag = true;
 							}
 						}
-						System.out.println("insideFlag" + insideFlag);
+						//System.out.println("insideFlag" + insideFlag);
 						//
 						if (insideFlag) {
 							fieldRes.setRole(fieldMap.get(pgGrpField.getId()));
@@ -418,7 +418,7 @@ public class DynamicFormServiceImpl implements DynamicFormService {
 
 		}
 		res.setGroupList(pageGroupResList);
-		System.out.println("pageGroupResList:: " + pageGroupResList.size());
+		//System.out.println("pageGroupResList:: " + pageGroupResList.size());
 
 		return res;
 	}
@@ -465,7 +465,7 @@ public class DynamicFormServiceImpl implements DynamicFormService {
 				}
 			} catch (Exception e) {
 
-				System.out.println("Exceptionddddd"+e.getMessage());
+				//System.out.println("Exceptionddddd"+e.getMessage());
 			}
 		}
 
@@ -678,7 +678,7 @@ public class DynamicFormServiceImpl implements DynamicFormService {
 				}
 			} catch (Exception e) {
 
-				System.out.println("Exceptionddddd"+e.getMessage());
+				//System.out.println("Exceptionddddd"+e.getMessage());
 			}
 		}
 
