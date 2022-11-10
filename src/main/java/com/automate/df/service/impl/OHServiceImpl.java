@@ -912,8 +912,7 @@ public class OHServiceImpl implements OHService {
 
 							String parentMappingCode = levelDDData.getParentMappingCode();
 							log.debug("parentMappingCode " + parentMappingCode);
-							//System.out.println(
-									"levelDDData.getParentMappingCode() " + levelDDData.getParentMappingCode());
+							//System.out.println("levelDDData.getParentMappingCode() " + levelDDData.getParentMappingCode());
 							Optional<LocationNodeData> dbNodeParetDataOpt = locationNodeDataDao
 									.verifyLevelDataRecord(orgId, parentLevel, levelDDData.getParentMappingCode());
 							log.debug("dbNodeParetDataOpt " + dbNodeParetDataOpt.isPresent());
