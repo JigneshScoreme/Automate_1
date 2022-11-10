@@ -134,7 +134,12 @@ public class SalesGapServiceImpl implements SalesGapService {
 			+ " rolemap.organization_id, rolemap.branch_id, rolemap.emp_id, role.role_name, role.role_id, role.precedence "
 			+ " FROM dms_role role " + " INNER JOIN dms_employee_role_mapping rolemap ON rolemap.role_id=role.role_id "
 			+ " AND rolemap.emp_id=<EMP_ID> " + " ORDER BY role.precedence ";
-	final String dmsEmpByidQuery = "SELECT * FROM dms_employee where emp_id=<EMP_ID>";
+	final String dmsEmpByidQuery = "SELECT * FROM dms_employee where emp_id = <EMP_ID>";
+	final String roleMapQueryimmediate = " SELECT "
+			+ " rolemap.organization_id, rolemap.branch_id, rolemap.emp_id, role.role_name, role.role_id, role.precedence "
+			+ " FROM dms_role role " + " INNER JOIN dms_employee_role_mapping rolemap ON rolemap.role_id=role.role_id "
+			+ " AND rolemap.emp_id in <EMP_ID> " + " ORDER BY role.precedence ";
+	final String dmsEmpByidQueryimmediate = "SELECT * FROM dms_employee where emp_id in <EMP_ID>";
 	final String dmsEmpimmediateByidQuery = "SELECT * FROM dms_employee where emp_id in <EMP_ID>";
 	final String getSalForEmp = "select salary from dms_emp_sal_mapping where emp_id=<ID>";
 
@@ -2885,7 +2890,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 
 		String tmpQuery = dmsEmpimmediateByidQuery.replaceAll("<EMP_ID>", String.valueOf(empId));
 
-		tmpQuery = roleMapQuery.replaceAll("<EMP_ID>", String.valueOf(empId));
+		tmpQuery = roleMapQueryimmediate.replaceAll("<EMP_ID>", String.valueOf(empId));
 		List<Object[]> data = entityManager.createNativeQuery(tmpQuery).getResultList();
 		TargetRoleRes trRoot = new TargetRoleRes();
 		for (Object[] arr : data) {

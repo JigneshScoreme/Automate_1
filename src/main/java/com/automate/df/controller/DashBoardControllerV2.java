@@ -116,7 +116,7 @@ public class DashBoardControllerV2 {
 	}
 	/////Immediate Hierarchy
 	@CrossOrigin
-	@PostMapping(value = "v2/get_target_params_for_emp_immediatehierarchy")
+	@PostMapping(value = "v2/get_target_params_immediate_hierarchy")
 	public ResponseEntity<List<TargetAchivement>> getTargetAchivementParamsForEmpImmediateHirarchy(@RequestBody DashBoardReqImmediateHierarchyV2 req)
 			throws DynamicFormsServiceException {
 		List<TargetAchivement> response = null;
