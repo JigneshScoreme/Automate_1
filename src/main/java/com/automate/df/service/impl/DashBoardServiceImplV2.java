@@ -997,6 +997,8 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 				dropLeadCnt = leadRefListDropped.stream().count();
 			}
 		}
+		System.out.println("@@@@@@@@@#############leadRefList2:::::::::"+leadRefList.stream().map(res->res.getLeadId()).distinct().collect(Collectors.toList()));
+
 		//System.out.println("Enq :"+leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY")).map(res -> res.getLeadId()).collect(Collectors.toList()));
 		//System.out.println("Enq :"+leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY")).map(res -> res.getLeadId()).distinct().collect(Collectors.toList()));
 		//System.out.println("EnqDist : "+leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY")).distinct().count());
