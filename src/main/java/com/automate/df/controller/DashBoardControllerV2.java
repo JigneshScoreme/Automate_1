@@ -27,6 +27,7 @@ import com.automate.df.model.df.dashboard.DashBoardReqV2;
 import com.automate.df.model.df.dashboard.EventDataRes;
 import com.automate.df.model.df.dashboard.LeadSourceRes;
 import com.automate.df.model.df.dashboard.OverAllTargetAchivements;
+import com.automate.df.model.df.dashboard.OverAllTargetAchivements1;
 import com.automate.df.model.df.dashboard.SalesDataRes;
 import com.automate.df.model.df.dashboard.TargetAchivement;
 import com.automate.df.model.df.dashboard.TargetRankingRes;
@@ -58,9 +59,10 @@ public class DashBoardControllerV2 {
 	
 	@CrossOrigin
 	@PostMapping(value = "v2/get_target_params")
-	public ResponseEntity<List<TargetAchivement>> getTargetAchivementParams(@RequestBody DashBoardReqV2 req)
+	public ResponseEntity<OverAllTargetAchivements> getTargetAchivementParams(@RequestBody DashBoardReqV2 req)
 			throws DynamicFormsServiceException {
-		List<TargetAchivement> response = null;
+		//List<TargetAchivement> response = null;
+		OverAllTargetAchivements response = null;
 		if (Optional.of(req).isPresent()) {
 			response = dashBoardService.getTargetAchivementParams(req);
 		} else {
@@ -71,9 +73,9 @@ public class DashBoardControllerV2 {
 	
 	@CrossOrigin
 	@PostMapping(value = "v2/get_target_params_for_all_emps")
-	public ResponseEntity<OverAllTargetAchivements> getTargetAchivementParamsByEmps(@RequestBody DashBoardReqV2 req)
+	public ResponseEntity<OverAllTargetAchivements1> getTargetAchivementParamsByEmps(@RequestBody DashBoardReqV2 req)
 			throws DynamicFormsServiceException {
-		OverAllTargetAchivements response = null;
+		OverAllTargetAchivements1 response = null;
 		if (Optional.of(req).isPresent()) {
 			response = dashBoardService.getTargetAchivementParamsWithEmps(req);
 		} else {

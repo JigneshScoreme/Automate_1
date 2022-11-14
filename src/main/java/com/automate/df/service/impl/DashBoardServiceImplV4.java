@@ -316,6 +316,9 @@ public class DashBoardServiceImplV4 implements DashBoardServiceV4{
 	public List<TargetAchivement> getTargetAchivementParams(DashBoardReqV2 req) throws DynamicFormsServiceException {
 		Integer selectedEmpId = req.getSelectedEmpId();
 		log.debug("Inside getTargetAchivementParams():::"+selectedEmpId);
+		OverAllTargetAchivements overAllTargetAchivements = new OverAllTargetAchivements();
+		List<EmployeeTargetAchievement> empTargetAchievements = new ArrayList<>();
+		List<EmployeeTargetAchievement> finalEmpTargetAchievements = new ArrayList<>();
 		List<TargetAchivement> resList = new ArrayList<>();
 		String orgId  = req.getOrgId();
 		//List<Integer> empReportingList = getImmediateReportingEmp(selectedEmpId,orgId);
@@ -342,7 +345,7 @@ public class DashBoardServiceImplV4 implements DashBoardServiceV4{
 					log.debug("empReportingIdList for given selectedEmpIdList " + empReportingIdList);
 					
 					List<TargetAchivement> targetList = dashBoardServiceImplV2.getTargetAchivementParamsForMultipleEmp(empReportingIdList, req,
-							orgId);
+							orgId,empTargetAchievements);
 					log.debug("targetList::::::" + targetList);
 					allTargets.add(targetList);
 				}
@@ -369,7 +372,7 @@ public class DashBoardServiceImplV4 implements DashBoardServiceV4{
 					});
 					
 					List<TargetAchivement> targetList = dashBoardServiceImplV2.getTargetAchivementParamsForMultipleEmp(empReportingIdList, req,
-							orgId);
+							orgId,empTargetAchievements);
 					allTargets.add(targetList);
 
 				}
@@ -383,7 +386,7 @@ public class DashBoardServiceImplV4 implements DashBoardServiceV4{
 				log.debug("empReportingIdList for emp " + req.getLoggedInEmpId());
 				log.debug("Calling getTargetAchivemetns in else" + empReportingIdList);
 				
-				resList = dashBoardServiceImplV2.getTargetAchivementParamsForMultipleEmp(empReportingIdList, req, orgId);
+				resList = dashBoardServiceImplV2.getTargetAchivementParamsForMultipleEmp(empReportingIdList, req, orgId,empTargetAchievements);
 			}
 		
 		} catch (Exception e) {
