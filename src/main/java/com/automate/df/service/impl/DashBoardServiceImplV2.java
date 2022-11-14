@@ -2166,6 +2166,10 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		log.info("Inside getLeadSourceData(){}");
 		List<LeadSourceRes> resList = new ArrayList<>();
 		try {
+			
+			List<Integer> empReportingIdList = getEmployeeHiearachyData(Integer.parseInt(req.getOrgId()),req.getLoggedInEmpId());
+			empReportingIdList.add(req.getLoggedInEmpId());
+			
 			Integer empId = req.getLoggedInEmpId();
 			log.debug("Getting Target Data, LoggedIn emp id " + empId);
 			
@@ -2183,7 +2187,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			});
 			List<Integer> selectedNodeList = req.getLevelSelected();
 			String selectedBranch = req.getBranchSelectionInEvents();		
-			resList = getLeadSourceData(getEmpReportingList(empId,selectedEmpIdList,selectedNodeList,orgId,selectedBranch),req,orgId, branchId,vehicleModelList);
+			resList = getLeadSourceData(empReportingIdList,req,orgId, branchId,vehicleModelList);
 		}catch(Exception e) {
 			e.printStackTrace();
 			throw new DynamicFormsServiceException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -4591,6 +4595,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			TargetRoleRes tRole = salesGapServiceImpl.getEmpRoleDataV2(empId);
 			String orgId = tRole.getOrgId();
 			String branchId = tRole.getBranchId();
+			req.setOrgId(orgId);
 			log.debug("tRole getTargetAchivementParams " + tRole);
 			Map<Integer, String> vehicleDataMap = dashBoardUtil.getVehilceDetails(orgId).get("main");
 			List<String> vehicleModelList = new ArrayList<>();
@@ -4651,9 +4656,11 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 				log.debug("Fetching empReportingIdList for logged in emp in else :" + req.getLoggedInEmpId());
 				List<Integer> empReportingIdList = getEmployeeHiearachyData(Integer.parseInt(orgId),req.getLoggedInEmpId());
 				empReportingIdList.add(req.getLoggedInEmpId());
+				List<VehicleModelRes> vehicleModelData1 = getVehicleModelDataModelandSource(empReportingIdList, req, orgId, branchId, vehicleModelList,empId);
+				 List<LeadSourceRes> leadSourceData1 = getLeadSourceData(req);
 				log.debug("empReportingIdList for emp " + req.getLoggedInEmpId());
 				log.debug("Calling getTargetAchivemetns in else" + empReportingIdList);
-				resList = getTargetAchivementParamsForMultipleEmpmodelandSource(empReportingIdList, req, orgId,vehicleModelData, leadSourceData);
+				resList = getTargetAchivementParamsForMultipleEmpmodelandSource(empReportingIdList, req, orgId,vehicleModelData1, leadSourceData1);
 			}
 			log.debug("Total time taken for getTargetparams "+(System.currentTimeMillis()-startTime));
 		} catch (Exception e) {

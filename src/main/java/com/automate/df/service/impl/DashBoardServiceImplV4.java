@@ -210,7 +210,9 @@ public class DashBoardServiceImplV4 implements DashBoardServiceV4{
 			List<Integer> selectedEmpIdList = req.getEmpSelected();
 			List<Integer> selectedNodeList = req.getLevelSelected();
 			TargetRoleRes tRole = salesGapServiceImpl.getEmpRoleDataV2(empId);
-			String orgId = req.getOrgId();
+			String orgId = tRole.getOrgId();
+			String branchId = tRole.getBranchId();
+			//orgId = req.getOrgId();
 			log.debug("tRole getTargetAchivementParams "+tRole);
 			if (null != selectedEmpIdList && !selectedEmpIdList.isEmpty()) {
 				log.debug("Fetching empReportingIdList for selected employees,selectedEmpIdList" + selectedEmpIdList);
@@ -253,7 +255,7 @@ public class DashBoardServiceImplV4 implements DashBoardServiceV4{
 				resList = dashBoardServiceImplV2.buildFinalTargets(allTargets);
 			}
 			else {
-				log.debug("Fetching empReportingIdList for logged in emp in else :"+req.getLoggedInEmpId());
+				log.debug("Fetching empReportingIdList for logged in emp in else :"+req.getOrgId()+"sdsdfsdfsd"+orgId);
 				List<Integer> empReportingIdList =  getImmediateReportingEmp(req.getSelectedEmpId(),orgId);
 				log.debug("empReportingIdList::"+empReportingIdList);
 				empReportingIdList.add(req.getSelectedEmpId());
