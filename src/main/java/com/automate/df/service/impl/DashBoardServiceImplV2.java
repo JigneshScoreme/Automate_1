@@ -1524,7 +1524,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	
 	private Long getInsuranceCntSupportParam(List<Integer> leadIdList) {
 		  Long cnt=0L;
-			 List<String> list = deliveryDao.getInsuranceTakenLeads(leadIdList,"InHouse");
+			 List<String> list = deliveryDao.getInsuranceTakenLeads(leadIdList,"In House");
 	     	 if(null!=list) {
 	     		 cnt= (long) list.size();
 	     		 
