@@ -39,8 +39,16 @@ public interface DmsLeadDao extends JpaRepository<DmsLead, Integer> {
 	@Query(value = "SELECT id FROM dms_lead where sales_consultant in(:empNamesList) and lead_stage not in ('DROPPED') ", nativeQuery = true)
 	List<Integer> getLeadIdsByEmpNamesWithOutDrop(@Param(value = "empNamesList") List<String> empNamesList);
 	
+	@Query(value = "SELECT id FROM dms_lead where sales_consultant in(:empNamesList) and lead_stage not in ('DROPPED') and model in (:model) and  createddatetime>=:startDate and createddatetime<=:endDate", nativeQuery = true)
+	List<Integer> getLeadIdsByEmpNamesWithOutDrop1(@Param(value = "empNamesList") List<String> empNamesList, @Param(value = "model") List<String> model, @Param(value = "startDate") String startDate,
+			@Param(value = "endDate") String endDate);
+	
 	@Query(value = "SELECT id FROM dms_lead where sales_consultant in(:empNamesList) and lead_stage in ('DROPPED') ", nativeQuery = true)
 	List<Integer> getLeadIdsByEmpNamesWithDrop(@Param(value = "empNamesList") List<String> empNamesList);
+	
+	@Query(value = "SELECT id FROM dms_lead where sales_consultant in(:empNamesList) and lead_stage in ('DROPPED') and model in (:model) AND createddatetime>=:startDate and createddatetime<=:endDate", nativeQuery = true)
+	List<Integer> getLeadIdsByEmpNamesWithDrop1(@Param(value = "empNamesList") List<String> empNamesList, @Param(value = "model") List<String> model, @Param(value = "startDate") String startDate,
+			@Param(value = "endDate") String endDate);
 	
 	
 	// Vehicle model query starts here 
@@ -60,8 +68,19 @@ public interface DmsLeadDao extends JpaRepository<DmsLead, Integer> {
 			@Param(value = "model") String model);
 	
 	@Query(value = "SELECT * FROM dms_lead where sales_consultant in(:empNamesList) and createddatetime>=:startDate\r\n"
-			+ "and createddatetime<=:endDate and model=:model and organization_id=:orgId ", nativeQuery = true)
+			+ "and createddatetime<=:endDate and model=:model and organization_id=:orgId and lead_stage not in ('DROPPED')", nativeQuery = true)
 	List<Integer> getAllEmployeeLeadsWithModel1(
+			@Param(value = "orgId") String orgId,
+			
+			@Param(value = "empNamesList") List<String> empNamesList,
+			@Param(value = "startDate") String startDate,
+			@Param(value = "endDate") String endDate,
+			@Param(value = "model") String model);
+	
+	
+	@Query(value = "SELECT * FROM dms_lead where sales_consultant in(:empNamesList) and createddatetime>=:startDate\r\n"
+			+ "and createddatetime<=:endDate and model=:model and organization_id=:orgId and lead_stage in ('DROPPED')", nativeQuery = true)
+	List<Integer> getAllEmployeeLeadsWithModel11(
 			@Param(value = "orgId") String orgId,
 			
 			@Param(value = "empNamesList") List<String> empNamesList,
@@ -85,8 +104,20 @@ public interface DmsLeadDao extends JpaRepository<DmsLead, Integer> {
 			@Param(value = "enqId") Integer enqId);
 	
 	@Query(value = "SELECT * FROM dms_lead where sales_consultant in(:empNamesList) and createddatetime>=:startDate\r\n"
-			+ "and createddatetime<=:endDate and source_of_enquiry=:enqId and model in(:vehicleModelList) and organization_id=:orgId", nativeQuery = true)
+			+ "and createddatetime<=:endDate and source_of_enquiry=:enqId and model in(:vehicleModelList) and organization_id=:orgId and lead_stage not in ('DROPPED')", nativeQuery = true)
 	List<Integer> getAllEmployeeLeadsBasedOnEnquiry1(
+			@Param(value = "orgId") String orgId,
+		
+			@Param(value = "empNamesList") List<String> empNamesList,
+			@Param(value = "startDate") String startDate,
+			@Param(value = "endDate") String endDate,
+			@Param(value = "enqId") Integer enqId,
+			@Param(value = "vehicleModelList") List<String> vehicleModelList);
+	
+	
+	@Query(value = "SELECT * FROM dms_lead where sales_consultant in(:empNamesList) and createddatetime>=:startDate\r\n"
+			+ "and createddatetime<=:endDate and source_of_enquiry=:enqId and model in(:vehicleModelList) and organization_id=:orgId and lead_stage in ('DROPPED')", nativeQuery = true)
+	List<Integer> getAllEmployeeLeadsBasedOnEnquiry11(
 			@Param(value = "orgId") String orgId,
 		
 			@Param(value = "empNamesList") List<String> empNamesList,
