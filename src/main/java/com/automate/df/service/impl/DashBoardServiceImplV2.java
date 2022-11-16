@@ -21,7 +21,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -43,7 +42,6 @@ import com.automate.df.constants.DynamicFormConstants;
 import com.automate.df.dao.DmsDeliveryDao;
 import com.automate.df.dao.DmsExchangeBuyerDao;
 import com.automate.df.dao.DmsFinanceDao;
-import com.automate.df.dao.DmsInvoiceDao;
 import com.automate.df.dao.DmsSourceOfEnquiryDao;
 import com.automate.df.dao.EmployeeAllocation;
 import com.automate.df.dao.LeadStageRefDao;
@@ -64,7 +62,6 @@ import com.automate.df.entity.SourceAndId;
 import com.automate.df.entity.dashboard.ComplaintsTracker;
 import com.automate.df.entity.dashboard.DmsLead;
 import com.automate.df.entity.dashboard.DmsWFTask;
-import com.automate.df.entity.sales.employee.DmsExchangeBuyer;
 import com.automate.df.entity.sales.master.DmsSourceOfEnquiry;
 import com.automate.df.entity.salesgap.DmsEmployee;
 import com.automate.df.entity.salesgap.TargetRoleReq;
@@ -5998,7 +5995,254 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 	
 	
 	
+	@Override
+	public Map<String, Object> getTodaysPendingUpcomingDataV2Filter(MyTaskReq req) throws DynamicFormsServiceException {
+		log.info("Inside getTodaysPendingUpcomingDataV2Filter(){},empId " + req.getLoggedInEmpId() + " and IsOnlyForEmp "
+				+ req.isOnlyForEmp());
+		Map<String, Object> list = new LinkedHashMap<>();
 
+		try {
+
+			boolean isOnlyForEmp =req.isOnlyForEmp();
+			List<Integer> empIdList = new ArrayList<>();
+			log.debug("isOnlyForEmp::"+isOnlyForEmp);
+			if(isOnlyForEmp) {
+				empIdList.add(req.getLoggedInEmpId());
+
+			}else {
+				if(req.getSalesConsultantId() != null && req.getSalesConsultantId().size()>0){
+					req.getSalesConsultantId().remove(req.getLoggedInEmpId());
+					empIdList = req.getSalesConsultantId();
+				}else{
+					Long startTime = System.currentTimeMillis();
+					empIdList = getReportingEmployesFilter(req.getLoggedInEmpId());
+					log.debug("getReportingEmployes list "+empIdList.size());
+					log.debug("Time taken to get employess list "+(System.currentTimeMillis()-startTime));
+				}
+			}
+			Long startTime_1 = System.currentTimeMillis();
+			list = getTodaysDataV2Filter(empIdList, req,req.getDataType());
+			log.debug("Time taken to get Todays Data "+(System.currentTimeMillis()-startTime_1));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new DynamicFormsServiceException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return list;
+	}
+
+	public List<Integer> getReportingEmployesFilter(Integer empId) throws DynamicFormsServiceException {
+		List<String> empReportingIdList = new ArrayList<>();
+		List<Integer> empReportingIdList_1 = new ArrayList<>();
+		Optional<DmsEmployee> empOpt = dmsEmployeeRepo.findEmpById(empId);
+		if(empOpt.isPresent()) {
+			TargetRoleRes tRole = salesGapServiceImpl.getEmpRoleDataV3(empId);
+			log.debug("tRole::"+tRole);
+			log.debug("tRole.getOrgMapBranches():::"+tRole.getOrgMapBranches());
+
+			for(String orgMapBranchId : tRole.getOrgMapBranches()) {
+				Map<String, Object> hMap = ohServiceImpl.getReportingHierarchyV2(empOpt.get(),Integer.parseInt(orgMapBranchId),Integer.parseInt((tRole.getOrgId())));
+				if(null!=hMap) {
+					for(Map.Entry<String, Object> mapentry : hMap.entrySet()) {
+						Map<String, Object> map2 = (Map<String, Object>)mapentry.getValue();
+						for(Map.Entry<String, Object> mapentry_1 :map2.entrySet()) {
+							List<TargetDropDownV2> ddList = (List<TargetDropDownV2>)mapentry_1.getValue();
+							empReportingIdList.addAll(ddList.stream().map(x->x.getCode()).collect(Collectors.toList()));
+						}
+					}
+				}
+			}
+			Set<String> s = new HashSet<>();
+			s.addAll(empReportingIdList);
+			empReportingIdList = new ArrayList<>(s);
+		}else {
+			throw new DynamicFormsServiceException("Logged in emp is not valid employee,no record found in dms_employee", HttpStatus.BAD_REQUEST);
+		}
+		empReportingIdList_1 = empReportingIdList.stream().map(Integer::parseInt).collect(Collectors.toList());
+
+		return empReportingIdList_1;
+	}
+
+	private Map<String, Object> getTodaysDataV2Filter(List<Integer> empIdsUnderReporting, MyTaskReq req, String dataType) {
+
+		Map<String, Object> map = new LinkedHashMap<>();
+		try {
+			log.debug("empIdsUnderReporting in getTodaysData before pagination"+empIdsUnderReporting.size());
+			log.debug("dataType::::"+dataType);
+			if(dataType.equalsIgnoreCase(DynamicFormConstants.TODAYS_DATA)) {
+				map.put("todaysData", processTodaysUpcomingPendingDataFilter(req,empIdsUnderReporting,DynamicFormConstants.TODAYS_DATA));
+				map.put("rescheduledData", processTodaysUpcomingPendingDataFilter(req,empIdsUnderReporting,DynamicFormConstants.RESCHEDULED_DATA));
+			}
+			else if(dataType.equalsIgnoreCase(DynamicFormConstants.PENDING_DATA)) {
+				map.put("pendingData", processTodaysUpcomingPendingDataFilter(req,empIdsUnderReporting,DynamicFormConstants.PENDING_DATA));
+			}
+			else if(dataType.equalsIgnoreCase(DynamicFormConstants.RESCHEDULED_DATA)) {
+				map.put("rescheduledData", processTodaysUpcomingPendingDataFilter(req,empIdsUnderReporting,DynamicFormConstants.RESCHEDULED_DATA));
+			}
+			else if(dataType.equalsIgnoreCase(DynamicFormConstants.COMPLETED_DATA)) {
+				map.put("completedData", processTodaysUpcomingPendingDataFilter(req,empIdsUnderReporting,DynamicFormConstants.COMPLETED_DATA));
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			log.error("Exception in getTodaysDataV2 ",e);			}
+		return map;
+
+	}
+
+	private List<TodaysTaskRes> processTodaysUpcomingPendingDataFilter(MyTaskReq req, List<Integer> empIdsUnderReporting,String dataType) {
+
+		log.debug("Inside getTodayDataV2::()");
+		List<TodaysTaskRes> todaysRes = new ArrayList<>();
+
+		if (empIdsUnderReporting.size() > 0) {
+			List<List<Integer>> empIdPartionList = partitionList(empIdsUnderReporting);
+			log.debug("empIdPartionList ::" + empIdPartionList.size());
+			ExecutorService executor = Executors.newFixedThreadPool(empIdPartionList.size());
+
+			List<CompletableFuture<List<TodaysTaskRes>>> futureList  =null;
+			if(dataType.equalsIgnoreCase(DynamicFormConstants.TODAYS_DATA)) {
+				futureList = empIdPartionList.stream()
+						.map(strings -> CompletableFuture.supplyAsync(() -> processTodaysDataFilter(req,strings), executor))
+						.collect(Collectors.toList());
+			}
+			else if(dataType.equalsIgnoreCase(DynamicFormConstants.PENDING_DATA)) {
+				futureList = empIdPartionList.stream()
+						.map(strings -> CompletableFuture.supplyAsync(() -> processPendingDataFilter(req,strings), executor))
+						.collect(Collectors.toList());
+			}
+			else if(dataType.equalsIgnoreCase(DynamicFormConstants.RESCHEDULED_DATA)) {
+				futureList = empIdPartionList.stream()
+						.map(strings -> CompletableFuture.supplyAsync(() -> processResechduledDataFilter(req,strings), executor))
+						.collect(Collectors.toList());
+			}
+			else if(dataType.equalsIgnoreCase(DynamicFormConstants.COMPLETED_DATA)) {
+				futureList = empIdPartionList.stream()
+						.map(strings -> CompletableFuture.supplyAsync(() -> processCompletededDataFilter(req,strings), executor))
+						.collect(Collectors.toList());
+			}
+			if (null != futureList) {
+				CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0])).join();
+				Stream<List<TodaysTaskRes>> dataStream = (Stream<List<TodaysTaskRes>>) futureList.stream().map(CompletableFuture::join);
+				dataStream.forEach(x -> {
+					todaysRes.addAll(x);
+				});
+
+			}
+		}
+		log.debug("size of todaysRes " + todaysRes.size());
+
+		return todaysRes;
+	}
+
+	private List<TodaysTaskRes> processTodaysDataFilter(MyTaskReq req,  List<Integer> empIdsUnderReporting) {
+		List<TodaysTaskRes> todaysRes = new ArrayList<>();
+		for (Integer empId : empIdsUnderReporting) {
+			String empName = salesGapServiceImpl.getEmpName(String.valueOf(empId));
+			log.debug("generating data for empId " + empId + " and empName:" + empName);
+
+			String todaysDate = getTodaysDate();
+			log.debug("todaysDate::" + todaysDate);
+
+			List<DmsWFTask> todayWfTaskList = null;
+			List<Integer> dealerId = req.getBranchCodes();
+
+			if(req.isIgnoreDateFilter() && (req.getBranchCodes()!=null && req.getBranchCodes().size()>0)){
+				todayWfTaskList =dmsWfTaskDao.getTodaysUpcomingTasksWithDealer(empId, todaysDate + " 00:00:00", todaysDate + " 23:59:59",dealerId);
+			} else if((!req.isIgnoreDateFilter() && req.getStartDate()!=null && req.getEndDate()!=null) && (req.getBranchCodes()!=null && req.getBranchCodes().size()>0)){
+				todayWfTaskList = dmsWfTaskDao.getTodaysUpcomingTasksWithDateAndDealer(empId,req.getStartDate() + " 00:00:00", req.getEndDate() + " 23:59:59",dealerId);
+			} else if((!req.isIgnoreDateFilter() && req.getStartDate()!=null && req.getEndDate()!=null) && (req.getBranchCodes()==null || req.getBranchCodes().size()==0)){
+				todayWfTaskList = dmsWfTaskDao.getTodaysUpcomingTasks(empId,req.getStartDate()+ " 00:00:00", req.getEndDate()+" 23:59:59");
+			} else{
+				todayWfTaskList = dmsWfTaskDao.getTodaysUpcomingTasks(empId, todaysDate + " 00:00:00", todaysDate + " 23:59:59");
+			}
+			todaysRes.add(buildMyTaskObj(todayWfTaskList, empId, empName));
+		}
+		return todaysRes;
+	}
+
+
+	private List<TodaysTaskRes> processPendingDataFilter(MyTaskReq req,  List<Integer> empIdsUnderReporting) {
+		log.debug("Inside getUpcomingDataV2::()");
+		List<TodaysTaskRes> todaysRes = new ArrayList<>();
+		for (Integer empId : empIdsUnderReporting) {
+			String empName = salesGapServiceImpl.getEmpName(String.valueOf(empId));
+			String startDate = req.getStartDate()+" 00:00:00";
+			String endDate = req.getEndDate()+" 23:59:59";
+			log.debug("processPendingData :startDate:"+startDate+",endDate:"+endDate);
+			List<DmsWFTask> wfTaskList = null;
+			List<Integer> dealerId = req.getBranchCodes();
+
+			if(req.isIgnoreDateFilter() && (req.getBranchCodes()!=null && req.getBranchCodes().size()>0)){
+				wfTaskList =dmsWfTaskDao.findAllByPendingStatusFilterWithDealer(empId,dealerId);
+			} else if((!req.isIgnoreDateFilter() && req.getStartDate()!=null && req.getEndDate()!=null) && (req.getBranchCodes()!=null && req.getBranchCodes().size()>0)){
+				wfTaskList =dmsWfTaskDao.findAllByPendingStatusFilterWithDateAndDealer(empId,startDate,endDate,dealerId);
+			} else if((!req.isIgnoreDateFilter() && req.getStartDate()!=null && req.getEndDate()!=null) && (req.getBranchCodes()==null || req.getBranchCodes().size()==0)){
+				wfTaskList = dmsWfTaskDao.findAllByPendingData(empId,startDate,endDate);
+			} else{
+				wfTaskList = dmsWfTaskDao.findAllByPendingStatus (String.valueOf(empId));
+			}
+
+			log.debug("wfTaskList size ingetPendingDataV2 "+wfTaskList.size());
+			todaysRes.add(buildMyTaskObj(wfTaskList,empId,empName));
+		}
+		return todaysRes;
+	}
+
+	private List<TodaysTaskRes> processResechduledDataFilter(MyTaskReq req,List<Integer> empIdsUnderReporting) {
+		log.debug("Inside getRescheduledDataV2::()");
+		List<TodaysTaskRes> todaysRes = new ArrayList<>();
+		for (Integer empId : empIdsUnderReporting) {
+			String empName = salesGapServiceImpl.getEmpName(String.valueOf(empId));
+			log.debug("generating data for empId " + empId + " and empName:" + empName);
+			String startDate = req.getStartDate()+" 00:00:00";
+			String endDate = req.getEndDate()+" 23:59:59";
+			List<Integer> dealerId = req.getBranchCodes();
+
+			List<DmsWFTask> wfTaskList  =null;
+
+			if(req.isIgnoreDateFilter() && (req.getBranchCodes()!=null && req.getBranchCodes().size()>0)){
+				wfTaskList =dmsWfTaskDao.findAllByRescheduledStatusFilterWithDealer(empId,dealerId);
+			} else if((!req.isIgnoreDateFilter() && req.getStartDate()!=null && req.getEndDate()!=null) && (req.getBranchCodes()!=null && req.getBranchCodes().size()>0)){
+				wfTaskList =dmsWfTaskDao.findAllByRescheduledStatusFilterWithDateAndDealer(empId,startDate,endDate,dealerId);
+			} else if((!req.isIgnoreDateFilter() && req.getStartDate()!=null && req.getEndDate()!=null) && (req.getBranchCodes()==null || req.getBranchCodes().size()==0)){
+				wfTaskList =dmsWfTaskDao.findAllByRescheduledStatus(empId,startDate,endDate);
+			} else{
+				wfTaskList = dmsWfTaskDao.findAllByRescheduledStatusWithNoDate (String.valueOf(empId));
+			}
+
+			log.debug("wfTaskList size ingetPendingDataV2 "+wfTaskList.size());
+			todaysRes.add(buildMyTaskObj(wfTaskList,empId,empName));
+		}
+		return todaysRes;
+	}
+	private List<TodaysTaskRes> processCompletededDataFilter(MyTaskReq req,List<Integer> empIdsUnderReporting) {
+		log.debug("Inside getRescheduledDataV2::()");
+		List<TodaysTaskRes> todaysRes = new ArrayList<>();
+		for (Integer empId : empIdsUnderReporting) {
+			String empName = salesGapServiceImpl.getEmpName(String.valueOf(empId));
+			log.debug("generating data for empId " + empId + " and empName:" + empName);
+			String startDate = req.getStartDate()+" 00:00:00";
+			String endDate = req.getEndDate()+" 23:59:59";
+			List<Integer> dealerId = req.getBranchCodes();
+
+			List<DmsWFTask> wfTaskList  =null;
+
+			if(req.isIgnoreDateFilter() && (req.getBranchCodes()!=null && req.getBranchCodes().size()>0)){
+				wfTaskList =dmsWfTaskDao.findAllByCompletedStatusFilterWithDealer(empId,dealerId);
+			} else if((!req.isIgnoreDateFilter() && req.getStartDate()!=null && req.getEndDate()!=null) && (req.getBranchCodes()!=null && req.getBranchCodes().size()>0)){
+				wfTaskList =dmsWfTaskDao.findAllByCompletedStatusFilterWithDateAndDealer(empId,startDate,endDate,dealerId);
+			} else if((!req.isIgnoreDateFilter() && req.getStartDate()!=null && req.getEndDate()!=null) && (req.getBranchCodes()==null || req.getBranchCodes().size()==0)){
+				wfTaskList =dmsWfTaskDao.findAllByCompletedStatus(empId,startDate,endDate);
+			} else{
+				wfTaskList = dmsWfTaskDao.findAllByCompletedStatusWithNoDate (String.valueOf(empId));
+			}
+
+			log.debug("wfTaskList size ingetPendingDataV2 "+wfTaskList.size());
+			todaysRes.add(buildMyTaskObj(wfTaskList,empId,empName));
+		}
+		return todaysRes;
+	}
 }
 
 

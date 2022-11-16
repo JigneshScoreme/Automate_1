@@ -3,6 +3,8 @@ package com.automate.df.model;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 
@@ -19,6 +21,11 @@ public class MyTaskReq {
 	boolean isDetailView;
 	String viewForEmp;
 	Integer detailedViewEmpId;
+	List<Integer> branchCodes;
+
+
+	List<Integer> salesConsultantId;
+
 	
 	
 

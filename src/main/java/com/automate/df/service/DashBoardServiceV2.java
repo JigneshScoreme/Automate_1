@@ -65,4 +65,6 @@ public interface DashBoardServiceV2 {
 
 	List<TargetAchivementModelandSource> getTargetAchivementParamsForSingleEmpModelAndSource3(DashBoardReqV2 req) throws DynamicFormsServiceException;
 
+	Map<String, Object> getTodaysPendingUpcomingDataV2Filter(MyTaskReq req) throws DynamicFormsServiceException;
+
 }
