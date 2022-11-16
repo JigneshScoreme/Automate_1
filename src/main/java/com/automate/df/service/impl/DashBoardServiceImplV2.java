@@ -923,23 +923,30 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		Long delCnt = 0L;
 		List<DmsEmployeeAllocation> dmsEmployeeAllocations = employeeAllocation.findByEmployeeId(empId);
 		
+		Map<Integer, String> vehicleDataMap = dashBoardUtil.getVehilceDetails(orgId).get("main");
+		List<String> vehicleModelList = new ArrayList<>();
+		vehicleDataMap.forEach((k, v) -> {
+			vehicleModelList.add(v);
+		});
 		
 		
-		List<Integer> dmsLeadList = dmsLeadDao.getLeadIdsByEmpNamesWithOutDrop(empNamesList);
+		List<Integer> dmsLeadList = dmsLeadDao.getLeadIdsByEmpNamesWithOutDrop1(empNamesList,vehicleModelList,startDate,endDate);
         //System.out.println("dmsLeadList Before Adding"+dmsLeadList.size());
         //System.out.println("empNamesList"+empNamesList.toString());
-		dmsLeadList.addAll(dmsEmployeeAllocations.stream().filter(res -> !res.getDmsLead().getLeadStage().equalsIgnoreCase("DROPPED")
+		dmsLeadList.addAll(dmsEmployeeAllocations.stream().filter(res -> !res.getDmsLead().getLeadStage().equalsIgnoreCase("DROPPED") &&
+				vehicleModelList.equals(res.getDmsLead().getModel())
 				&& empNamesList.equals(res.getDmsLead().getSalesConsultant())).map(res -> res.getDmsLead().getId()).collect(Collectors.toList()));
 
 		//dmsLeadList.addAll(dmsEmployeeAllocations.stream().filter(res -> !res.getDmsLead().getLeadStage().equalsIgnoreCase("DROPPED")).map(res -> res.getDmsLead().getId()).collect(Collectors.toList()));
 		
 		//System.out.println("dmsLeadList After Adding"+dmsLeadList.size());	
 		
-		List<Integer> dmsLeadListDropped = dmsLeadDao.getLeadIdsByEmpNamesWithDrop(empNamesList);
+		List<Integer> dmsLeadListDropped = dmsLeadDao.getLeadIdsByEmpNamesWithDrop1(empNamesList,vehicleModelList,startDate,endDate);
 		
 		//System.out.println("dmsLeadListDropped Before Adding"+dmsLeadListDropped.size());
 		
-		dmsLeadListDropped.addAll(dmsEmployeeAllocations.stream().filter(res -> res.getDmsLead().getLeadStage().equalsIgnoreCase("DROPPED")
+		dmsLeadListDropped.addAll(dmsEmployeeAllocations.stream().filter(res -> res.getDmsLead().getLeadStage().equalsIgnoreCase("DROPPED") &&
+				vehicleModelList.equals(res.getDmsLead().getModel())
 				&& empNamesList.equals(res.getDmsLead().getSalesConsultant())).map(res -> res.getDmsLead().getId()).collect(Collectors.toList()));
 		//dmsLeadListDropped.addAll(dmsEmployeeAllocations.stream().filter(res -> res.getDmsLead().getLeadStage().equalsIgnoreCase("DROPPED")).map(res -> res.getDmsLead().getId()).collect(Collectors.toList()));
 		
@@ -991,7 +998,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			
 			if(null!=leadRefListDropped && !leadRefListDropped.isEmpty()) {
 				
-				dropLeadCnt = leadRefListDropped.stream().count();
+				dropLeadCnt = leadRefListDropped.stream().distinct().count();
 			}
 		}
 		System.out.println("@@@@@@@@@#############leadRefList2:::::::::"+leadRefList.stream().map(res->res.getLeadId()).distinct().collect(Collectors.toList()));
@@ -2269,7 +2276,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			
 			//System.out.println("dmsLeadList After Adding"+dmsLeadList.size());	
 			
-			List<Integer> dmsLeadListDropped = dmsLeadDao.getAllEmployeeLeadsBasedOnEnquiry1(orgId,empNamesList,startDate, endDate, v,vehicleModelList);
+			List<Integer> dmsLeadListDropped = dmsLeadDao.getAllEmployeeLeadsBasedOnEnquiry11(orgId,empNamesList,startDate, endDate, v,vehicleModelList);
 			
 			//System.out.println("dmsLeadListDropped Before Adding"+dmsLeadListDropped.size());
 			
@@ -2330,9 +2337,9 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			leadSource.setR(invCount);
 			
 			
-			if(dmsLeadListDropped!=null && dmsLeadListDropped.size() > 0)
+			if(leadRefListDropped!=null && leadRefListDropped.size() > 0)
 			{
-			droppedCnt = dmsLeadListDropped.stream().distinct().count();
+			droppedCnt = leadRefListDropped.stream().distinct().count();
 			}
 			/*
 			 * if (null != dmsAllLeadList) { log.info("size of dmsLeadList " +
@@ -5675,7 +5682,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 				
 				//System.out.println("dmsLeadList After Adding"+dmsLeadList.size());	
 				
-				List<Integer> dmsLeadListDropped = dmsLeadDao.getAllEmployeeLeadsWithModel1(orgId,empNamesList,startDate, endDate, model);
+				List<Integer> dmsLeadListDropped = dmsLeadDao.getAllEmployeeLeadsWithModel11(orgId,empNamesList,startDate, endDate, model);
 				
 				//System.out.println("dmsLeadListDropped Before Adding"+dmsLeadListDropped.size());
 				
@@ -5700,7 +5707,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 				
 				//System.out.println("leadRefList After Duplicates"+leadRefList.size());
 				
-				//List<LeadStageRefEntity> leadRefListDropped  =  leadStageRefDao.getLeadsByStageandDate(orgId,dmsLeadListDropped,startDate,endDate);
+				List<LeadStageRefEntity> leadRefListDropped  =  leadStageRefDao.getLeadsByStageandDate(orgId,dmsLeadListDropped,startDate,endDate);
 				
 				//New Code Ends
 				
@@ -5742,9 +5749,9 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 				if (null != dmsLeadList) {
 					log.info("size of dmsLeadList " + dmsLeadList.size());
 					enqLeadCnt = enqLeadCnt;
-					if(dmsLeadListDropped!=null && dmsLeadListDropped.size() > 0)
+					if(leadRefListDropped!=null && leadRefListDropped.size() > 0)
 					{
-					droppedCnt = dmsLeadListDropped.stream().distinct().count();
+					droppedCnt = leadRefListDropped.stream().distinct().count();
 					}
 					
 
