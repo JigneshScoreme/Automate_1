@@ -6145,7 +6145,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			log.debug("todaysDate::" + todaysDate);
 
 			List<DmsWFTask> todayWfTaskList = null;
-			List<Integer> dealerId = req.getBranchCodes();
+			List<String> dealerId = req.getBranchCodes();
 
 			if(req.isIgnoreDateFilter() && (req.getBranchCodes()!=null && req.getBranchCodes().size()>0)){
 				todayWfTaskList =dmsWfTaskDao.getTodaysUpcomingTasksWithDealer(empId, todaysDate + " 00:00:00", todaysDate + " 23:59:59",dealerId);
@@ -6171,7 +6171,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			String endDate = req.getEndDate()+" 23:59:59";
 			log.debug("processPendingData :startDate:"+startDate+",endDate:"+endDate);
 			List<DmsWFTask> wfTaskList = null;
-			List<Integer> dealerId = req.getBranchCodes();
+			List<String> dealerId = req.getBranchCodes();
 
 			if(req.isIgnoreDateFilter() && (req.getBranchCodes()!=null && req.getBranchCodes().size()>0)){
 				wfTaskList =dmsWfTaskDao.findAllByPendingStatusFilterWithDealer(empId,dealerId);
@@ -6197,7 +6197,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			log.debug("generating data for empId " + empId + " and empName:" + empName);
 			String startDate = req.getStartDate()+" 00:00:00";
 			String endDate = req.getEndDate()+" 23:59:59";
-			List<Integer> dealerId = req.getBranchCodes();
+			List<String> dealerId = req.getBranchCodes();
 
 			List<DmsWFTask> wfTaskList  =null;
 
@@ -6224,7 +6224,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			log.debug("generating data for empId " + empId + " and empName:" + empName);
 			String startDate = req.getStartDate()+" 00:00:00";
 			String endDate = req.getEndDate()+" 23:59:59";
-			List<Integer> dealerId = req.getBranchCodes();
+			List<String> dealerId = req.getBranchCodes();
 
 			List<DmsWFTask> wfTaskList  =null;
 

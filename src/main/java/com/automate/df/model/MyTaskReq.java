@@ -21,7 +21,7 @@ public class MyTaskReq {
 	boolean isDetailView;
 	String viewForEmp;
 	Integer detailedViewEmpId;
-	List<Integer> branchCodes;
+	List<String> branchCodes;
 
 
 	List<Integer> salesConsultantId;
