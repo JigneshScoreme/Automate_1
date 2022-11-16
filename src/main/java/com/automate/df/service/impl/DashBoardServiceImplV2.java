@@ -2333,9 +2333,9 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			leadSource.setR(invCount);
 			
 			
-			if(leadRefListDropped!=null && leadRefListDropped.size() > 0)
+			if(dmsLeadListDropped!=null && dmsLeadListDropped.size() > 0)
 			{
-			droppedCnt = leadRefListDropped.stream().distinct().count();
+			droppedCnt = dmsLeadListDropped.stream().distinct().count();
 			}
 			/*
 			 * if (null != dmsAllLeadList) { log.info("size of dmsLeadList " +
@@ -5282,6 +5282,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		long testDriveCnt=vehicalmodelresult.getT();
 		long homeVistCnt=vehicalmodelresult.getV();
 		invCount=vehicalmodelresult.getR();
+		dropLeadCnt=vehicalmodelresult.getL();
 		
 		System.out.println("@@@@@@@@@#############leadRefList1:::::::::"+leadRefList.stream().map(res->res.getLeadId()).distinct().collect(Collectors.toList()));
 		resList = buildTargetAchivementsModelAndSource(resList, map,dropLeadCnt, enqLeadCnt,preBookCount, bookCount,invCount,preDeliveryCnt,delCnt,wfTaskList,leadRefList,testDriveCnt,homeVistCnt,vehicalmodelresult.getModel(),source);
@@ -5329,6 +5330,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			long testDriveCnt=leadSourceRes.getT();
 			long homeVistCnt=leadSourceRes.getV();
 			invCount=leadSourceRes.getR();
+			dropLeadCnt=leadSourceRes.getL();
 			System.out.println("@@@@@@@@@#############leadRefList2:::::::::"+leadRefList.stream().map(res->res.getLeadId()).distinct().collect(Collectors.toList()));
 
 			resList = buildTargetAchivementsModelAndSource(resList, map, dropLeadCnt, enqLeadCnt,preBookCount, bookCount,invCount,preDeliveryCnt,delCnt,wfTaskList,leadRefList,testDriveCnt,homeVistCnt,model,leadSourceRes.getLead());
@@ -5683,7 +5685,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 				dmsLeadListDropped.addAll(dmsEmployeeAllocations.stream().filter(res -> res.getDmsLead().getLeadStage().equalsIgnoreCase("DROPPED")
 						&& empNamesList.equals(res.getDmsLead().getSalesConsultant()) && res.getDmsLead().getModel().equalsIgnoreCase(model)).map(res -> res.getDmsLead().getId()).collect(Collectors.toList()));
 				
-				//System.out.println("dmsLeadListDropped After Adding"+dmsLeadListDropped.size());
+				System.out.println("dmsLeadListDropped After Adding"+dmsLeadListDropped.size());
 				
 				dmsLeadList = dmsLeadList.stream().distinct().collect(Collectors.toList());
 				
@@ -5701,7 +5703,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 				
 				//System.out.println("leadRefList After Duplicates"+leadRefList.size());
 				
-				List<LeadStageRefEntity> leadRefListDropped  =  leadStageRefDao.getLeadsByStageandDate(orgId,dmsLeadListDropped,startDate,endDate);
+				//List<LeadStageRefEntity> leadRefListDropped  =  leadStageRefDao.getLeadsByStageandDate(orgId,dmsLeadListDropped,startDate,endDate);
 				
 				//New Code Ends
 				
@@ -5713,7 +5715,7 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 				Long enqLeadCnt = 0L;
 				Long bookCount = 0L;
 				Long invCount = 0L;
-				
+				Long droppedCnt = 0L;
 			
 				/*
 				 * List<Integer> dmsLeadIdList =
@@ -5739,13 +5741,13 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 				//System.out.println("@@@@@@@@@BookingMod List"+leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("BOOKING")).map(res -> res.getLeadId()).distinct().collect(Collectors.toList()));
 				//System.out.println("@@@@@@@@@@InvMod List"+leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(invCompStatus)).map(res -> res.getLeadId()).distinct().collect(Collectors.toList()));
 		
-				Long droppedCnt = 0L;
+				droppedCnt = 0L;
 				if (null != dmsLeadList) {
 					log.info("size of dmsLeadList " + dmsLeadList.size());
 					enqLeadCnt = enqLeadCnt;
-					if(leadRefListDropped!=null && leadRefListDropped.size() > 0)
+					if(dmsLeadListDropped!=null && dmsLeadListDropped.size() > 0)
 					{
-					droppedCnt = leadRefListDropped.stream().distinct().count();
+					droppedCnt = dmsLeadListDropped.stream().distinct().count();
 					}
 					
 
