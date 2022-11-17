@@ -193,5 +193,12 @@ public interface DmsLeadDao extends JpaRepository<DmsLead, Integer> {
 	@Query(value="SELECT * FROM dms_lead WHERE crm_universal_id=:unversalId", nativeQuery = true)
 	DmsLead getDMSLead(@Param(value = "unversalId") String unversalId);
 	
+	@Query(value="SELECT * FROM dms_lead WHERE organization_id=:orgId and id IN (:leadIdList) AND createddatetime>=:startDate and createddatetime<=:endDate and lead_stage in ('DROPPED')",nativeQuery = true)
+	List<DmsLead> getLeadsByStageandDate(
+			@Param(value="orgId") String orgId,
+			@Param(value="leadIdList") List<Integer> leadIdList,
+			@Param(value="startDate") String startDate,@Param(value="endDate") String endDate
+			);
+	
 	
 }
