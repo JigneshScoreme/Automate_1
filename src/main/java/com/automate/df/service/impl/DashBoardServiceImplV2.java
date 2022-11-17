@@ -970,6 +970,8 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		
 		List<LeadStageRefEntity> leadRefListDropped  =  leadStageRefDao.getLeadsByStageandDate(orgId,dmsLeadListDropped,startDate,endDate);
 		leadRefListDropped = leadRefListDropped.stream().distinct().collect(Collectors.toList());
+		List<DmsLead> leadRefListDropped1  =  dmsLeadDao.getLeadsByStageandDate(orgId,dmsLeadListDropped,startDate,endDate);
+		leadRefListDropped1 = leadRefListDropped1.stream().distinct().collect(Collectors.toList());
 		Set<Integer> hashSet = new LinkedHashSet(leadRefList);
 		List<LeadStageRefEntity> leadRefListNoDuplicates = new ArrayList(hashSet);
         //log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$Total leads in leadRefListNoDuplicates table is ::"+leadRefListNoDuplicates.size());
@@ -996,9 +998,9 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			//delCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("DELIVERY") && x.getLeadStatus().equalsIgnoreCase("DELIVERYCOMPLETED")).count();
 			delCnt = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(delCompStatus)).count();
 			
-			if(null!=leadRefListDropped && !leadRefListDropped.isEmpty()) {
+			if(null!=leadRefListDropped1 && !leadRefListDropped1.isEmpty()) {
 				
-				dropLeadCnt = leadRefListDropped.stream().distinct().count();
+				dropLeadCnt = leadRefListDropped1.stream().distinct().count();
 			}
 		}
 		System.out.println("@@@@@@@@@#############leadRefList2:::::::::"+leadRefList.stream().map(res->res.getLeadId()).distinct().collect(Collectors.toList()));
@@ -2278,6 +2280,9 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			
 			List<Integer> dmsLeadListDropped = dmsLeadDao.getAllEmployeeLeadsBasedOnEnquiry11(orgId,empNamesList,startDate, endDate, v,vehicleModelList);
 			
+
+			List<DmsLead> leadRefListDropped1  =  dmsLeadDao.getLeadsByStageandDate(orgId,dmsLeadListDropped,startDate,endDate);
+			
 			//System.out.println("dmsLeadListDropped Before Adding"+dmsLeadListDropped.size());
 			
 			dmsLeadListDropped.addAll(dmsEmployeeAllocations.stream().filter(res -> res.getDmsLead().getLeadStage().equalsIgnoreCase("DROPPED")
@@ -2337,9 +2342,9 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			leadSource.setR(invCount);
 			
 			
-			if(leadRefListDropped!=null && leadRefListDropped.size() > 0)
+			if(leadRefListDropped1!=null && leadRefListDropped1.size() > 0)
 			{
-			droppedCnt = leadRefListDropped.stream().distinct().count();
+			droppedCnt = leadRefListDropped1.stream().distinct().count();
 			}
 			/*
 			 * if (null != dmsAllLeadList) { log.info("size of dmsLeadList " +
@@ -5684,6 +5689,8 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 				
 				List<Integer> dmsLeadListDropped = dmsLeadDao.getAllEmployeeLeadsWithModel11(orgId,empNamesList,startDate, endDate, model);
 				
+				List<DmsLead> leadRefListDropped1  =  dmsLeadDao.getLeadsByStageandDate(orgId,dmsLeadListDropped,startDate,endDate);
+				
 				//System.out.println("dmsLeadListDropped Before Adding"+dmsLeadListDropped.size());
 				
 				dmsLeadListDropped.addAll(dmsEmployeeAllocations.stream().filter(res -> res.getDmsLead().getLeadStage().equalsIgnoreCase("DROPPED")
@@ -5696,6 +5703,8 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 				//System.out.println("dmsLeadList After Deleting Duplicates"+dmsLeadList.size());
 				
 				dmsLeadListDropped = dmsLeadListDropped.stream().distinct().collect(Collectors.toList());
+				
+				leadRefListDropped1 = leadRefListDropped1.stream().distinct().collect(Collectors.toList());
 				
 				//System.out.println("dmsLeadListDropped After Deleting Duplicates"+dmsLeadListDropped.size());
 				
@@ -5749,9 +5758,9 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 				if (null != dmsLeadList) {
 					log.info("size of dmsLeadList " + dmsLeadList.size());
 					enqLeadCnt = enqLeadCnt;
-					if(leadRefListDropped!=null && leadRefListDropped.size() > 0)
+					if(leadRefListDropped1!=null && leadRefListDropped1.size() > 0)
 					{
-					droppedCnt = leadRefListDropped.stream().distinct().count();
+					droppedCnt = leadRefListDropped1.stream().distinct().count();
 					}
 					
 

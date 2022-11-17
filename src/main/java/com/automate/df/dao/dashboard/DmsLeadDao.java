@@ -46,6 +46,13 @@ public interface DmsLeadDao extends JpaRepository<DmsLead, Integer> {
 	@Query(value = "SELECT id FROM dms_lead where sales_consultant in(:empNamesList) and lead_stage in ('DROPPED') ", nativeQuery = true)
 	List<Integer> getLeadIdsByEmpNamesWithDrop(@Param(value = "empNamesList") List<String> empNamesList);
 	
+	@Query(value="SELECT * FROM dms_lead WHERE organization_id=:orgId and id IN (:leadIdList) AND createddatetime>=:startDate and createddatetime<=:endDate and lead_stage in ('DROPPED')",nativeQuery = true)
+	List<DmsLead> getLeadsByStageandDate(
+			@Param(value="orgId") String orgId,
+			@Param(value="leadIdList") List<Integer> leadIdList,
+			@Param(value="startDate") String startDate,@Param(value="endDate") String endDate
+			);
+	
 	@Query(value = "SELECT id FROM dms_lead where sales_consultant in(:empNamesList) and lead_stage in ('DROPPED') and model in (:model) AND createddatetime>=:startDate and createddatetime<=:endDate", nativeQuery = true)
 	List<Integer> getLeadIdsByEmpNamesWithDrop1(@Param(value = "empNamesList") List<String> empNamesList, @Param(value = "model") List<String> model, @Param(value = "startDate") String startDate,
 			@Param(value = "endDate") String endDate);
