@@ -1,21 +1,15 @@
 package com.automate.df.controller;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
+import com.automate.df.model.oh.OHRes;
+import com.automate.df.model.salesgap.TargetDropDownV2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.automate.df.dao.DmsTargetParamSchedularRepository;
 import com.automate.df.dao.dashboard.TargetAchivementModelandSource;
@@ -302,6 +296,23 @@ public class DashBoardControllerV2 {
 		Map<String, Object> response = null;
 		if (req.getLoggedInEmpId() != null) {
 			response = dashBoardService.getTodaysPendingUpcomingDataV2(req);
+		} else {
+			throw new DynamicFormsServiceException("LoggedInEmpId,PageNo and Size are mandatory params",
+					HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+
+
+
+	@CrossOrigin
+	@PostMapping(value = "v2/get_todays_datav2/filter")
+	public ResponseEntity<Map<String,Object>> getTodaysDataV2Filter(@RequestBody MyTaskReq req)
+			throws DynamicFormsServiceException {
+		Map<String, Object> response = null;
+		if (req.getLoggedInEmpId() != null) {
+			response = dashBoardService.getTodaysPendingUpcomingDataV2Filter(req);
 		} else {
 			throw new DynamicFormsServiceException("LoggedInEmpId,PageNo and Size are mandatory params",
 					HttpStatus.BAD_REQUEST);
