@@ -51,7 +51,7 @@ public class DashBoardControllerV4 {
 		}
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
-	
+	@CrossOrigin
 	@PostMapping(value = "v4/get_target_params_for_all_emps")
 	public ResponseEntity<OverAllTargetAchivements> getTargetAchivementParamsByEmps(@RequestBody DashBoardReqV2 req)
 			throws DynamicFormsServiceException {
@@ -65,7 +65,7 @@ public class DashBoardControllerV4 {
 	}
 	
 	
-	
+	@CrossOrigin
 	@PostMapping(value = "v4/get_target_params_for_all_emps_model_source")
 	public ResponseEntity<OverAllTargetAchivementsModelAndSource> getTargetAchivementParamsByEmpsModelAndSource(@RequestBody DashBoardReqV2 req)
 			throws DynamicFormsServiceException {
