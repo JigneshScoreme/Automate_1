@@ -14,8 +14,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.automate.df.exception.DynamicFormsServiceException;
+import com.automate.df.model.df.dashboard.DashBoardReqV2;
 import com.automate.df.model.df.dashboard.DashBoardReqV3;
+import com.automate.df.model.df.dashboard.OverAllTargetAchivements;
 import com.automate.df.service.DashBoardServiceV3;
+import com.automate.df.service.DashBoardServiceV4;
 
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +33,9 @@ public class DashBoardControllerV3 {
 
 	@Autowired
 	DashBoardServiceV3 dashBoardService;
+	
+	@Autowired
+	DashBoardServiceV4 dashBoardServiceV4;
 	
 	@CrossOrigin
 	@PostMapping(value = "v2/get_target_params_scheduler")
@@ -93,6 +99,19 @@ public class DashBoardControllerV3 {
 			response = dashBoardService.getEmpRankBranch(req.getLoggedInEmpId(),orgId,branchId);
 		} else {
 			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	@CrossOrigin
+	@PostMapping(value = "v3/get_target_params_for_all_emps")
+	public ResponseEntity<OverAllTargetAchivements> getTargetAchivementParamsByEmps(@RequestBody DashBoardReqV2 req)
+			throws DynamicFormsServiceException {
+		OverAllTargetAchivements response = null;
+		if (Optional.of(req).isPresent()) {
+			response = dashBoardServiceV4.getTargetAchivementParamsWithEmps(req);
+		} else {
+			throw new DynamicFormsServiceException("Invalid Request", HttpStatus.BAD_REQUEST);
 		}
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
