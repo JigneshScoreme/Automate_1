@@ -6,8 +6,8 @@ import java.util.Map;
 import com.automate.df.model.df.dashboard.DashBoardReq;
 import com.automate.df.model.df.dashboard.EventDataRes;
 import com.automate.df.model.df.dashboard.LeadSourceRes;
+import com.automate.df.model.df.dashboard.ReceptionistDashBoardReq;
 import com.automate.df.model.df.dashboard.TargetAchivement;
-import com.automate.df.model.df.dashboard.TodaysRes;
 import com.automate.df.model.df.dashboard.VehicleModelRes;
 
 public interface DashBoardService {
@@ -31,5 +31,9 @@ public interface DashBoardService {
 	 Map<String, Object> getLostDropDataByBranch(DashBoardReq req);
 
 	Map<String, Object> getTodaysPendingUpcomingData(DashBoardReq req);
+	
+	Map getReceptionistData(ReceptionistDashBoardReq req);
+	
+	
 
 }

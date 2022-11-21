@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
 import com.automate.df.dao.dashboard.DmsLeadDao;
@@ -37,13 +38,13 @@ import com.automate.df.model.df.dashboard.DropRes;
 import com.automate.df.model.df.dashboard.EventDataRes;
 import com.automate.df.model.df.dashboard.LeadSourceRes;
 import com.automate.df.model.df.dashboard.LostRes;
+import com.automate.df.model.df.dashboard.ReceptionistDashBoardReq;
 import com.automate.df.model.df.dashboard.TargetAchivement;
 import com.automate.df.model.df.dashboard.TodaysRes;
 import com.automate.df.model.df.dashboard.VehicleModelRes;
 import com.automate.df.model.salesgap.TargetRoleRes;
 import com.automate.df.model.salesgap.TargetSettingRes;
 import com.automate.df.service.DashBoardService;
-import com.automate.df.service.SalesGapService;
 import com.automate.df.util.DashBoardUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
@@ -2469,5 +2470,70 @@ public class DashBoardServiceImpl implements DashBoardService{
 		return flag;
 	}
 	
+	public Map getReceptionistData(ReceptionistDashBoardReq req){
+		Map map = new HashMap();
+		String startDate = getStartDate(req.getStartDate());
+		String endDate = getEndDate(req.getEndDate());
+		int orgId = req.getOrgId();
+		String dealerCode = req.getDealerCode();
+		
+		List<String> dmsEmployeeList = dmsEmployeeRepo.findEmpNames(orgId);
+		
+		List consultantList = new ArrayList();
+		for (String  dmsEmployee : dmsEmployeeList) {
+			Map m = new HashMap();
+			//m.put("emp_id", dmsEmployee.getEmp_id());
+			m.put("emp_name", dmsEmployee);
+			m.put("allocatedCount" , getAllocatedLeadsCountByEmp(dmsEmployee, startDate, endDate, orgId, dealerCode) );
+			m.put("droppedCount" , getDropeedLeadsCountByEmp(dmsEmployee, startDate, endDate, orgId, dealerCode) );
+			consultantList.add(m);
+			}
+		map.put("consultantList", consultantList);
+		map.put("totalAllocatedCount" , getAllocatedLeadsCount(startDate, endDate, orgId, dealerCode));
+		map.put("totalDroppedCount" , getDroppedLeadsCount( startDate, endDate, orgId, dealerCode));
+		map.put("bookingCount", getAllLeadsCount(startDate, endDate, "BOOKING", orgId, dealerCode) ); 
+		map.put("RetailCount", getAllLeadsCount(startDate, endDate, "INVOICE", orgId, dealerCode))  ;
+		
+		return map;
+	}
 	
+	Integer getAllocatedLeadsCountByEmp(String empName, String startDate, String endDate, int orgId,
+			String dealerCode) {
+		if (StringUtils.isEmpty(dealerCode))
+			return dmsLeadDao.getAllocatedLeadsCountByEmp(empName, startDate, endDate, orgId);
+		else
+			return dmsLeadDao.getAllocatedLeadsCountByEmp(empName, startDate, endDate, orgId, dealerCode);
+	}
+	
+	Integer getDropeedLeadsCountByEmp(String empName, String startDate, String endDate, int orgId,
+			String dealerCode) {
+		if (StringUtils.isEmpty(dealerCode))
+			return dmsLeadDao.getDropeedLeadsCountByEmp(empName, startDate, endDate, orgId);
+		else
+			return dmsLeadDao.getDropeedLeadsCountByEmp(empName, startDate, endDate, orgId, dealerCode);
+	}
+	
+	Integer getAllocatedLeadsCount( String startDate, String endDate, int orgId,
+			String dealerCode) {
+		if (StringUtils.isEmpty(dealerCode))
+			return dmsLeadDao.getAllocatedLeadsCount( startDate, endDate, orgId);
+		else
+			return dmsLeadDao.getAllocatedLeadsCount( startDate, endDate, orgId, dealerCode);
+	}
+	
+	Integer getDroppedLeadsCount( String startDate, String endDate, int orgId,
+			String dealerCode) {
+		if (StringUtils.isEmpty(dealerCode))
+			return dmsLeadDao.getDroppedLeadsCount( startDate, endDate, orgId);
+		else
+			return dmsLeadDao.getDroppedLeadsCount( startDate, endDate, orgId, dealerCode);
+	}
+	
+	Integer getAllLeadsCount( String startDate, String endDate, String leadType, int orgId,
+			String dealerCode) {
+		if (StringUtils.isEmpty(dealerCode))
+			return dmsLeadDao.getAllLeadsCount( startDate, endDate, leadType, orgId);
+		else
+			return dmsLeadDao.getAllLeadsCount( startDate, endDate, leadType, orgId, dealerCode);
+	}
 }
