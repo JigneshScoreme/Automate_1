@@ -21,6 +21,8 @@ import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 
+import com.automate.df.entity.salesgap.*;
+import com.automate.df.model.df.dashboard.DashBoardReq;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,11 +43,6 @@ import com.automate.df.dao.salesgap.TargetSettingRepo;
 import com.automate.df.dao.salesgap.TargetUserRepo;
 import com.automate.df.entity.oh.DmsBranch;
 import com.automate.df.entity.oh.DmsDesignation;
-import com.automate.df.entity.salesgap.DmsEmployee;
-import com.automate.df.entity.salesgap.TSAdminUpdateReq;
-import com.automate.df.entity.salesgap.TargetEntity;
-import com.automate.df.entity.salesgap.TargetEntityUser;
-import com.automate.df.entity.salesgap.TargetRoleReq;
 import com.automate.df.exception.DynamicFormsServiceException;
 import com.automate.df.model.salesgap.Target;
 import com.automate.df.model.salesgap.TargetDropDown;
@@ -67,6 +64,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.RequestBody;
 
 /**
  * 
@@ -807,6 +805,439 @@ public class SalesGapServiceImpl implements SalesGapService {
 		return map;
 	}
 
+
+
+	@Override
+	public Map<String, Object> getTargetMappingDataSearchByEmpId(TargetPlanningReq req) throws DynamicFormsServiceException {
+		log.debug("calling getTargetDataWithRole ,given req " + req);
+		List<TargetSettingRes> outputList = new ArrayList<>();
+		Map<String, Object> map = new LinkedHashMap<>();
+		int pageNo = req.getPageNo();
+		int size = req.getSize();
+		try {
+			int empId = req.getLoggedInEmpId();
+
+			List<Integer> empReportingIdList = new ArrayList<>(req.getChildEmpId());
+
+			for (Integer id : empReportingIdList) {
+
+				String eId = String.valueOf(id);
+				log.debug("Executing for EMP ID " + eId);
+
+				String tmpQuery = roleMapQuery.replaceAll("<EMP_ID>", eId);
+				List<Object[]> tlData = entityManager.createNativeQuery(tmpQuery).getResultList();
+				List<TargetRoleRes> tlDataResList = new ArrayList<>();
+
+				for (Object[] arr : tlData) {
+					TargetRoleRes tlDataRole = new TargetRoleRes();
+					tlDataRole.setOrgId(String.valueOf(arr[0]));
+					tlDataRole.setBranchId(String.valueOf(arr[1]));
+					tlDataRole.setEmpId(String.valueOf(arr[2]));
+					tlDataRole.setRoleName(String.valueOf(arr[3]));
+					tlDataRole.setRoleId(String.valueOf(arr[4]));
+					tlDataResList.add(tlDataRole);
+
+					String tEmpId = String.valueOf(arr[2]);
+					Integer emp = Integer.parseInt(tEmpId);
+					// tlDataResList.add(getEmpRoleDataV3(emp));
+				}
+				if (null != tlDataResList) {
+					log.debug("Size of tlDataResList " + tlDataResList.size() + " tlDataResList " + tlDataResList);
+
+					for (TargetRoleRes tr : tlDataResList) {
+						log.debug("Inside tr loop " + tr);
+						Optional<DmsEmployee> empOpt = dmsEmployeeRepo.findById(Integer.valueOf(tr.getEmpId()));
+						if (empOpt.isPresent()) {
+							DmsEmployee emp = empOpt.get();
+							outputList.addAll(
+									getTSDataForRoleV2(buildTargetRoleRes(tr, emp), String.valueOf(empId), "", "", ""));
+
+						}
+					}
+				}
+			}
+			outputList = outputList.stream()
+					.collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparingInt(TargetSettingRes::getId))),
+							ArrayList::new));
+
+			log.debug("outputList::"+outputList);
+			int totalCnt = outputList.size();
+			int fromIndex = size * (pageNo - 1);
+			int toIndex = size * pageNo;
+
+			if (toIndex > totalCnt) {
+				toIndex = totalCnt;
+			}
+			if (fromIndex > toIndex) {
+				fromIndex = toIndex;
+			}
+			String targetType = req.getTargetType();
+			log.debug("targetType in get all api " + targetType);
+
+			if (null != targetType && targetType.equalsIgnoreCase(DynamicFormConstants.TARGET_MONTHLY_TYPE)) {
+				outputList = outputList.stream()
+						.filter(x -> x.getTargetType().equalsIgnoreCase(DynamicFormConstants.TARGET_MONTHLY_TYPE))
+						.collect(Collectors.toList());
+			} else if (null != targetType && targetType.equalsIgnoreCase(DynamicFormConstants.TARGET_SPEICAL_TYPE)) {
+				outputList = outputList.stream()
+						.filter(x -> x.getTargetType().equalsIgnoreCase(DynamicFormConstants.TARGET_SPEICAL_TYPE))
+						.collect(Collectors.toList());
+			}
+
+			log.debug("outputList ::" + outputList.size());
+
+			if (outputList != null && !outputList.isEmpty() && outputList.size() > toIndex) {
+				outputList = outputList.subList(fromIndex, toIndex);
+			}
+			outputList.sort((o1,o2) -> o2.getEndDate().compareTo(o1.getEndDate()));
+			map.put("totalCnt", totalCnt);
+			map.put("pageNo", pageNo);
+			map.put("size", size);
+			map.put("data", outputList);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return map;
+	}
+
+
+
+
+
+
+
+
+	public String getFirstDayOfMonth() {
+		return LocalDate.ofEpochDay(System.currentTimeMillis() / (24 * 60 * 60 * 1000) ).withDayOfMonth(1).toString();
+	}
+	public String getLastDayOfMonth() {
+		return LocalDate.ofEpochDay(System.currentTimeMillis() / (24 * 60 * 60 * 1000) ).plusMonths(1).withDayOfMonth(1).minusDays(1).toString();
+	}
+
+	@Override
+	public List<TargetPlanningCountRes> getTargetPlanningParamsCount(TargetPlanningReq req) throws DynamicFormsServiceException {
+		List<TargetPlanningCountRes> targetPlanningCountResList = new ArrayList<>();
+
+		for(Integer childEmpId : req.getChildEmpId()){
+			TargetPlanningCountRes targetPlanningCountRes = getAllSelectedUserTargetPlanningCount(req.getStartDate(),req.getEndDate(),childEmpId);
+			if(targetPlanningCountRes.getEmployeeId() !=null){
+				targetPlanningCountResList.add(targetPlanningCountRes);
+			}
+		}
+
+		return targetPlanningCountResList;
+	}
+
+
+
+	private TargetPlanningCountRes getAllSelectedUserTargetPlanningCount(String reqStartDate, String reqEndDate,int loggedInEmpId){
+		int retail =0, enquiry=0, testDrive=0, visit=0, booking=0, exchange=0, finance=0, insurance=0, exwarranty=0,accessories=0;
+		String startDate = null;
+		String endDate = null;
+		TargetPlanningCountRes targetPlanningCountRes = new TargetPlanningCountRes();
+		if (null == reqStartDate && null == reqEndDate) {
+			startDate = getFirstDayOfMonth();
+			endDate = getLastDayOfMonth();
+		} else {
+			startDate = reqStartDate;
+			endDate = reqEndDate;
+		}
+
+		List<TargetSettingRes> outputList = new ArrayList<>();
+		Map<String, Object> map = new LinkedHashMap<>();
+
+		try {
+			int empId = loggedInEmpId;
+
+			List<Integer> empReportingIdList = new ArrayList<>();
+			empReportingIdList.add(empId);
+			empReportingIdList.addAll(dashBoardServiceImplV2.getReportingEmployes(empId));
+
+			log.debug("empReportingIdList for emp " + empId);
+			log.debug("" + empReportingIdList);
+
+			for (Integer id : empReportingIdList) {
+
+				String eId = String.valueOf(id);
+				log.debug("Executing for EMP ID " + eId);
+
+				String tmpQuery = roleMapQuery.replaceAll("<EMP_ID>", eId);
+				List<Object[]> tlData = entityManager.createNativeQuery(tmpQuery).getResultList();
+				List<TargetRoleRes> tlDataResList = new ArrayList<>();
+
+				for (Object[] arr : tlData) {
+					TargetRoleRes tlDataRole = new TargetRoleRes();
+					tlDataRole.setOrgId(String.valueOf(arr[0]));
+					tlDataRole.setBranchId(String.valueOf(arr[1]));
+					tlDataRole.setEmpId(String.valueOf(arr[2]));
+					tlDataRole.setRoleName(String.valueOf(arr[3]));
+					tlDataRole.setRoleId(String.valueOf(arr[4]));
+					tlDataResList.add(tlDataRole);
+
+					String tEmpId = String.valueOf(arr[2]);
+					Integer emp = Integer.parseInt(tEmpId);
+					// tlDataResList.add(getEmpRoleDataV3(emp));
+				}
+				if (null != tlDataResList) {
+					log.debug("Size of tlDataResList " + tlDataResList.size() + " tlDataResList " + tlDataResList);
+
+					for (TargetRoleRes tr : tlDataResList) {
+						log.debug("Inside tr loop " + tr);
+						Optional<DmsEmployee> empOpt = dmsEmployeeRepo.findById(Integer.valueOf(tr.getEmpId()));
+						if (empOpt.isPresent()) {
+							DmsEmployee emp = empOpt.get();
+							outputList.addAll(
+									getTPDataBasedOnDate(buildTargetRoleRes(tr, emp), String.valueOf(empId), "", "", "",startDate,endDate));
+
+						}
+					}
+				}
+			}
+			outputList = outputList.stream()
+					.collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparingInt(TargetSettingRes::getId))),
+							ArrayList::new));
+
+
+			outputList.sort((o1,o2) -> o2.getEndDate().compareTo(o1.getEndDate()));
+
+			for (int i = 0; i <outputList.size() ; i++) {
+				retail += Integer.parseInt(outputList.get(i).getRetailTarget());
+				enquiry += Integer.parseInt(outputList.get(i).getEnquiry());
+				testDrive += Integer.parseInt(outputList.get(i).getTestDrive());
+				visit += Integer.parseInt(outputList.get(i).getHomeVisit());
+				booking += Integer.parseInt(outputList.get(i).getBooking());
+				exchange += Integer.parseInt(outputList.get(i).getExchange());
+				finance += Integer.parseInt(outputList.get(i).getFinance());
+				insurance += Integer.parseInt(outputList.get(i).getInsurance());
+				exwarranty += Integer.parseInt(outputList.get(i).getExWarranty());
+				accessories += Integer.parseInt(outputList.get(i).getAccessories());
+			}
+
+			targetPlanningCountRes.setRetailTarget(String.valueOf(retail));
+			targetPlanningCountRes.setEnquiry(String.valueOf(enquiry));
+			targetPlanningCountRes.setTestDrive(String.valueOf(testDrive));
+			targetPlanningCountRes.setHomeVisit(String.valueOf(visit));
+			targetPlanningCountRes.setBooking(String.valueOf(booking));
+			targetPlanningCountRes.setExchange(String.valueOf(exchange));
+			targetPlanningCountRes.setFinance(String.valueOf(finance));
+			targetPlanningCountRes.setInsurance(String.valueOf(insurance));
+			targetPlanningCountRes.setExWarranty(String.valueOf(exwarranty));
+			targetPlanningCountRes.setAccessories(String.valueOf(accessories));
+			targetPlanningCountRes.setStartDate(reqStartDate);
+			targetPlanningCountRes.setEndDate(reqEndDate);
+			targetPlanningCountRes.setEmployeeId(String.valueOf(loggedInEmpId));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return targetPlanningCountRes;
+	}
+
+
+	public List<TargetSettingRes> getTPDataBasedOnDate(TargetRoleRes tRole, String teamLeadId, String managerId,
+													 String branchMgrId, String generalMgrId,String startDate, String endDate) {
+		log.debug("Inside getTSDataForRoleV2(),TROLE " + tRole);
+		List<TargetSettingRes> list = new ArrayList<>();
+		try {
+
+			for (TargetEntity te : getTargetSettingMasterDataForGivenRole(tRole)) {
+				// List<TargetEntityUser> tesUserList =
+				// targetUserRepo.findAllEmpIds(tRole.getEmpId());
+				List<TargetEntityUser> tesUserList = targetUserRepo.findAllEmpIdsWithNoDefault(tRole.getEmpId());
+				List<TargetEntityUser> teUserDefaultList = targetUserRepo.findAllEmpIdsWithDefault(tRole.getEmpId());
+				log.debug("teUserDefaultList is not empty " + teUserDefaultList.size());
+				log.debug("tesUserList is not empty " + tesUserList.size());
+				if (null != tesUserList && !tesUserList.isEmpty()) {
+
+					for (TargetEntityUser teUser : tesUserList) {
+						modelMapper.getConfiguration().setAmbiguityIgnored(true);
+						TargetSettingRes tsRes = modelMapper.map(teUser, TargetSettingRes.class);
+						tsRes = convertTargetStrToObj(teUser.getTargets(), tsRes);
+						tsRes.setEmpName(getEmpName(tRole.getEmpId()));
+						tsRes.setEmployeeId(tRole.getEmpId());
+						tsRes.setId(teUser.getGeneratedId());
+						tsRes.setTargetName(teUser.getTargetName());
+						tsRes.setTargetType(teUser.getTargetType());
+						if (null != teamLeadId) {
+							tsRes.setTeamLead(getTeamLeadName(teamLeadId));
+							tsRes.setTeamLeadId(teamLeadId);
+						}
+						if (null != managerId) {
+							tsRes.setManager(getEmpName(managerId));
+							tsRes.setManagerId(managerId);
+						}
+						if (null != branchMgrId) {
+							tsRes.setBranchManagerId(branchMgrId);
+							tsRes.setBranchmanger(getEmpName(branchMgrId));
+						}
+						if (null != generalMgrId) {
+							tsRes.setGeneralManagerId(generalMgrId);
+							tsRes.setGeneralManager(getEmpName(generalMgrId));
+						}
+
+						if (null != tRole.getLocationId()) {
+							tsRes.setLocationName(getLocationName(tRole.getLocationId()));
+						}
+						if (null != tRole.getBranchId()) {
+							tsRes.setBranchName(getBranchName(tRole.getBranchId()));
+						}
+						if (null != tRole.getDeptId()) {
+							tsRes.setDepartmentName(getDeptName(tRole.getDeptId()));
+						}
+						if (null != tRole.getDesignationId()) {
+							tsRes.setDesignationName(getDesignationName(tRole.getDesignationId()));
+						}
+						list.add(tsRes);
+					}
+
+				}
+
+				if(null!=teUserDefaultList && teUserDefaultList.isEmpty()){
+					log.debug("tesUserList is  empty ");
+					modelMapper.getConfiguration().setAmbiguityIgnored(true);
+
+					TargetSettingRes res = modelMapper.map(te, TargetSettingRes.class);
+					res.setStartDate(getFirstDayOfQurter());
+					res.setEndDate(getLastDayOfQurter());
+
+					TargetEntityUser teUserToSave = modelMapper.map(res, TargetEntityUser.class);
+					teUserToSave.setEmployeeId(tRole.getEmpId());
+
+					teUserToSave.setTargets(te.getTargets());
+					teUserToSave.setType("default");
+					teUserToSave.setActive(GsAppConstants.ACTIVE);
+					teUserToSave.setExperience(tRole.getExperience());
+					teUserToSave.setTargetName("DEFAULT");
+					teUserToSave.setTargetType(DynamicFormConstants.TARGET_MONTHLY_TYPE);
+					Optional<TargetEntityUser> defaultTeUserOpt = targetUserRepo
+							.checkDefaultDataInTargetUser(tRole.getEmpId());
+
+					log.debug("defaultTeUserOpt:::"+defaultTeUserOpt);
+					if (!defaultTeUserOpt.isPresent()) {
+						log.debug("Default data is empty for " + tRole.getEmpId());
+						TargetEntityUser dbRes = targetUserRepo.save(teUserToSave);
+						res.setId(dbRes.getGeneratedId());
+					}
+
+					res = convertTargetStrToObjV3(te.getTargets(), res);
+					res.setEmpName(getEmpName(tRole.getEmpId()));
+					res.setEmployeeId(tRole.getEmpId());
+					res.setTargetName("DEFAULT");
+					res.setTargetType(DynamicFormConstants.TARGET_MONTHLY_TYPE);
+					res.setExperience(tRole.getExperience() != null ? tRole.getExperience() : "");
+					if (null != teamLeadId) {
+						res.setTeamLead(getTeamLeadName(teamLeadId));
+						res.setTeamLeadId(teamLeadId);
+					}
+					if (null != managerId) {
+						res.setManager(getEmpName(managerId));
+						res.setManagerId(managerId);
+					}
+					if (null != branchMgrId) {
+						res.setBranchManagerId(branchMgrId);
+						res.setBranchmanger(getEmpName(branchMgrId));
+					}
+					if (null != generalMgrId) {
+						res.setGeneralManagerId(generalMgrId);
+						res.setGeneralManager(getEmpName(generalMgrId));
+					}
+
+					if (null != tRole.getLocationId()) {
+						res.setLocationName(getLocationName(tRole.getLocationId()));
+					}
+					if (null != tRole.getBranchId()) {
+						res.setBranchName(getBranchName(tRole.getBranchId()));
+					}
+					if (null != tRole.getDeptId()) {
+						res.setDepartmentName(getDeptName(tRole.getDeptId()));
+					}
+					if (null != tRole.getDesignationId()) {
+						res.setDesignationName(getDesignationName(tRole.getDesignationId()));
+					}
+					log.debug("res::::::::::::"+res);
+					list.add(res);
+
+				}
+				if(null!=teUserDefaultList && !teUserDefaultList.isEmpty()){
+					log.debug("teUserDefaultList is not empty");
+					for (TargetEntityUser teUser : teUserDefaultList) {
+						modelMapper.getConfiguration().setAmbiguityIgnored(true);
+						TargetSettingRes tsRes = modelMapper.map(teUser, TargetSettingRes.class);
+						tsRes = convertTargetStrToObj(teUser.getTargets(), tsRes);
+						tsRes.setEmpName(getEmpName(tRole.getEmpId()));
+						tsRes.setEmployeeId(tRole.getEmpId());
+						tsRes.setId(teUser.getGeneratedId());
+						tsRes.setTargetName(teUser.getTargetName());
+						tsRes.setTargetType(teUser.getTargetType());
+						if (null != teamLeadId) {
+							tsRes.setTeamLead(getTeamLeadName(teamLeadId));
+							tsRes.setTeamLeadId(teamLeadId);
+						}
+						if (null != managerId) {
+							tsRes.setManager(getEmpName(managerId));
+							tsRes.setManagerId(managerId);
+						}
+						if (null != branchMgrId) {
+							tsRes.setBranchManagerId(branchMgrId);
+							tsRes.setBranchmanger(getEmpName(branchMgrId));
+						}
+						if (null != generalMgrId) {
+							tsRes.setGeneralManagerId(generalMgrId);
+							tsRes.setGeneralManager(getEmpName(generalMgrId));
+						}
+
+						if (null != tRole.getLocationId()) {
+							tsRes.setLocationName(getLocationName(tRole.getLocationId()));
+						}
+						if (null != tRole.getBranchId()) {
+							tsRes.setBranchName(getBranchName(tRole.getBranchId()));
+						}
+						if (null != tRole.getDeptId()) {
+							tsRes.setDepartmentName(getDeptName(tRole.getDeptId()));
+						}
+						if (null != tRole.getDesignationId()) {
+							tsRes.setDesignationName(getDesignationName(tRole.getDesignationId()));
+						}
+						list.add(tsRes);
+					}
+
+				}
+			}
+			log.debug("list in getTSDataForRoleV2  " + list);
+
+		} catch (Exception e) {
+			log.error("getTargetSettingData() ", e);
+		}
+
+		List<TargetSettingRes> outPutData = new ArrayList<>();
+		for (int i = 0; i <list.size() ; i++) {
+			try{
+				Date startD=new SimpleDateFormat("yyyy-MM-dd").parse(list.get(i).getStartDate());
+				Date endD=new SimpleDateFormat("yyyy-MM-dd").parse(list.get(i).getEndDate());
+
+				Date reqStartDate=new SimpleDateFormat("yyyy-MM-dd").parse(startDate);
+				Date reqEndDate=new SimpleDateFormat("yyyy-MM-dd").parse(endDate);
+
+
+				if((startD.after(reqStartDate) || (startD.equals(reqStartDate)))&&
+								(endD.before(reqEndDate) || (endD.equals(reqEndDate)))){
+					outPutData.add(list.get(i));
+				}
+			}catch (Exception e){
+				e.printStackTrace();
+			}
+		}
+
+		return outPutData;
+	}
+
+
+
+
+
+
+
 	/*
 	 * @Override public Map<String, Object> getTargetDataWithRole(TargetRoleReq req)
 	 * throws DynamicFormsServiceException {
@@ -1253,17 +1684,6 @@ public class SalesGapServiceImpl implements SalesGapService {
 					TargetEntityUser teUserToSave = modelMapper.map(res, TargetEntityUser.class);
 					teUserToSave.setEmployeeId(tRole.getEmpId());
 
-					// String tmp ="[{\"unit\": \"percentage\", \"target\": \"100\", \"parameter\":
-					// \"enquiry\"}, {\"unit\": \"percentage\", \"target\": \"100\", \"parameter\":
-					// \"testDrive\"}, {\"unit\": \"percentage\", \"target\": \"100\",
-					// \"parameter\": \"homeVisit\"}, {\"unit\": \"percentage\", \"target\":
-					// \"100\", \"parameter\": \"booking\"}, {\"unit\": \"percentage\", \"target\":
-					// \"100\", \"parameter\": \"exchange\"}, {\"unit\": \"percentage\", \"target\":
-					// \"100\", \"parameter\": \"finance\"}, {\"unit\": \"percentage\", \"target\":
-					// \"100\", \"parameter\": \"insurance\"}, {\"unit\": \"percentage\",
-					// \"target\": \"100\", \"parameter\": \"exWarranty\"}, {\"unit\":
-					// \"percentage\", \"target\": \"0\", \"parameter\": \"events\"}, {\"unit\":
-					// \"number\", \"target\": \"0\", \"parameter\": \"accessories\"}]";
 					teUserToSave.setTargets(te.getTargets());
 					teUserToSave.setType("default");
 					teUserToSave.setActive(GsAppConstants.ACTIVE);

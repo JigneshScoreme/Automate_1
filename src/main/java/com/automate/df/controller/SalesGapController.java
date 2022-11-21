@@ -4,6 +4,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.automate.df.entity.salesgap.TargetPlanningCountRes;
+import com.automate.df.entity.salesgap.TargetPlanningReq;
+import com.automate.df.model.df.dashboard.DashBoardReq;
+import com.automate.df.model.df.dashboard.DashBoardReqV2;
+import com.automate.df.model.df.dashboard.TargetAchivement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
@@ -212,6 +217,36 @@ public class SalesGapController {
 	
 	
 	
+
+	@CrossOrigin
+	@PostMapping(value = "get_all_target_mapping_search")
+	public ResponseEntity<?> getTargetMappingDataSearchByEmpId(@RequestBody TargetPlanningReq req)
+			throws DynamicFormsServiceException {
+		Map<String, Object> response = null;
+		if (Optional.of(req).isPresent()) {
+			response = salesGapService.getTargetMappingDataSearchByEmpId(req);
+		} else {
+			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+
+	@CrossOrigin
+	@PostMapping(value = "get_target_planning_count")
+	public ResponseEntity<?> getTargetPlanningParamsCount(@RequestBody TargetPlanningReq req)
+			throws DynamicFormsServiceException {
+		List<TargetPlanningCountRes> response = null;
+		if (Optional.of(req).isPresent()) {
+			response = salesGapService.getTargetPlanningParamsCount(req);
+		} else {
+			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+
+
 	/*
 	 * @CrossOrigin
 	 * 
