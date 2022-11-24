@@ -41,7 +41,12 @@ public interface DmsWfTaskDao extends JpaRepository<DmsWFTask, Integer> {
 			@Param(value = "startTime") String startTime,
 			@Param(value = "endTime") String endTime);
 		
-	
+	@Query(value = "SELECT * FROM dms_workflow_task where "
+			+ " task_created_time >= :startTime and task_created_time <= :endTime and universal_id in (:universalIdList)", nativeQuery = true)
+	List<DmsWFTask> getWfTaskByUniversalId(
+			@Param(value = "universalIdList") List<String> universalIdList,
+			@Param(value = "startTime") String startTime,
+			@Param(value = "endTime") String endTime);
 	
 
 	@Query(value = "SELECT * FROM dms_workflow_task where assignee_id =:assigneeId \r\n"

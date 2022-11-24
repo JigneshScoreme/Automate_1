@@ -1,5 +1,7 @@
 package com.automate.df.model.df.dashboard;
 
+import javax.annotation.Nonnull;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,6 +14,9 @@ public class ReceptionistDashBoardReq {
 	String startDate;
 	String endDate;
 	String dealerCode;
-	int orgId; 
+	@Nonnull
+	Integer orgId; 
+	@Nonnull
+	Integer loggedInEmpId;
 	
 }

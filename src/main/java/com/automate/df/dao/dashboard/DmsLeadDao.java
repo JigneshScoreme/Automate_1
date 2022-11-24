@@ -34,100 +34,114 @@ public interface DmsLeadDao extends JpaRepository<DmsLead, Integer> {
 			@Param(value = "endDate") String endDate,
 			@Param(value = "leadType") String leadType);
 	
+	//-----------
+	
 	@Query(value = "SELECT count(*) FROM dms_lead A, dms_employee E , dms_role R where A.createddatetime>=:startDate "
 			+ " and R.role_name = 'Reception'  and R.org_id = A.organization_id and E.org = R.org_id and E.hrms_role = R.role_id and A.created_by = E.emp_name "
-			+ " and A.allocated = 'Yes' "
-			+ " and A.createddatetime<=:endDate and A.lead_stage=:leadType and A.organization_id=:orgId", nativeQuery = true)
-	Integer getAllLeadsCount(
-			@Param(value = "startDate") String startDate,
-			@Param(value = "endDate") String endDate,
-			@Param(value = "leadType") String leadType,
-			@Param(value = "orgId") int orgId);
-	
-	@Query(value = "SELECT count(*) FROM dms_lead A , dms_branch B, dms_employee E , dms_role R "
-			+ " where A.branch_id = B.branch_id and B.dealer_code = :dealerCode AND A.createddatetime>=:startDate "
-			+ " and R.role_name = 'Reception'  and R.org_id = A.organization_id and E.org = R.org_id and E.hrms_role = R.role_id and A.created_by = E.emp_name "
-			+ " and A.allocated = 'Yes' "
+			+ " and A.allocated = 'Yes' and A.created_by = :loginEmpName"
 			+ " and A.createddatetime<=:endDate and A.lead_stage=:leadType and A.organization_id=:orgId", nativeQuery = true)
 	Integer getAllLeadsCount(
 			@Param(value = "startDate") String startDate,
 			@Param(value = "endDate") String endDate,
 			@Param(value = "leadType") String leadType,
 			@Param(value = "orgId") int orgId,
-			@Param(value = "dealerCode") String dealerCode);
+			@Param(value = "loginEmpName") String loginEmpName);
+	
+	@Query(value = "SELECT count(*) FROM dms_lead A , dms_branch B, dms_employee E , dms_role R "
+			+ " where A.branch_id = B.branch_id and B.dealer_code = :dealerCode AND A.createddatetime>=:startDate "
+			+ " and R.role_name = 'Reception'  and R.org_id = A.organization_id and E.org = R.org_id and E.hrms_role = R.role_id and A.created_by = E.emp_name "
+			+ " and A.allocated = 'Yes' and A.created_by = :loginEmpName "
+			+ " and A.createddatetime<=:endDate and A.lead_stage=:leadType and A.organization_id=:orgId", nativeQuery = true)
+	Integer getAllLeadsCount(
+			@Param(value = "startDate") String startDate,
+			@Param(value = "endDate") String endDate,
+			@Param(value = "leadType") String leadType,
+			@Param(value = "orgId") int orgId,
+			@Param(value = "dealerCode") String dealerCode,
+			@Param(value = "loginEmpName") String loginEmpName);
 	
 	
 	@Query(value = "SELECT count(*) FROM dms_lead A, dms_employee E , dms_role R where A.sales_consultant = :empName and A.createddatetime>=:startDate  "
 			+ " and R.role_name = 'Reception'  and R.org_id = A.organization_id and E.org = R.org_id and E.hrms_role = R.role_id and A.created_by = E.emp_name "
-			+ " and A.allocated = 'Yes' "
+			+ " and A.allocated = 'Yes' and A.created_by = :loginEmpName "
 			+ " and A.createddatetime<=:endDate and A.lead_stage not in ('DROPPED') and A.organization_id=:orgId", nativeQuery = true)
 	Integer getAllocatedLeadsCountByEmp(@Param(value = "empName") String empName,
 			@Param(value = "startDate") String startDate,
 			@Param(value = "endDate") String endDate,
-			@Param(value = "orgId") int orgId);
+			@Param(value = "orgId") int orgId,
+			@Param(value = "loginEmpName") String loginEmpName );
 	
 	@Query(value = "SELECT count(*) FROM dms_lead  A , dms_branch B, dms_employee E , dms_role R  where "
 			+ " A.branch_id = B.branch_id and B.dealer_code = :dealerCode"
 			+ " and A.sales_consultant = :empName and A.createddatetime>=:startDate  "
 			+ " and R.role_name = 'Reception'  and R.org_id = A.organization_id and E.org = R.org_id and E.hrms_role = R.role_id and A.created_by = E.emp_name "
-			+ " and A.allocated = 'Yes' "
+			+ " and A.allocated = 'Yes' and A.created_by = :loginEmpName "
 			+ " and A.createddatetime<=:endDate and A.lead_stage not in ('DROPPED') and A.organization_id=:orgId", nativeQuery = true)
 	Integer getAllocatedLeadsCountByEmp(@Param(value = "empName") String empName,
 			@Param(value = "startDate") String startDate,
 			@Param(value = "endDate") String endDate,
 			@Param(value = "orgId") int orgId,
-			@Param(value = "dealerCode") String dealerCode
+			@Param(value = "dealerCode") String dealerCode,
+			@Param(value = "loginEmpName") String loginEmpName 
 			);
 	
 	@Query(value = "SELECT count(*) FROM dms_lead A, dms_employee E , dms_role R where A.sales_consultant = :empName and A.createddatetime>=:startDate  "
 			+ " and R.role_name = 'Reception'  and R.org_id = A.organization_id and E.org = R.org_id and E.hrms_role = R.role_id and A.created_by = E.emp_name "
-			+ " and A.allocated = 'Yes' "
-			+ "	 and A.createddatetime<=:endDate and A.lead_stage in ('DROPPED') and A.organization_id=:orgId", nativeQuery = true)
-	Integer getDropeedLeadsCountByEmp(@Param(value = "empName") String empName,
-			@Param(value = "startDate") String startDate,
-			@Param(value = "endDate") String endDate,
-			@Param(value = "orgId") int orgId);
-	
-	@Query(value = "SELECT count(*) FROM dms_lead  A , dms_branch B, dms_employee E , dms_role R where "
-			+ "	 A.branch_id = B.branch_id and B.dealer_code = :dealerCode AND  A.sales_consultant = :empName and A.createddatetime>=:startDate  "
-			+ " and R.role_name = 'Reception'  and R.org_id = A.organization_id and E.org = R.org_id and E.hrms_role = R.role_id and A.created_by = E.emp_name "
-			+ " and A.allocated = 'Yes' "
+			+ " and A.allocated = 'Yes' and A.created_by = :loginEmpName"
 			+ "	 and A.createddatetime<=:endDate and A.lead_stage in ('DROPPED') and A.organization_id=:orgId", nativeQuery = true)
 	Integer getDropeedLeadsCountByEmp(@Param(value = "empName") String empName,
 			@Param(value = "startDate") String startDate,
 			@Param(value = "endDate") String endDate,
 			@Param(value = "orgId") int orgId,
-			@Param(value = "dealerCode") String dealerCode);
+			@Param(value = "loginEmpName") String loginEmpName );
+	
+	@Query(value = "SELECT count(*) FROM dms_lead  A , dms_branch B, dms_employee E , dms_role R where "
+			+ "	 A.branch_id = B.branch_id and B.dealer_code = :dealerCode AND  A.sales_consultant = :empName and A.createddatetime>=:startDate  "
+			+ " and R.role_name = 'Reception'  and R.org_id = A.organization_id and E.org = R.org_id and E.hrms_role = R.role_id and A.created_by = E.emp_name "
+			+ " and A.allocated = 'Yes' and A.created_by = :loginEmpName"
+			+ "	 and A.createddatetime<=:endDate and A.lead_stage in ('DROPPED') and A.organization_id=:orgId", nativeQuery = true)
+	Integer getDropeedLeadsCountByEmp(@Param(value = "empName") String empName,
+			@Param(value = "startDate") String startDate,
+			@Param(value = "endDate") String endDate,
+			@Param(value = "orgId") int orgId,
+			@Param(value = "dealerCode") String dealerCode,
+			@Param(value = "loginEmpName") String loginEmpName );
 	
 	@Query(value = "SELECT count(*) FROM dms_lead A, dms_employee E , dms_role R where A.createddatetime>=:startDate "
 			+ " and R.role_name = 'Reception'  and R.org_id = A.organization_id and E.org = R.org_id and E.hrms_role = R.role_id and A.created_by = E.emp_name "
-			+ " and A.allocated = 'Yes' "
+			+ " and A.allocated = 'Yes' and A.created_by = :loginEmpName"
 			+ " and A.createddatetime<=:endDate and A.lead_stage not in ('DROPPED') and A.organization_id=:orgId", nativeQuery = true)
 	Integer getAllocatedLeadsCount(@Param(value = "startDate") String startDate,
-			@Param(value = "endDate") String endDate, @Param(value = "orgId") int orgId);
+			@Param(value = "endDate") String endDate, @Param(value = "orgId") int orgId,
+			@Param(value = "loginEmpName") String loginEmpName );
 	
 	@Query(value = "SELECT count(*) FROM dms_lead A , dms_branch B , dms_employee E , dms_role R  where A.branch_id = B.branch_id and B.dealer_code = :dealerCode AND A.createddatetime>=:startDate "
 			+ " and R.role_name = 'Reception'  and R.org_id = A.organization_id and E.org = R.org_id and E.hrms_role = R.role_id and A.created_by = E.emp_name "
-			+ " and A.allocated = 'Yes' "
+			+ " and A.allocated = 'Yes' and A.created_by = :loginEmpName"
 			+ " and A.createddatetime<=:endDate and A.lead_stage not in ('DROPPED') and A.organization_id=:orgId", nativeQuery = true)
 	Integer getAllocatedLeadsCount(@Param(value = "startDate") String startDate,
 			@Param(value = "endDate") String endDate, @Param(value = "orgId") int orgId,
-			@Param(value = "dealerCode") String dealerCode);
+			@Param(value = "dealerCode") String dealerCode,
+			@Param(value = "loginEmpName") String loginEmpName );
 	
 	@Query(value = "SELECT count(*) FROM dms_lead A, dms_employee E , dms_role R where A.createddatetime>=:startDate "
 			+ " and R.role_name = 'Reception'  and R.org_id = A.organization_id and E.org = R.org_id and E.hrms_role = R.role_id and A.created_by = E.emp_name "
-			+ " and A.allocated = 'Yes' "
-			+ " and A.createddatetime<=:endDate and A.lead_stage in ('DROPPED') and A.organization_id=:orgId", nativeQuery = true)
-	Integer getDroppedLeadsCount(@Param(value = "startDate") String startDate,
-			@Param(value = "endDate") String endDate, @Param(value = "orgId") int orgId);
-	
-	@Query(value = "SELECT count(*) FROM dms_lead A , dms_branch B , dms_employee E , dms_role R where A.branch_id = B.branch_id and B.dealer_code = :dealerCode AND A.createddatetime>=:startDate  "
-			+ " and R.role_name = 'Reception'  and R.org_id = A.organization_id and E.org = R.org_id and E.hrms_role = R.role_id and A.created_by = E.emp_name "
-			+ " and A.allocated = 'Yes' "
+			+ " and A.allocated = 'Yes' and A.created_by = :loginEmpName"
 			+ " and A.createddatetime<=:endDate and A.lead_stage in ('DROPPED') and A.organization_id=:orgId", nativeQuery = true)
 	Integer getDroppedLeadsCount(@Param(value = "startDate") String startDate,
 			@Param(value = "endDate") String endDate, @Param(value = "orgId") int orgId,
-			@Param(value = "dealerCode") String dealerCode);
+			@Param(value = "loginEmpName") String loginEmpName );
+	
+	@Query(value = "SELECT count(*) FROM dms_lead A , dms_branch B , dms_employee E , dms_role R where A.branch_id = B.branch_id and B.dealer_code = :dealerCode AND A.createddatetime>=:startDate  "
+			+ " and R.role_name = 'Reception'  and R.org_id = A.organization_id and E.org = R.org_id and E.hrms_role = R.role_id and A.created_by = E.emp_name "
+			+ " and A.allocated = 'Yes' and A.created_by = :loginEmpName"
+			+ " and A.createddatetime<=:endDate and A.lead_stage in ('DROPPED') and A.organization_id=:orgId", nativeQuery = true)
+	Integer getDroppedLeadsCount(@Param(value = "startDate") String startDate,
+			@Param(value = "endDate") String endDate, @Param(value = "orgId") int orgId,
+			@Param(value = "dealerCode") String dealerCode,
+			@Param(value = "loginEmpName") String loginEmpName );
+	
+	// ----------------
 
 	@Query(value = "SELECT id FROM dms_lead where sales_consultant in(:empNamesList) and lead_stage not in ('DROPPED') ", nativeQuery = true)
 	List<Integer> getLeadIdsByEmpNamesWithOutDrop(@Param(value = "empNamesList") List<String> empNamesList);
@@ -159,6 +173,7 @@ public interface DmsLeadDao extends JpaRepository<DmsLead, Integer> {
 			@Param(value = "startDate") String startDate,
 			@Param(value = "endDate") String endDate,
 			@Param(value = "model") String model);
+	
 	
 	@Query(value = "SELECT * FROM dms_lead where sales_consultant in(:empNamesList) and createddatetime>=:startDate\r\n"
 			+ "and createddatetime<=:endDate and model=:model and organization_id=:orgId and lead_stage not in ('DROPPED')", nativeQuery = true)
@@ -292,6 +307,59 @@ public interface DmsLeadDao extends JpaRepository<DmsLead, Integer> {
 			@Param(value="leadIdList") List<Integer> leadIdList,
 			@Param(value="startDate") String startDate,@Param(value="endDate") String endDate
 			);
+	// ---------------------------------------
 	
+	@Query(value = "SELECT count(*) FROM dms_lead A, dms_employee E , dms_role R where A.model = :model and A.createddatetime>=:startDate  "
+			+ " and R.role_name = 'Reception'  and R.org_id = A.organization_id and E.org = R.org_id and E.hrms_role = R.role_id and A.created_by = E.emp_name "
+			+ " and A.allocated = 'Yes' and A.created_by = :loginEmpName "
+			+ " and A.createddatetime<=:endDate and A.lead_stage not in ('DROPPED') and A.organization_id=:orgId", nativeQuery = true)
+	Integer getAllocatedLeadsCountByModel(@Param(value = "model") String model,
+			@Param(value = "startDate") String startDate,
+			@Param(value = "endDate") String endDate,
+			@Param(value = "orgId") int orgId,
+			@Param(value = "loginEmpName") String loginEmpName );
 	
+	@Query(value = "SELECT * FROM dms_lead A where A.allocated = 'Yes' and A.createddatetime>=:startDate and A.created_by = :loggedEmpName"
+			+ " and A.createddatetime<=:endDate and A.model=:model and A.organization_id=:orgId ", nativeQuery = true)
+	List<DmsLead> getAllEmployeeLeadsByModel(
+			@Param(value = "orgId") String orgId,
+			@Param(value = "startDate") String startDate,
+			@Param(value = "endDate") String endDate,
+			@Param(value = "model") String model,
+			@Param(value = "loggedEmpName") String loggedEmpName );
+
+	@Query(value = "SELECT * FROM dms_lead A, dms_branch B, dms_employee E , dms_role R where A.allocated = 'Yes' and A.createddatetime>=:startDate and A.created_by :loggedEmpName"
+			+ " and R.role_name = 'Reception'  and R.org_id = A.organization_id and E.org = R.org_id and E.hrms_role = R.role_id and A.created_by = E.emp_name "
+			+ " A.branch_id = B.branch_id and B.dealer_code = :dealerCode "
+			+ " and A.createddatetime<=:endDate and A.model=:model and A,organization_id=:orgId ", nativeQuery = true)
+	List<DmsLead> getAllEmployeeLeadsByModel(
+			@Param(value = "orgId") String orgId,
+			@Param(value = "startDate") String startDate,
+			@Param(value = "endDate") String endDate,
+			@Param(value = "model") String model,
+			@Param(value = "loggedEmpName") String loggedEmpName ,
+			@Param(value = "dealerCode") String dealerCode);
+	
+	@Query(value = "SELECT * FROM dms_lead A where A.allocated = 'Yes' and A.createddatetime>=:startDate and A.created_by = :loggedEmpName"
+			+ " and A.createddatetime<=:endDate and A.source_of_enquiry=:source and A.organization_id=:orgId ", nativeQuery = true)
+	List<DmsLead> getAllEmployeeLeadsBySource(
+			@Param(value = "orgId") String orgId,
+			@Param(value = "startDate") String startDate,
+			@Param(value = "endDate") String endDate,
+			@Param(value = "source") int source,
+			@Param(value = "loggedEmpName") String loggedEmpName );
+
+	@Query(value = "SELECT * FROM dms_lead A, dms_branch B, dms_employee E , dms_role R where A.allocated = 'Yes' and A.createddatetime>=:startDate and A.created_by :loggedEmpName"
+			+ " and R.role_name = 'Reception'  and R.org_id = A.organization_id and E.org = R.org_id and E.hrms_role = R.role_id and A.created_by = E.emp_name "
+			+ " A.branch_id = B.branch_id and B.dealer_code = :dealerCode "
+			+ " and A.createddatetime<=:endDate and A.source_of_enquiry=:source and A,organization_id=:orgId ", nativeQuery = true)
+	List<DmsLead> getAllEmployeeLeadsBySource(
+			@Param(value = "orgId") String orgId,
+			@Param(value = "startDate") String startDate,
+			@Param(value = "endDate") String endDate,
+			@Param(value = "source") int source,
+			@Param(value = "loggedEmpName") String loggedEmpName ,
+			@Param(value = "dealerCode") String dealerCode);
+
+
 }

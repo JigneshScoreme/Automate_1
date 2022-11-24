@@ -32,7 +32,7 @@ public interface DashBoardService {
 
 	Map<String, Object> getTodaysPendingUpcomingData(DashBoardReq req);
 	
-	Map getReceptionistData(ReceptionistDashBoardReq req);
+	
 	
 	
 
