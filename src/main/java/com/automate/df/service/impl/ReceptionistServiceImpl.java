@@ -2,6 +2,7 @@ package com.automate.df.service.impl;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -29,8 +30,8 @@ import com.automate.df.entity.SourceAndId;
 import com.automate.df.entity.dashboard.DmsLead;
 import com.automate.df.entity.dashboard.DmsWFTask;
 import com.automate.df.entity.salesgap.DmsEmployee;
-import com.automate.df.model.df.dashboard.LeadSourceRes;
 import com.automate.df.model.df.dashboard.ReceptionistDashBoardReq;
+import com.automate.df.model.df.dashboard.ReceptionistLeadRes;
 import com.automate.df.model.df.dashboard.SourceRes;
 import com.automate.df.model.df.dashboard.VehicleModelRes;
 import com.automate.df.service.ReceptionistService;
@@ -372,5 +373,33 @@ public String getLastDayOfMonth() {
 		return resList;
 		
 	}
-
+	
+	public List<ReceptionistLeadRes> getReceptionistLeadData(ReceptionistDashBoardReq req) {
+		
+		DmsEmployee dmsEmployeeObj =  dmsEmployeeRepo.getById(req.getLoggedInEmpId());
+		String loginEmpName = dmsEmployeeObj.getEmpName();
+		String startDate = getStartDate(req.getStartDate());
+		String endDate = getEndDate(req.getEndDate());
+		String dealerCode = req.getDealerCode();
+		
+		int orgId = req.getOrgId() ;
+		
+		if(StringUtils.isEmpty(req.getEmpName())){
+			return null;
+		}
+		String empName = req.getEmpName();
+		
+		List<ReceptionistLeadRes> result = new ArrayList();
+		List<Object[]> resultList;
+		if (StringUtils.isEmpty(dealerCode))
+			resultList =  dmsLeadDao.getAllocatedLeadsByEmp(empName, startDate, endDate, orgId, loginEmpName);
+		else
+			resultList =   dmsLeadDao.getAllocatedLeadsByEmp(empName, startDate, endDate, orgId, dealerCode, loginEmpName);
+		
+		for (Object[] record : resultList ) {
+			result.add(new ReceptionistLeadRes((String)record[0], (String)record[1], (Date)record[2], 
+					(String)record[3], (String)record[4], (String)record[5], (String)record[6], (String)record[7]));
+		}
+		return result;
+	}
 }
