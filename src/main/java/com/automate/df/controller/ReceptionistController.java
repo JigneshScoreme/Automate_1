@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.automate.df.exception.DynamicFormsServiceException;
 import com.automate.df.model.df.dashboard.ReceptionistDashBoardReq;
+import com.automate.df.model.df.dashboard.ReceptionistLeadRes;
 import com.automate.df.model.df.dashboard.SourceRes;
 import com.automate.df.model.df.dashboard.VehicleModelRes;
 import com.automate.df.service.ReceptionistService;
@@ -65,6 +66,19 @@ public class ReceptionistController {
 		List<SourceRes> response = null;
 		if (Optional.of(req).isPresent()) {
 			response = dashBoardService.getReceptionistSourceData(req);
+		} else {
+			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	@CrossOrigin
+	@PostMapping(value = "/receptionist/empLead")
+	public ResponseEntity<List<ReceptionistLeadRes>> getReceptionistLeadData(@RequestBody ReceptionistDashBoardReq req)
+			throws DynamicFormsServiceException {
+		List<ReceptionistLeadRes> response = null;
+		if (Optional.of(req).isPresent()) {
+			response = dashBoardService.getReceptionistLeadData(req);
 		} else {
 			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
 		}

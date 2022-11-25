@@ -14,9 +14,11 @@ public class ReceptionistDashBoardReq {
 	String startDate;
 	String endDate;
 	String dealerCode;
+	String empName;
 	@Nonnull
 	Integer orgId; 
 	@Nonnull
 	Integer loggedInEmpId;
+	
 	
 }

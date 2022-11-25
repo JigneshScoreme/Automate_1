@@ -1,13 +1,11 @@
 package com.automate.df.dao.dashboard;
 
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.automate.df.entity.LeadStageRefEntity;
 import com.automate.df.entity.dashboard.DmsLead;
 
 public interface DmsLeadDao extends JpaRepository<DmsLead, Integer> {
@@ -340,7 +338,7 @@ public interface DmsLeadDao extends JpaRepository<DmsLead, Integer> {
 			@Param(value = "loggedEmpName") String loggedEmpName ,
 			@Param(value = "dealerCode") String dealerCode);
 	
-	@Query(value = "SELECT * FROM dms_lead A where A.allocated = 'Yes' and A.createddatetime>=:startDate and A.created_by = :loggedEmpName"
+	@Query(value = "SELECT A.* FROM dms_lead A where A.allocated = 'Yes' and A.createddatetime>=:startDate and A.created_by = :loggedEmpName"
 			+ " and A.createddatetime<=:endDate and A.source_of_enquiry=:source and A.organization_id=:orgId ", nativeQuery = true)
 	List<DmsLead> getAllEmployeeLeadsBySource(
 			@Param(value = "orgId") String orgId,
@@ -349,7 +347,7 @@ public interface DmsLeadDao extends JpaRepository<DmsLead, Integer> {
 			@Param(value = "source") int source,
 			@Param(value = "loggedEmpName") String loggedEmpName );
 
-	@Query(value = "SELECT * FROM dms_lead A, dms_branch B, dms_employee E , dms_role R where A.allocated = 'Yes' and A.createddatetime>=:startDate and A.created_by :loggedEmpName"
+	@Query(value = "SELECT A.* FROM dms_lead A, dms_branch B, dms_employee E , dms_role R where A.allocated = 'Yes' and A.createddatetime>=:startDate and A.created_by :loggedEmpName"
 			+ " and R.role_name = 'Reception'  and R.org_id = A.organization_id and E.org = R.org_id and E.hrms_role = R.role_id and A.created_by = E.emp_name "
 			+ " A.branch_id = B.branch_id and B.dealer_code = :dealerCode "
 			+ " and A.createddatetime<=:endDate and A.source_of_enquiry=:source and A,organization_id=:orgId ", nativeQuery = true)
@@ -360,6 +358,37 @@ public interface DmsLeadDao extends JpaRepository<DmsLead, Integer> {
 			@Param(value = "source") int source,
 			@Param(value = "loggedEmpName") String loggedEmpName ,
 			@Param(value = "dealerCode") String dealerCode);
+	
+	@Query(value = "SELECT S.name, A.model, A.createddatetime, A.first_name as firstName, A.last_name as lastName, A.lead_stage as leadStage, A.sales_consultant as salesConsultant, A.phone " 
+			+" FROM dms_lead A, dms_employee E , dms_role R, dms_source_of_enquiries S where A.sales_consultant = :empName and A.createddatetime>=:startDate  "
+			+ " and R.role_name = 'Reception'  and R.org_id = A.organization_id and E.org = R.org_id and E.hrms_role = R.role_id and A.created_by = E.emp_name "
+			+ " and A.allocated = 'Yes' and A.created_by = :loginEmpName "
+			+ " and A.source_of_enquiry = S.id "
+			+ " and A.createddatetime<=:endDate and A.lead_stage not in ('DROPPED') and A.organization_id=:orgId", nativeQuery = true)
+	List<Object[]> getAllocatedLeadsByEmp(@Param(value = "empName") String empName,
+			@Param(value = "startDate") String startDate,
+			@Param(value = "endDate") String endDate,
+			@Param(value = "orgId") int orgId,
+			@Param(value = "loginEmpName") String loginEmpName );
+	
+	@Query(value = "SELECT S.name, A.model, A.createddatetime, A.first_name , A.last_name , A.lead_stage , A.sales_consultant , A.phone " 
+			+ " FROM dms_lead  A , dms_branch B, dms_employee E , dms_role R, dms_source_of_enquiries S  where "
+			+ " A.branch_id = B.branch_id and B.dealer_code = :dealerCode"
+			+ " and A.sales_consultant = :empName and A.createddatetime>=:startDate  "
+			+ " and R.role_name = 'Reception'  and R.org_id = A.organization_id and E.org = R.org_id and E.hrms_role = R.role_id and A.created_by = E.emp_name "
+			+ " and A.allocated = 'Yes' and A.created_by = :loginEmpName "
+			+ " and A.source_of_enquiry = S.id "
+			+ " and A.createddatetime<=:endDate and A.lead_stage not in ('DROPPED') and A.organization_id=:orgId", nativeQuery = true)
+	List<Object[]> getAllocatedLeadsByEmp(@Param(value = "empName") String empName,
+			@Param(value = "startDate") String startDate,
+			@Param(value = "endDate") String endDate,
+			@Param(value = "orgId") int orgId,
+			@Param(value = "dealerCode") String dealerCode,
+			@Param(value = "loginEmpName") String loginEmpName 
+			);
+	
+	
+	
 
 
 }

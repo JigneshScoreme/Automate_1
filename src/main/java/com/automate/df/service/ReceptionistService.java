@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.automate.df.model.df.dashboard.ReceptionistDashBoardReq;
+import com.automate.df.model.df.dashboard.ReceptionistLeadRes;
 import com.automate.df.model.df.dashboard.SourceRes;
 import com.automate.df.model.df.dashboard.VehicleModelRes;
 
@@ -14,6 +15,8 @@ public interface ReceptionistService {
 	List<VehicleModelRes> getReceptionistModelData(ReceptionistDashBoardReq req);
 	
 	List<SourceRes> getReceptionistSourceData(ReceptionistDashBoardReq req);
+
+	List<ReceptionistLeadRes> getReceptionistLeadData(ReceptionistDashBoardReq req);
 	
 
 }
