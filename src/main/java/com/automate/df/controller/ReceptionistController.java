@@ -41,7 +41,16 @@ public class ReceptionistController {
 	@PostMapping(value = "/receptionist")
 	public ResponseEntity<Map> getReceptionistData(@RequestBody ReceptionistDashBoardReq req)
 			throws DynamicFormsServiceException {
-			Map response = dashBoardService.getReceptionistData(req);
+			Map response = dashBoardService.getReceptionistData(req, "Reception");
+		
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	@CrossOrigin
+	@PostMapping(value = "/teleCallerList")
+	public ResponseEntity<Map> getTeleCallerData(@RequestBody ReceptionistDashBoardReq req)
+			throws DynamicFormsServiceException {
+			Map response = dashBoardService.getReceptionistData(req, "Tele Caller");
 		
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
@@ -52,7 +61,20 @@ public class ReceptionistController {
 			throws DynamicFormsServiceException {
 		List<VehicleModelRes> response = null;
 		if (Optional.of(req).isPresent()) {
-			response = dashBoardService.getReceptionistModelData(req);
+			response = dashBoardService.getReceptionistModelData(req, "Reception");
+		} else {
+			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	@CrossOrigin
+	@PostMapping(value = "/teleCaller/model")
+	public ResponseEntity<List<VehicleModelRes>> getTeleCallerModelData(@RequestBody ReceptionistDashBoardReq req)
+			throws DynamicFormsServiceException {
+		List<VehicleModelRes> response = null;
+		if (Optional.of(req).isPresent()) {
+			response = dashBoardService.getReceptionistModelData(req, "Tele Caller");
 		} else {
 			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
 		}
@@ -65,7 +87,20 @@ public class ReceptionistController {
 			throws DynamicFormsServiceException {
 		List<SourceRes> response = null;
 		if (Optional.of(req).isPresent()) {
-			response = dashBoardService.getReceptionistSourceData(req);
+			response = dashBoardService.getReceptionistSourceData(req, "Reception");
+		} else {
+			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	@CrossOrigin
+	@PostMapping(value = "/teleCaller/source")
+	public ResponseEntity<List<SourceRes>> getTelecallerSourceData(@RequestBody ReceptionistDashBoardReq req)
+			throws DynamicFormsServiceException {
+		List<SourceRes> response = null;
+		if (Optional.of(req).isPresent()) {
+			response = dashBoardService.getReceptionistSourceData(req, "Tele Caller");
 		} else {
 			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
 		}
@@ -78,7 +113,46 @@ public class ReceptionistController {
 			throws DynamicFormsServiceException {
 		List<ReceptionistLeadRes> response = null;
 		if (Optional.of(req).isPresent()) {
-			response = dashBoardService.getReceptionistLeadData(req);
+			response = dashBoardService.getReceptionistLeadData(req, "Reception");
+		} else {
+			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	@CrossOrigin
+	@PostMapping(value = "/teleCaller/empLead")
+	public ResponseEntity<List<ReceptionistLeadRes>> getTelecallerLeadData(@RequestBody ReceptionistDashBoardReq req)
+			throws DynamicFormsServiceException {
+		List<ReceptionistLeadRes> response = null;
+		if (Optional.of(req).isPresent()) {
+			response = dashBoardService.getReceptionistLeadData(req, "Tele Caller");
+		} else {
+			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	@CrossOrigin
+	@PostMapping(value = "/receptionist/droppedLead")
+	public ResponseEntity<List<ReceptionistLeadRes>> getReceptionistDropedLeadData(@RequestBody ReceptionistDashBoardReq req)
+			throws DynamicFormsServiceException {
+		List<ReceptionistLeadRes> response = null;
+		if (Optional.of(req).isPresent()) {
+			response = dashBoardService.getReceptionistDroppedLeadData(req, "Reception");
+		} else {
+			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	@CrossOrigin
+	@PostMapping(value = "/teleCaller/droppedLead")
+	public ResponseEntity<List<ReceptionistLeadRes>> getTeleCallerDroppedLeadData(@RequestBody ReceptionistDashBoardReq req)
+			throws DynamicFormsServiceException {
+		List<ReceptionistLeadRes> response = null;
+		if (Optional.of(req).isPresent()) {
+			response = dashBoardService.getReceptionistDroppedLeadData(req, "Tele Caller");
 		} else {
 			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
 		}

@@ -10,13 +10,13 @@ import com.automate.df.model.df.dashboard.VehicleModelRes;
 
 public interface ReceptionistService {
 	
-	Map getReceptionistData(ReceptionistDashBoardReq req);
+	Map getReceptionistData(ReceptionistDashBoardReq req, String roleName);
 
-	List<VehicleModelRes> getReceptionistModelData(ReceptionistDashBoardReq req);
+	List<VehicleModelRes> getReceptionistModelData(ReceptionistDashBoardReq req, String roleName);
 	
-	List<SourceRes> getReceptionistSourceData(ReceptionistDashBoardReq req);
+	List<SourceRes> getReceptionistSourceData(ReceptionistDashBoardReq req, String roleName);
 
-	List<ReceptionistLeadRes> getReceptionistLeadData(ReceptionistDashBoardReq req);
+	List<ReceptionistLeadRes> getReceptionistLeadData(ReceptionistDashBoardReq req, String roleName);
 	
-
+	public List<ReceptionistLeadRes> getReceptionistDroppedLeadData(ReceptionistDashBoardReq req, String roleName);
 }

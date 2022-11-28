@@ -151,7 +151,7 @@ public String getLastDayOfMonth() {
 }
 
 	
-	public Map getReceptionistData(ReceptionistDashBoardReq req){
+	public Map getReceptionistData(ReceptionistDashBoardReq req, String roleName){
 		
 		DmsEmployee dmsEmployeeObj =  dmsEmployeeRepo.getById(req.getLoggedInEmpId());
 		String loginEmpName = dmsEmployeeObj.getEmpName();
@@ -169,61 +169,61 @@ public String getLastDayOfMonth() {
 			Map m = new HashMap();
 			//m.put("emp_id", dmsEmployee.getEmp_id());
 			m.put("emp_name", dmsEmployee);
-			m.put("allocatedCount" , getAllocatedLeadsCountByEmp(dmsEmployee, startDate, endDate, orgId, dealerCode, loginEmpName) );
-			m.put("droppedCount" , getDropeedLeadsCountByEmp(dmsEmployee, startDate, endDate, orgId, dealerCode, loginEmpName) );
+			m.put("allocatedCount" , getAllocatedLeadsCountByEmp(dmsEmployee, startDate, endDate, orgId, dealerCode, loginEmpName, roleName) );
+			m.put("droppedCount" , getDropeedLeadsCountByEmp(dmsEmployee, startDate, endDate, orgId, dealerCode, loginEmpName, roleName) );
 			consultantList.add(m);
 			}
 		map.put("consultantList", consultantList);
-		map.put("totalAllocatedCount" , getAllocatedLeadsCount(startDate, endDate, orgId, dealerCode, loginEmpName));
-		map.put("totalDroppedCount" , getDroppedLeadsCount( startDate, endDate, orgId, dealerCode, loginEmpName));
-		map.put("bookingCount", getAllLeadsCount(startDate, endDate, "BOOKING", orgId, dealerCode, loginEmpName) ); 
-		map.put("RetailCount", getAllLeadsCount(startDate, endDate, "INVOICE", orgId, dealerCode, loginEmpName))  ;
+		map.put("totalAllocatedCount" , getAllocatedLeadsCount(startDate, endDate, orgId, dealerCode, loginEmpName, roleName));
+		map.put("totalDroppedCount" , getDroppedLeadsCount( startDate, endDate, orgId, dealerCode, loginEmpName, roleName));
+		map.put("bookingCount", getAllLeadsCount(startDate, endDate, "BOOKING", orgId, dealerCode, loginEmpName, roleName) ); 
+		map.put("RetailCount", getAllLeadsCount(startDate, endDate, "INVOICE", orgId, dealerCode, loginEmpName, roleName))  ;
 		
 		return map;
 	}
 	
 	Integer getAllocatedLeadsCountByEmp(String empName, String startDate, String endDate, int orgId,
-			String dealerCode, String loginEmpName) {
+			String dealerCode, String loginEmpName, String roleName) {
 		if (StringUtils.isEmpty(dealerCode))
-			return dmsLeadDao.getAllocatedLeadsCountByEmp(empName, startDate, endDate, orgId, loginEmpName);
+			return dmsLeadDao.getAllocatedLeadsCountByEmp(empName, startDate, endDate, orgId, loginEmpName, roleName);
 		else
-			return dmsLeadDao.getAllocatedLeadsCountByEmp(empName, startDate, endDate, orgId, dealerCode, loginEmpName);
+			return dmsLeadDao.getAllocatedLeadsCountByEmp(empName, startDate, endDate, orgId, dealerCode, loginEmpName, roleName);
 	}
 	
 	Integer getDropeedLeadsCountByEmp(String empName, String startDate, String endDate, int orgId,
-			String dealerCode, String loginEmpName) {
+			String dealerCode, String loginEmpName, String roleName) {
 		if (StringUtils.isEmpty(dealerCode))
-			return dmsLeadDao.getDropeedLeadsCountByEmp(empName, startDate, endDate, orgId, loginEmpName);
+			return dmsLeadDao.getDropeedLeadsCountByEmp(empName, startDate, endDate, orgId, loginEmpName, roleName);
 		else
-			return dmsLeadDao.getDropeedLeadsCountByEmp(empName, startDate, endDate, orgId, dealerCode, loginEmpName);
+			return dmsLeadDao.getDropeedLeadsCountByEmp(empName, startDate, endDate, orgId, dealerCode, loginEmpName, roleName);
 	}
 	
 	Integer getAllocatedLeadsCount( String startDate, String endDate, int orgId,
-			String dealerCode, String loginEmpName) {
+			String dealerCode, String loginEmpName, String roleName) {
 		if (StringUtils.isEmpty(dealerCode))
-			return dmsLeadDao.getAllocatedLeadsCount( startDate, endDate, orgId, loginEmpName);
+			return dmsLeadDao.getAllocatedLeadsCount( startDate, endDate, orgId, loginEmpName, roleName);
 		else
-			return dmsLeadDao.getAllocatedLeadsCount( startDate, endDate, orgId, dealerCode, loginEmpName);
+			return dmsLeadDao.getAllocatedLeadsCount( startDate, endDate, orgId, dealerCode, loginEmpName, roleName);
 	}
 	
 	Integer getDroppedLeadsCount( String startDate, String endDate, int orgId,
-			String dealerCode, String loginEmpName) {
+			String dealerCode, String loginEmpName, String roleName) {
 		if (StringUtils.isEmpty(dealerCode))
-			return dmsLeadDao.getDroppedLeadsCount( startDate, endDate, orgId, loginEmpName);
+			return dmsLeadDao.getDroppedLeadsCount( startDate, endDate, orgId, loginEmpName, roleName);
 		else
-			return dmsLeadDao.getDroppedLeadsCount( startDate, endDate, orgId, dealerCode, loginEmpName);
+			return dmsLeadDao.getDroppedLeadsCount( startDate, endDate, orgId, dealerCode, loginEmpName, roleName);
 	}
 	
 	Integer getAllLeadsCount( String startDate, String endDate, String leadType, int orgId,
-			String dealerCode, String loginEmpName) {
+			String dealerCode, String loginEmpName, String roleName) {
 		if (StringUtils.isEmpty(dealerCode))
-			return dmsLeadDao.getAllLeadsCount( startDate, endDate, leadType, orgId, loginEmpName);
+			return dmsLeadDao.getAllLeadsCount( startDate, endDate, leadType, orgId, loginEmpName, roleName);
 		else
-			return dmsLeadDao.getAllLeadsCount( startDate, endDate, leadType, orgId, dealerCode, loginEmpName);
+			return dmsLeadDao.getAllLeadsCount( startDate, endDate, leadType, orgId, dealerCode, loginEmpName, roleName);
 	}
 	
 	
-	public List<VehicleModelRes> getReceptionistModelData(ReceptionistDashBoardReq req) {
+	public List<VehicleModelRes> getReceptionistModelData(ReceptionistDashBoardReq req, String roleName) {
 		List<VehicleModelRes> resList = new ArrayList<>();
 		
 		DmsEmployee dmsEmployeeObj =  dmsEmployeeRepo.getById(req.getLoggedInEmpId());
@@ -243,7 +243,7 @@ public String getLastDayOfMonth() {
 				if (StringUtils.isEmpty(dealerCode))
 					dmsLeadList = dmsLeadDao.getAllEmployeeLeadsByModel(orgId,startDate, endDate, model, loginEmpName);
 				else
-					dmsLeadList = dmsLeadDao.getAllEmployeeLeadsByModel(orgId,startDate, endDate, model, loginEmpName, dealerCode);
+					dmsLeadList = dmsLeadDao.getAllEmployeeLeadsByModel(orgId,startDate, endDate, model, loginEmpName, dealerCode, roleName);
 				
 				Long enqLeadCnt = 0L;
 				Long bookCount = 0L;
@@ -310,7 +310,7 @@ public String getLastDayOfMonth() {
 		return wfTaskList.stream().filter(x->(x.getTaskName().equalsIgnoreCase(TEST_DRIVE) && x.getTaskStatus().equalsIgnoreCase("CLOSED")) ).count();
 	}
 	
-	public List<SourceRes> getReceptionistSourceData(ReceptionistDashBoardReq req) {
+	public List<SourceRes> getReceptionistSourceData(ReceptionistDashBoardReq req, String roleName) {
 		List<SourceRes> resList = new ArrayList<>();
 		
 		DmsEmployee dmsEmployeeObj =  dmsEmployeeRepo.getById(req.getLoggedInEmpId());
@@ -329,7 +329,7 @@ public String getLastDayOfMonth() {
 			if (StringUtils.isEmpty(dealerCode))
 				dmsLeadList = dmsLeadDao.getAllEmployeeLeadsBySource(orgId,startDate, endDate, res.getId(), loginEmpName);
 			else
-				dmsLeadList = dmsLeadDao.getAllEmployeeLeadsBySource(orgId,startDate, endDate, res.getId(), loginEmpName, dealerCode);
+				dmsLeadList = dmsLeadDao.getAllEmployeeLeadsBySource(orgId,startDate, endDate, res.getId(), loginEmpName, dealerCode, roleName);
 			Long enqLeadCnt = 0L;
 			Long bookCount = 0L;
 		
@@ -374,7 +374,7 @@ public String getLastDayOfMonth() {
 		
 	}
 	
-	public List<ReceptionistLeadRes> getReceptionistLeadData(ReceptionistDashBoardReq req) {
+	public List<ReceptionistLeadRes> getReceptionistLeadData(ReceptionistDashBoardReq req, String roleName) {
 		
 		DmsEmployee dmsEmployeeObj =  dmsEmployeeRepo.getById(req.getLoggedInEmpId());
 		String loginEmpName = dmsEmployeeObj.getEmpName();
@@ -392,13 +392,43 @@ public String getLastDayOfMonth() {
 		List<ReceptionistLeadRes> result = new ArrayList();
 		List<Object[]> resultList;
 		if (StringUtils.isEmpty(dealerCode))
-			resultList =  dmsLeadDao.getAllocatedLeadsByEmp(empName, startDate, endDate, orgId, loginEmpName);
+			resultList =  dmsLeadDao.getAllocatedLeadsByEmp(empName, startDate, endDate, orgId, loginEmpName, roleName);
 		else
-			resultList =   dmsLeadDao.getAllocatedLeadsByEmp(empName, startDate, endDate, orgId, dealerCode, loginEmpName);
+			resultList =   dmsLeadDao.getAllocatedLeadsByEmp(empName, startDate, endDate, orgId, dealerCode, loginEmpName, roleName);
 		
 		for (Object[] record : resultList ) {
 			result.add(new ReceptionistLeadRes((String)record[0], (String)record[1], (Date)record[2], 
 					(String)record[3], (String)record[4], (String)record[5], (String)record[6], (String)record[7]));
+		}
+		return result;
+	}
+	
+public List<ReceptionistLeadRes> getReceptionistDroppedLeadData(ReceptionistDashBoardReq req, String roleName) {
+		
+		DmsEmployee dmsEmployeeObj =  dmsEmployeeRepo.getById(req.getLoggedInEmpId());
+		String loginEmpName = dmsEmployeeObj.getEmpName();
+		String startDate = getStartDate(req.getStartDate());
+		String endDate = getEndDate(req.getEndDate());
+		String dealerCode = req.getDealerCode();
+		
+		int orgId = req.getOrgId() ;
+		
+		if(StringUtils.isEmpty(req.getEmpName())){
+			return null;
+		}
+		String empName = req.getEmpName();
+		
+		List<ReceptionistLeadRes> result = new ArrayList();
+		List<Object[]> resultList;
+		if (StringUtils.isEmpty(dealerCode))
+			resultList =  dmsLeadDao.getDroppedLeadsByEmp(empName, startDate, endDate, orgId, loginEmpName, roleName);
+		else
+			resultList =   dmsLeadDao.getDroppedLeadsByEmp(empName, startDate, endDate, orgId, dealerCode, loginEmpName, roleName);
+		
+		for (Object[] record : resultList ) {
+			result.add(new ReceptionistLeadRes((String)record[0], (String)record[1], (Date)record[2], 
+					(String)record[3], (String)record[4], (String)record[5], (String)record[6], (String)record[7]
+							, (Date)record[8]));
 		}
 		return result;
 	}
