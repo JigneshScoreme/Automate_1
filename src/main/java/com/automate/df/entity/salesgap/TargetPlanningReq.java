@@ -19,4 +19,5 @@ public class TargetPlanningReq {
 
 	String startDate;
 	String endDate;
+	List<Integer> branchNumber;
 }

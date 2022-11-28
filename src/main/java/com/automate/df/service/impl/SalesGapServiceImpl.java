@@ -5,6 +5,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -860,8 +861,41 @@ public class SalesGapServiceImpl implements SalesGapService {
 					.collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparingInt(TargetSettingRes::getId))),
 							ArrayList::new));
 
-			log.debug("outputList::"+outputList);
-			int totalCnt = outputList.size();
+
+			List<TargetSettingRes> outputList1 = new ArrayList<>();
+			if(req.getStartDate()!=null && req.getEndDate()!=null && req.getBranchNumber()!=null && req.getBranchNumber().size()>0 ){
+				for (int i = 0; i <outputList.size() ; i++) {
+					for (int j = 0; j <req.getBranchNumber().size() ; j++) {
+						if(outputList.get(i).getBranch().equals(String.valueOf(req.getBranchNumber().get(j)))){
+							if(isDateBetweenRange(req,outputList.get(i).getStartDate()) && isDateBetweenRange(req,outputList.get(i).getEndDate()) ){
+								outputList1.add(outputList.get(i));
+							}
+						}
+					}
+				}
+			}else if(  (req.getStartDate()==null || req.getEndDate()==null) &&  req.getBranchNumber()!=null && req.getBranchNumber().size()>0 ){
+				for (int i = 0; i <outputList.size() ; i++) {
+					for (int j = 0; j <req.getBranchNumber().size() ; j++) {
+						if(outputList.get(i).getBranch().equals(String.valueOf(req.getBranchNumber().get(j)))){
+							outputList1.add(outputList.get(i));
+						}
+					}
+				}
+			}else if(req.getStartDate()!=null && req.getEndDate()!=null && req.getBranchNumber()==null){
+				for (int i = 0; i <outputList.size() ; i++) {
+					if(isDateBetweenRange(req,outputList.get(i).getStartDate()) && isDateBetweenRange(req,outputList.get(i).getEndDate()) ){
+						outputList1.add(outputList.get(i));
+					}
+				}
+			}else{
+				outputList1 = outputList;
+			}
+
+
+
+
+			log.debug("outputList::"+outputList1);
+			int totalCnt = outputList1.size();
 			int fromIndex = size * (pageNo - 1);
 			int toIndex = size * pageNo;
 
@@ -875,25 +909,25 @@ public class SalesGapServiceImpl implements SalesGapService {
 			log.debug("targetType in get all api " + targetType);
 
 			if (null != targetType && targetType.equalsIgnoreCase(DynamicFormConstants.TARGET_MONTHLY_TYPE)) {
-				outputList = outputList.stream()
+				outputList1 = outputList1.stream()
 						.filter(x -> x.getTargetType().equalsIgnoreCase(DynamicFormConstants.TARGET_MONTHLY_TYPE))
 						.collect(Collectors.toList());
 			} else if (null != targetType && targetType.equalsIgnoreCase(DynamicFormConstants.TARGET_SPEICAL_TYPE)) {
-				outputList = outputList.stream()
+				outputList1 = outputList1.stream()
 						.filter(x -> x.getTargetType().equalsIgnoreCase(DynamicFormConstants.TARGET_SPEICAL_TYPE))
 						.collect(Collectors.toList());
 			}
 
-			log.debug("outputList ::" + outputList.size());
+			log.debug("outputList1 ::" + outputList1.size());
 
-			if (outputList != null && !outputList.isEmpty() && outputList.size() > toIndex) {
-				outputList = outputList.subList(fromIndex, toIndex);
+			if (outputList1 != null && !outputList1.isEmpty() && outputList1.size() > toIndex) {
+				outputList1 = outputList1.subList(fromIndex, toIndex);
 			}
-			outputList.sort((o1,o2) -> o2.getEndDate().compareTo(o1.getEndDate()));
+			outputList1.sort((o1,o2) -> o2.getEndDate().compareTo(o1.getEndDate()));
 			map.put("totalCnt", totalCnt);
 			map.put("pageNo", pageNo);
 			map.put("size", size);
-			map.put("data", outputList);
+			map.put("data", outputList1);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -901,7 +935,12 @@ public class SalesGapServiceImpl implements SalesGapService {
 	}
 
 
-
+	private boolean isDateBetweenRange(TargetPlanningReq req, String dataStartDate1) throws ParseException {
+		Date startDate = new SimpleDateFormat("yyyy-MM-dd").parse(req.getStartDate());
+		Date endDate = new SimpleDateFormat("yyyy-MM-dd").parse(req.getEndDate());
+		Date dataStartDate = new SimpleDateFormat("yyyy-MM-dd").parse(dataStartDate1);
+		return startDate.compareTo(dataStartDate) * dataStartDate.compareTo(endDate) >= 0;
+	}
 
 
 
@@ -919,7 +958,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 		List<TargetPlanningCountRes> targetPlanningCountResList = new ArrayList<>();
 
 		for(Integer childEmpId : req.getChildEmpId()){
-			TargetPlanningCountRes targetPlanningCountRes = getAllSelectedUserTargetPlanningCount(req.getStartDate(),req.getEndDate(),childEmpId);
+			TargetPlanningCountRes targetPlanningCountRes = getAllSelectedUserTargetPlanningCount(req,req.getStartDate(),req.getEndDate(),childEmpId);
 			if(targetPlanningCountRes.getEmployeeId() !=null){
 				targetPlanningCountResList.add(targetPlanningCountRes);
 			}
@@ -930,7 +969,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 
 
 
-	private TargetPlanningCountRes getAllSelectedUserTargetPlanningCount(String reqStartDate, String reqEndDate,int loggedInEmpId){
+	private TargetPlanningCountRes getAllSelectedUserTargetPlanningCount(TargetPlanningReq req,String reqStartDate, String reqEndDate,int loggedInEmpId){
 		int retail =0, enquiry=0, testDrive=0, visit=0, booking=0, exchange=0, finance=0, insurance=0, exwarranty=0,accessories=0;
 		String startDate = null;
 		String endDate = null;
@@ -998,19 +1037,53 @@ public class SalesGapServiceImpl implements SalesGapService {
 							ArrayList::new));
 
 
-			outputList.sort((o1,o2) -> o2.getEndDate().compareTo(o1.getEndDate()));
+//			outputList.sort((o1,o2) -> o2.getEndDate().compareTo(o1.getEndDate()));
 
-			for (int i = 0; i <outputList.size() ; i++) {
-				retail += Integer.parseInt(outputList.get(i).getRetailTarget());
-				enquiry += Integer.parseInt(outputList.get(i).getEnquiry());
-				testDrive += Integer.parseInt(outputList.get(i).getTestDrive());
-				visit += Integer.parseInt(outputList.get(i).getHomeVisit());
-				booking += Integer.parseInt(outputList.get(i).getBooking());
-				exchange += Integer.parseInt(outputList.get(i).getExchange());
-				finance += Integer.parseInt(outputList.get(i).getFinance());
-				insurance += Integer.parseInt(outputList.get(i).getInsurance());
-				exwarranty += Integer.parseInt(outputList.get(i).getExWarranty());
-				accessories += Integer.parseInt(outputList.get(i).getAccessories());
+
+
+
+
+			List<TargetSettingRes> outputList1 = new ArrayList<>();
+			if(req.getStartDate()!=null && req.getEndDate()!=null && req.getBranchNumber()!=null && req.getBranchNumber().size()>0 ){
+				for (int i = 0; i <outputList.size() ; i++) {
+					for (int j = 0; j <req.getBranchNumber().size() ; j++) {
+						if(outputList.get(i).getBranch().equals(String.valueOf(req.getBranchNumber().get(j)))){
+							if(isDateBetweenRange(req,outputList.get(i).getStartDate()) && isDateBetweenRange(req,outputList.get(i).getEndDate()) ){
+								outputList1.add(outputList.get(i));
+							}
+						}
+					}
+				}
+			}else if(  (req.getStartDate()==null || req.getEndDate()==null) &&  req.getBranchNumber()!=null && req.getBranchNumber().size()>0 ){
+				for (int i = 0; i <outputList.size() ; i++) {
+					for (int j = 0; j <req.getBranchNumber().size() ; j++) {
+						if(outputList.get(i).getBranch().equals(String.valueOf(req.getBranchNumber().get(j)))){
+								outputList1.add(outputList.get(i));
+						}
+					}
+				}
+			}else if(req.getStartDate()!=null && req.getEndDate()!=null && req.getBranchNumber()==null){
+				for (int i = 0; i <outputList.size() ; i++) {
+					if(isDateBetweenRange(req,outputList.get(i).getStartDate()) && isDateBetweenRange(req,outputList.get(i).getEndDate()) ){
+						outputList1.add(outputList.get(i));
+					}
+				}
+			}else{
+				outputList1 = outputList;
+			}
+
+
+			for (int i = 0; i <outputList1.size() ; i++) {
+				retail += Integer.parseInt(outputList1.get(i).getRetailTarget());
+				enquiry += Integer.parseInt(outputList1.get(i).getEnquiry());
+				testDrive += Integer.parseInt(outputList1.get(i).getTestDrive());
+				visit += Integer.parseInt(outputList1.get(i).getHomeVisit());
+				booking += Integer.parseInt(outputList1.get(i).getBooking());
+				exchange += Integer.parseInt(outputList1.get(i).getExchange());
+				finance += Integer.parseInt(outputList1.get(i).getFinance());
+				insurance += Integer.parseInt(outputList1.get(i).getInsurance());
+				exwarranty += Integer.parseInt(outputList1.get(i).getExWarranty());
+				accessories += Integer.parseInt(outputList1.get(i).getAccessories());
 			}
 
 			targetPlanningCountRes.setRetailTarget(String.valueOf(retail));
