@@ -158,5 +158,30 @@ public class ReceptionistController {
 		}
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
-	
+
+	@CrossOrigin
+	@PostMapping(value = "/receptionist/droppedLeadByStage")
+	public ResponseEntity<List<ReceptionistLeadRes>> getReceptionistDroppedLeadDataByStage(@RequestBody ReceptionistDashBoardReq req)
+			throws DynamicFormsServiceException {
+		List<ReceptionistLeadRes> response = null;
+		if (Optional.of(req).isPresent()) {
+			response = dashBoardService.getReceptionistDroppedLeadDataByStage(req, "Reception");
+		} else {
+			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
+	
+	@CrossOrigin
+	@PostMapping(value = "/teleCaller/droppedLeadByStage")
+	public ResponseEntity<List<ReceptionistLeadRes>> getTeleCallerDroppedLeadDataByStage(@RequestBody ReceptionistDashBoardReq req)
+			throws DynamicFormsServiceException {
+		List<ReceptionistLeadRes> response = null;
+		if (Optional.of(req).isPresent()) {
+			response = dashBoardService.getReceptionistDroppedLeadDataByStage(req, "Tele Caller");
+		} else {
+			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+}

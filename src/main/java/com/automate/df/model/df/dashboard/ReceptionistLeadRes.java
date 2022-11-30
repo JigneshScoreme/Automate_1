@@ -32,6 +32,8 @@ public class ReceptionistLeadRes {
 	
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date droppedTime;
+	
+	private String category;
 
 	public ReceptionistLeadRes(String name, String model, Date createddatetime, String firstName, String lastName,
 			String leadStage, String salesConsultant, String phone) {
@@ -60,6 +62,22 @@ public class ReceptionistLeadRes {
 		this.droppedTime = droppedTime;
 	}
 
+	public ReceptionistLeadRes(String name, String model, Date createddatetime, String firstName, String lastName,
+			String leadStage, String salesConsultant, String phone, Date droppedTime, String category) {
+		super();
+		this.name = name;
+		this.model = model;
+		this.createddatetime = createddatetime;
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.leadStage = leadStage;
+		this.salesConsultant = salesConsultant;
+		this.phone = phone;
+		this.droppedTime = droppedTime;
+		this.category = category;
+	}
+
+	
 	
 
 	

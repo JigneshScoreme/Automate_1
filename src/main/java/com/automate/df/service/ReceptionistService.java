@@ -19,4 +19,6 @@ public interface ReceptionistService {
 	List<ReceptionistLeadRes> getReceptionistLeadData(ReceptionistDashBoardReq req, String roleName);
 	
 	public List<ReceptionistLeadRes> getReceptionistDroppedLeadData(ReceptionistDashBoardReq req, String roleName);
+	
+	public List<ReceptionistLeadRes> getReceptionistDroppedLeadDataByStage(ReceptionistDashBoardReq req, String roleName) ;
 }

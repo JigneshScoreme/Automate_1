@@ -437,24 +437,42 @@ public interface DmsLeadDao extends JpaRepository<DmsLead, Integer> {
 			@Param(value = "roleName") String roleName 
 			);
 	
-	
-/*	@Query(value = "SELECT S.name, A.model, A.createddatetime, A.first_name as firstName, A.last_name as lastName, A.lead_stage as leadStage, A.sales_consultant as salesConsultant, A.phone "
-			+ " , D.dropped_date "
+	@Query(value = "SELECT S.name, A.model, A.createddatetime, A.first_name as firstName, A.last_name as lastName, A.lead_stage as leadStage, A.sales_consultant as salesConsultant, A.phone "
+			+ " , D.dropped_date, A.enquiry_category "
 			+" FROM dms_lead A, dms_employee E , dms_role R, dms_source_of_enquiries S, dms_lead_drop D where A.createddatetime>=:startDate  "
-			+ " and R.role_name = 'Reception'  and R.org_id = A.organization_id and E.org = R.org_id and E.hrms_role = R.role_id and A.created_by = E.emp_name "
+			+ " and R.role_name = :roleName  and R.org_id = A.organization_id and E.org = R.org_id and E.hrms_role = R.role_id and A.created_by = E.emp_name "
 			+ " and D.lead_id = A.id "
 			+ " and A.allocated = 'Yes' and A.created_by = :loginEmpName "
 			+ " and A.source_of_enquiry = S.id "
-			+ " and D.stage = :stage"
-			+ " and A.createddatetime<=:endDate and A.lead_stage in ('DROPPED') and A.organization_id=:orgId", nativeQuery = true)
+			+ " and enquiry_category = coalesce(:category, enquiry_category)"
+			+ " and A.createddatetime<=:endDate and A.lead_stage in (:stage) and A.organization_id=:orgId", nativeQuery = true)
 	List<Object[]> getDroppedLeadsByStage(
-			@Param(value = "stage") String stage,
+			@Param(value = "stage") List<String> stage,
 			@Param(value = "startDate") String startDate,
 			@Param(value = "endDate") String endDate,
 			@Param(value = "orgId") int orgId,
-			@Param(value = "loginEmpName") String loginEmpName ); */
+			@Param(value = "loginEmpName") String loginEmpName,
+			@Param(value = "roleName") String roleName,
+			@Param(value = "category") String category
+			); 
 	
-	
-
+	@Query(value = "SELECT S.name, A.model, A.createddatetime, A.first_name as firstName, A.last_name as lastName, A.lead_stage as leadStage, A.sales_consultant as salesConsultant, A.phone "
+			+ " , D.dropped_date, A.enquiry_category "
+			+" FROM dms_lead A, dms_employee E , dms_role R, dms_source_of_enquiries S, dms_lead_drop D where A.createddatetime>=:startDate  "
+			+ " and R.role_name = :roleName  and R.org_id = A.organization_id and E.org = R.org_id and E.hrms_role = R.role_id and A.created_by = E.emp_name "
+			+ " and D.lead_id = A.id "
+			+ " and A.allocated = 'Yes' and A.created_by = :loginEmpName "
+			+ " and A.source_of_enquiry = S.id "
+			+ " and enquiry_category = coalesce(:category, enquiry_category)"
+			+ " and A.createddatetime<=:endDate and A.lead_stage in (:stage) and A.lead_status in (:status) and A.organization_id=:orgId", nativeQuery = true)
+	List<Object[]> getDroppedLeadsByStageAndStatus(
+			@Param(value = "stage") List<String> stage,
+			@Param(value = "status") List<String> status,
+			@Param(value = "startDate") String startDate,
+			@Param(value = "endDate") String endDate,
+			@Param(value = "orgId") int orgId,
+			@Param(value = "loginEmpName") String loginEmpName,
+			@Param(value = "roleName") String roleName,
+			@Param(value = "category") String category ); 
 
 }

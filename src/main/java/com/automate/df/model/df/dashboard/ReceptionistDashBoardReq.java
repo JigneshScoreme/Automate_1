@@ -1,5 +1,7 @@
 package com.automate.df.model.df.dashboard;
 
+import java.util.List;
+
 import javax.annotation.Nonnull;
 
 import lombok.AllArgsConstructor;
@@ -19,6 +21,10 @@ public class ReceptionistDashBoardReq {
 	Integer orgId; 
 	@Nonnull
 	Integer loggedInEmpId;
+	
+	List<String> stage;
+	List<String> status;
+	String category;
 	
 	
 }
