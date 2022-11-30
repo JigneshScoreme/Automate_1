@@ -3,10 +3,9 @@ package com.automate.df.service;
 import java.util.List;
 import java.util.Map;
 
-import com.automate.df.entity.salesgap.TSAdminUpdateReq;
-import com.automate.df.entity.salesgap.TargetEntity;
-import com.automate.df.entity.salesgap.TargetRoleReq;
+import com.automate.df.entity.salesgap.*;
 import com.automate.df.exception.DynamicFormsServiceException;
+import com.automate.df.model.df.dashboard.DashBoardReq;
 import com.automate.df.model.salesgap.TargetDropDown;
 import com.automate.df.model.salesgap.TargetMappingAddReq;
 import com.automate.df.model.salesgap.TargetMappingReq;
@@ -70,4 +69,7 @@ public interface SalesGapService {
 
 	
 
+	List<TargetPlanningCountRes>getTargetPlanningParamsCount(TargetPlanningReq req) throws DynamicFormsServiceException;
+
+	Map<String, Object> getTargetMappingDataSearchByEmpId(TargetPlanningReq req) throws DynamicFormsServiceException;
 }
