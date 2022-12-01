@@ -474,5 +474,27 @@ public interface DmsLeadDao extends JpaRepository<DmsLead, Integer> {
 			@Param(value = "loginEmpName") String loginEmpName,
 			@Param(value = "roleName") String roleName,
 			@Param(value = "category") String category ); 
+	
+	@Query(value = "SELECT A.* FROM dms_lead A where A.allocated = 'Yes' and A.createddatetime>=:startDate and A.created_by = :loggedEmpName"
+			+ " and A.createddatetime<=:endDate and A.source_of_enquiry=:subSource and A.organization_id=:orgId ", nativeQuery = true)
+	List<DmsLead> getAllEmployeeLeadsBySubSource(
+			@Param(value = "orgId") String orgId,
+			@Param(value = "startDate") String startDate,
+			@Param(value = "endDate") String endDate,
+			@Param(value = "subSource") String subSource,
+			@Param(value = "loggedEmpName") String loggedEmpName );
+
+	@Query(value = "SELECT A.* FROM dms_lead A, dms_branch B, dms_employee E , dms_role R where A.allocated = 'Yes' and A.createddatetime>=:startDate and A.created_by :loggedEmpName"
+			+ " and R.role_name = :roleName  and R.org_id = A.organization_id and E.org = R.org_id and E.hrms_role = R.role_id and A.created_by = E.emp_name "
+			+ " A.branch_id = B.branch_id and B.dealer_code = :dealerCode "
+			+ " and A.createddatetime<=:endDate and A.source_of_enquiry=:subSource and A,organization_id=:orgId ", nativeQuery = true)
+	List<DmsLead> getAllEmployeeLeadsBySubSource(
+			@Param(value = "orgId") String orgId,
+			@Param(value = "startDate") String startDate,
+			@Param(value = "endDate") String endDate,
+			@Param(value = "subSource") String subSource,
+			@Param(value = "loggedEmpName") String loggedEmpName ,
+			@Param(value = "dealerCode") String dealerCode,
+			@Param(value = "roleName") String roleName );
 
 }

@@ -328,17 +328,26 @@ public class ReceptionistServiceImpl implements ReceptionistService {
 		String dealerCode = req.getDealerCode();
 
 		String orgId = req.getOrgId().toString();
-		List<SourceAndId> reslist = repository.getSources(orgId);
+		//List<SourceAndId> reslist = repository.getSources(orgId);
+		List<String> reslist = repository.getSubSources(orgId);
 		Map<String, Integer> map = new LinkedHashMap<>();
 		reslist.stream().forEach(res -> {
 			SourceRes leadSource = new SourceRes();
 			List<DmsLead> dmsLeadList;
-			if (StringUtils.isEmpty(dealerCode))
+			/* if (StringUtils.isEmpty(dealerCode))
 				dmsLeadList = dmsLeadDao.getAllEmployeeLeadsBySource(orgId, startDate, endDate, res.getId(),
 						loginEmpName);
 			else
 				dmsLeadList = dmsLeadDao.getAllEmployeeLeadsBySource(orgId, startDate, endDate, res.getId(),
+						loginEmpName, dealerCode, roleName); */
+			
+			if (StringUtils.isEmpty(dealerCode))
+				dmsLeadList = dmsLeadDao.getAllEmployeeLeadsBySubSource(orgId, startDate, endDate, res,
+						loginEmpName);
+			else
+				dmsLeadList = dmsLeadDao.getAllEmployeeLeadsBySubSource(orgId, startDate, endDate, res,
 						loginEmpName, dealerCode, roleName);
+			
 			Long enqLeadCnt = 0L;
 			Long bookCount = 0L;
 
@@ -361,7 +370,7 @@ public class ReceptionistServiceImpl implements ReceptionistService {
 
 				log.info("enqLeadCnt: " + enqLeadCnt + " ,droppedCnt : " + droppedCnt);
 			}
-			leadSource.setSource(res.getName());
+			leadSource.setSource(res);
 			leadSource.setE(enqLeadCnt);
 			leadSource.setL(droppedCnt);
 
