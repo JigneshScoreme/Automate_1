@@ -26,14 +26,16 @@ import com.automate.df.dao.salesgap.DmsEmployeeRepo;
 import com.automate.df.dao.salesgap.TargetSettingRepo;
 import com.automate.df.dao.salesgap.TargetUserRepo;
 import com.automate.df.entity.LeadStageRefEntity;
-import com.automate.df.entity.SourceAndId;
 import com.automate.df.entity.dashboard.DmsLead;
 import com.automate.df.entity.dashboard.DmsWFTask;
 import com.automate.df.entity.salesgap.DmsEmployee;
+import com.automate.df.exception.DynamicFormsServiceException;
+import com.automate.df.model.df.dashboard.DigitalManagerDashBoardReq;
 import com.automate.df.model.df.dashboard.ReceptionistDashBoardReq;
 import com.automate.df.model.df.dashboard.ReceptionistLeadRes;
 import com.automate.df.model.df.dashboard.SourceRes;
 import com.automate.df.model.df.dashboard.VehicleModelRes;
+import com.automate.df.service.DashBoardServiceV2;
 import com.automate.df.service.ReceptionistService;
 import com.automate.df.util.DashBoardUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -94,6 +96,9 @@ public class ReceptionistServiceImpl implements ReceptionistService {
 
 	@Autowired
 	SourceAndIddao repository;
+	
+	@Autowired
+	DashBoardServiceV2 dashBoardServiceV2;
 
 	public static final String ENQUIRY = "Enquiry";
 	public static final String DROPPED = "DROPPED";
@@ -483,4 +488,114 @@ public class ReceptionistServiceImpl implements ReceptionistService {
 		return result;
 	}
 
+	
+	public Map getDigitalManagerDahboardData(DigitalManagerDashBoardReq req
+			) throws DynamicFormsServiceException {
+
+		DmsEmployee dmsEmployeeObj = dmsEmployeeRepo.getById(req.getLoggedInEmpId());
+		String loginEmpName = dmsEmployeeObj.getEmpName();
+
+		Map map = new HashMap();
+		String startDate = getStartDate(req.getStartDate());
+		String endDate = getEndDate(req.getEndDate());
+		int orgId = req.getOrgId();
+		String dealerCode = req.getDealerCode();
+
+		List<String> dmsTeamEmployeeList = dashBoardServiceV2.getReportingEmployeeNames(req.getLoggedInEmpId());
+		List<String> dmsEmployeeList = dmsEmployeeRepo.findEmpNames(orgId);
+
+		List consultantList = new ArrayList();
+		for (String dmsEmployee : dmsEmployeeList) {
+			Map m = new HashMap();
+			// m.put("emp_id", dmsEmployee.getEmp_id());
+			m.put("emp_name", dmsEmployee);
+			m.put("allocatedCount", getAllocatedLeadsCountForManagerByEmp(dmsEmployee, startDate, endDate,  req , 
+					dmsTeamEmployeeList));
+			m.put("droppedCount", getDropeedLeadsCountForManagerByEmp(dmsEmployee, startDate, endDate, req, 
+					dmsTeamEmployeeList));
+			consultantList.add(m);
+		}
+		map.put("consultantList", consultantList);
+		map.put("totalAllocatedCount",
+				getAllocatedLeadsCountForManagerByEmp(null, startDate, endDate, req, dmsTeamEmployeeList));
+		map.put("totalDroppedCount",
+				getDropeedLeadsCountForManagerByEmp(null, startDate, endDate, req, dmsTeamEmployeeList));
+		map.put("bookingCount",
+				getAllLeadsCount(startDate, endDate, "BOOKING", req, dmsTeamEmployeeList));
+		map.put("RetailCount",
+				getAllLeadsCount(startDate, endDate, "INVOICE", req, dmsTeamEmployeeList));
+
+		return map;
+	}
+	
+	Integer getAllocatedLeadsCountForManagerByEmp(String empName, String startDate, String endDate, DigitalManagerDashBoardReq req, 
+			List<String> empNameList) {
+		//if (StringUtils.isEmpty(dealerCode))
+			return dmsLeadDao.getAllocatedLeadsCountByEmp(empName, startDate, endDate,  req.getOrgId(), empNameList);
+		/*else
+			return dmsLeadDao.getAllocatedLeadsCountByEmp(empName, startDate, endDate, orgId, dealerCode, loginEmpName,
+					roleName); */
+	}
+
+	Integer getDropeedLeadsCountForManagerByEmp(String empName, String startDate, String endDate, DigitalManagerDashBoardReq req,
+			List<String> empNameList) {
+		//if (StringUtils.isEmpty(dealerCode))
+			return dmsLeadDao.getDroppedLeadsCountByEmp(empName, startDate, endDate,  req.getOrgId(), empNameList);
+		/*else
+			return dmsLeadDao.getDropeedLeadsCountByEmp(empName, startDate, endDate, orgId, dealerCode, loginEmpName,
+					roleName); */
+	}
+	
+
+	Integer getAllLeadsCount(String startDate, String endDate, String leadType, DigitalManagerDashBoardReq req,
+			List<String> empNameList) {
+		//if (StringUtils.isEmpty(dealerCode))
+			return dmsLeadDao.getAllLeadsCount(startDate, endDate, leadType,  req.getOrgId(), empNameList);
+		//else
+		//	return dmsLeadDao.getAllLeadsCount(startDate, endDate, leadType, orgId, dealerCode, loginEmpName, roleName);
+	}
+	public List getDigitalManagerDahboardTeamData(DigitalManagerDashBoardReq req
+			) throws DynamicFormsServiceException {
+
+		DmsEmployee dmsEmployeeObj = dmsEmployeeRepo.getById(req.getLoggedInEmpId());
+		String loginEmpName = dmsEmployeeObj.getEmpName();
+
+		
+		String startDate = getStartDate(req.getStartDate());
+		String endDate = getEndDate(req.getEndDate());
+		int orgId = req.getOrgId();
+		String dealerCode = req.getDealerCode();
+
+		List<String> dmsTeamList = dashBoardServiceV2.getReportingEmployeeNames(req.getLoggedInEmpId());
+		List resultList = new ArrayList();
+		
+		for(String empTeamName: dmsTeamList)
+		{
+			Map map = new HashMap();
+			List<String> dmsTeamEmployeeList = new ArrayList();
+			dmsTeamEmployeeList.add(empTeamName);
+				
+		List<String> dmsEmployeeList = dmsEmployeeRepo.findEmpNames(orgId);
+
+		List consultantList = new ArrayList();
+		for (String dmsEmployee : dmsEmployeeList) {
+			Map m = new HashMap();
+			// m.put("emp_id", dmsEmployee.getEmp_id());
+			m.put("emp_name", dmsEmployee);
+			m.put("allocatedCount", getAllocatedLeadsCountForManagerByEmp(dmsEmployee, startDate, endDate,  req , 
+					dmsTeamEmployeeList));
+			m.put("droppedCount", getDropeedLeadsCountForManagerByEmp(dmsEmployee, startDate, endDate, req, 
+					dmsTeamEmployeeList));
+			consultantList.add(m);
+		}
+		map.put("name", empTeamName);
+		map.put("consultantList", consultantList);
+		map.put("totalAllocatedCount",
+				getAllocatedLeadsCountForManagerByEmp(null, startDate, endDate, req, dmsTeamEmployeeList));
+		map.put("totalDroppedCount",
+				getDropeedLeadsCountForManagerByEmp(null, startDate, endDate, req, dmsTeamEmployeeList));
+		resultList.add(map);
+		}
+		return resultList;
+	}
 }

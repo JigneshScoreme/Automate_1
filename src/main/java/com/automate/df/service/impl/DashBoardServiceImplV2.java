@@ -701,6 +701,40 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		return empReportingIdList_1;
 	}
 	
+	public List<String> getReportingEmployeeNames(Integer empId) throws DynamicFormsServiceException {
+		List<String> empReportingIdList = new ArrayList<>();
+		Optional<DmsEmployee> empOpt = dmsEmployeeRepo.findEmpById(empId);
+		if(empOpt.isPresent()) {
+			TargetRoleRes tRole = salesGapServiceImpl.getEmpRoleDataV3(empId);
+			log.debug("tRole::"+tRole);
+			log.debug("tRole.getOrgMapBranches():::"+tRole.getOrgMapBranches());
+			
+			for(String orgMapBranchId : tRole.getOrgMapBranches()) {
+				Map<String, Object> hMap = ohServiceImpl.getReportingHierarchyV2(empOpt.get(),Integer.parseInt(orgMapBranchId),Integer.parseInt((tRole.getOrgId())));
+				
+				
+				if(null!=hMap) {
+				for(Map.Entry<String, Object> mapentry : hMap.entrySet()) {
+					Map<String, Object> map2 = (Map<String, Object>)mapentry.getValue();
+					for(Map.Entry<String, Object> mapentry_1 :map2.entrySet()) {
+						List<TargetDropDownV2> ddList = (List<TargetDropDownV2>)mapentry_1.getValue();
+						empReportingIdList.addAll(ddList.stream().map(x->x.getName()).collect(Collectors.toList()));
+					}
+				}
+			}
+			}
+			Set<String> s = new HashSet<>();
+			s.addAll(empReportingIdList);
+			empReportingIdList = new ArrayList<>(s);
+			
+		}else {
+			throw new DynamicFormsServiceException("Logged in emp is not valid employee,no record found in dms_employee", HttpStatus.BAD_REQUEST);
+		}
+		
+		return empReportingIdList;
+	}
+	
+	
 	private List<Integer> getReportingEmployesBranch(Integer empId, String branchId)
 			throws DynamicFormsServiceException {
 		List<String> empReportingIdList = new ArrayList<>();

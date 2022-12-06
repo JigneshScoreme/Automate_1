@@ -64,5 +64,7 @@ public interface DashBoardServiceV2 {
 	List<TargetAchivementModelandSource> getTargetAchivementParamsModelAndSource(DashBoardReqV2 req) throws DynamicFormsServiceException;
 
 	List<TargetAchivementModelandSource> getTargetAchivementParamsForSingleEmpModelAndSource3(DashBoardReqV2 req) throws DynamicFormsServiceException;
+	
+	public List<String> getReportingEmployeeNames(Integer empId) throws DynamicFormsServiceException ;
 
 }

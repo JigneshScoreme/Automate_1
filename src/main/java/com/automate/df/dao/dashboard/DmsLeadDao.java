@@ -497,4 +497,38 @@ public interface DmsLeadDao extends JpaRepository<DmsLead, Integer> {
 			@Param(value = "dealerCode") String dealerCode,
 			@Param(value = "roleName") String roleName );
 
+	// -------------------------
+	
+	@Query(value = "SELECT count(*) FROM dms_lead A where  A.createddatetime>=:startDate  "
+			+ " and A.sales_consultant = coalesce(:empName, A.sales_consultant)"
+			+ " and A.allocated = 'Yes' and A.created_by in ( :empNameList ) "
+			+ " and A.createddatetime<=:endDate and A.lead_stage not in ('DROPPED') and A.organization_id=:orgId", nativeQuery = true)
+	Integer getAllocatedLeadsCountByEmp(@Param(value = "empName") String empName,
+			@Param(value = "startDate") String startDate,
+			@Param(value = "endDate") String endDate,
+			@Param(value = "orgId") int orgId,
+			@Param(value = "empNameList") List<String> empNameList);
+	
+	@Query(value = "SELECT count(*) FROM dms_lead A where A.createddatetime>=:startDate  "
+			+ " and A.sales_consultant = coalesce(:empName, A.sales_consultant)"
+			+ " and A.allocated = 'Yes' and A.created_by in ( :empNameList ) "
+			+ " and A.createddatetime<=:endDate and A.lead_stage in ('DROPPED') and A.organization_id=:orgId", nativeQuery = true)
+	Integer getDroppedLeadsCountByEmp(@Param(value = "empName") String empName,
+			@Param(value = "startDate") String startDate,
+			@Param(value = "endDate") String endDate,
+			@Param(value = "orgId") int orgId,
+			@Param(value = "empNameList") List<String> empNameList);
+	
+	@Query(value = "SELECT count(*) FROM dms_lead A where A.createddatetime>=:startDate "
+			+ " and A.allocated = 'Yes' and A.created_by in ( :empNameList )"
+			+ " and A.createddatetime<=:endDate and A.lead_stage=:leadType and A.organization_id=:orgId", nativeQuery = true)
+	Integer getAllLeadsCount(
+			@Param(value = "startDate") String startDate,
+			@Param(value = "endDate") String endDate,
+			@Param(value = "leadType") String leadType,
+			@Param(value = "orgId") int orgId,
+			@Param(value = "empNameList") List<String> empNameList);
+
+	
 }
+

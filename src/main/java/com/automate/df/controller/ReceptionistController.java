@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.automate.df.exception.DynamicFormsServiceException;
+import com.automate.df.model.df.dashboard.DigitalManagerDashBoardReq;
 import com.automate.df.model.df.dashboard.ReceptionistDashBoardReq;
 import com.automate.df.model.df.dashboard.ReceptionistLeadRes;
 import com.automate.df.model.df.dashboard.SourceRes;
@@ -51,6 +52,15 @@ public class ReceptionistController {
 	public ResponseEntity<Map> getTeleCallerData(@RequestBody ReceptionistDashBoardReq req)
 			throws DynamicFormsServiceException {
 			Map response = dashBoardService.getReceptionistData(req, "Tele Caller");
+		
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	@CrossOrigin
+	@PostMapping(value = "/digitalManager")
+	public ResponseEntity<Map> getDigitalManagerData(@RequestBody DigitalManagerDashBoardReq req)
+			throws DynamicFormsServiceException {
+			Map response = dashBoardService.getDigitalManagerDahboardData(req);
 		
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
@@ -182,6 +192,15 @@ public class ReceptionistController {
 		} else {
 			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
 		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	@CrossOrigin
+	@PostMapping(value = "/digitalManager/teams")
+	public ResponseEntity<List> getDigitalManagerTeamData(@RequestBody DigitalManagerDashBoardReq req)
+			throws DynamicFormsServiceException {
+			List response = dashBoardService.getDigitalManagerDahboardTeamData(req);
+		
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 }
