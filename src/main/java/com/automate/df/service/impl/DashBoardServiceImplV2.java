@@ -930,7 +930,8 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		});
 		
 		
-		List<Integer> dmsLeadList = dmsLeadDao.getLeadIdsByEmpNamesWithOutDrop1(empNamesList,vehicleModelList,startDate,endDate);
+		//List<Integer> dmsLeadList = dmsLeadDao.getLeadIdsByEmpNamesWithOutDrop1(empNamesList,vehicleModelList,startDate,endDate);
+		List<Integer> dmsLeadList = dmsLeadDao.getLeadIdsByEmpNamesWithOutDrop1(empNamesList,vehicleModelList);
         //System.out.println("dmsLeadList Before Adding"+dmsLeadList.size());
         //System.out.println("empNamesList"+empNamesList.toString());
 		dmsLeadList.addAll(dmsEmployeeAllocations.stream().filter(res -> !res.getDmsLead().getLeadStage().equalsIgnoreCase("DROPPED") &&
@@ -995,17 +996,18 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 			//		&& x.getLeadStatus().equalsIgnoreCase("INVOICECOMPLETED")).count();
 			//invCount = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREDELIVERY") 
 			//		&& x.getLeadStatus().equalsIgnoreCase("INVOICECOMPLETED") && x.getLeadStatus().equalsIgnoreCase("PREDELIVERYCOMPLETED")).count();
-			invCount = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(invCompStatus)).distinct().count();
-			preDeliveryCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREDELIVERY")).count();
+			invCount = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(invCompStatus) && x.getStageName().equalsIgnoreCase("INVOICE")).distinct().count();
+			preDeliveryCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("PREDELIVERY")).distinct().count();
 			//delCnt = leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("DELIVERY") && x.getLeadStatus().equalsIgnoreCase("DELIVERYCOMPLETED")).count();
-			delCnt = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(delCompStatus)).count();
+			delCnt = leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(delCompStatus)).distinct().count();
 			
 			if(null!=leadRefListDropped1 && !leadRefListDropped1.isEmpty()) {
 				
 				dropLeadCnt = leadRefListDropped1.stream().distinct().count();
 			}
 		}
-		System.out.println("@@@@@@@@@#############leadRefList2:::::::::"+leadRefList.stream().map(res->res.getLeadId()).distinct().collect(Collectors.toList()));
+		//System.out.println("@@@@@@@@@#############leadRefList2:::::::::"+leadRefList.stream().map(res -> res.getLeadId()).collect(Collectors.toList()));
+		//System.out.println("@@@@@@@@@#############leadRefList2:::::::::"+leadRefList.stream().filter(x->x.getLeadStatus()!=null && x.getLeadStatus().equalsIgnoreCase(invCompStatus)).map(res -> res.getLeadId()).collect(Collectors.toList()));
 
 		//System.out.println("Enq :"+leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY")).map(res -> res.getLeadId()).collect(Collectors.toList()));
 		//System.out.println("Enq :"+leadRefList.stream().filter(x->x.getStageName().equalsIgnoreCase("ENQUIRY")).map(res -> res.getLeadId()).distinct().collect(Collectors.toList()));

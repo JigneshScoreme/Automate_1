@@ -154,9 +154,20 @@ public interface DmsLeadDao extends JpaRepository<DmsLead, Integer> {
 	@Query(value = "SELECT id FROM dms_lead where sales_consultant in(:empNamesList) and lead_stage not in ('DROPPED') ", nativeQuery = true)
 	List<Integer> getLeadIdsByEmpNamesWithOutDrop(@Param(value = "empNamesList") List<String> empNamesList);
 	
-	@Query(value = "SELECT id FROM dms_lead where sales_consultant in(:empNamesList) and lead_stage not in ('DROPPED') and model in (:model) and  createddatetime>=:startDate and createddatetime<=:endDate", nativeQuery = true)
-	List<Integer> getLeadIdsByEmpNamesWithOutDrop1(@Param(value = "empNamesList") List<String> empNamesList, @Param(value = "model") List<String> model, @Param(value = "startDate") String startDate,
-			@Param(value = "endDate") String endDate);
+	//and  createddatetime>=:startDate and createddatetime<=:endDate
+	/*
+	 * @Query(value =
+	 * "SELECT id FROM dms_lead where sales_consultant in(:empNamesList) and lead_stage not in ('DROPPED') and model in (:model)"
+	 * , nativeQuery = true) List<Integer>
+	 * getLeadIdsByEmpNamesWithOutDrop1(@Param(value = "empNamesList") List<String>
+	 * empNamesList, @Param(value = "model") List<String> model, @Param(value =
+	 * "startDate") String startDate,
+	 * 
+	 * @Param(value = "endDate") String endDate);
+	 */
+	
+	@Query(value = "SELECT id FROM dms_lead where sales_consultant in(:empNamesList) and lead_stage not in ('DROPPED') and model in (:model)", nativeQuery = true)
+	List<Integer> getLeadIdsByEmpNamesWithOutDrop1(@Param(value = "empNamesList") List<String> empNamesList, @Param(value = "model") List<String> model);
 	
 	@Query(value = "SELECT id FROM dms_lead where sales_consultant in(:empNamesList) and lead_stage in ('DROPPED') ", nativeQuery = true)
 	List<Integer> getLeadIdsByEmpNamesWithDrop(@Param(value = "empNamesList") List<String> empNamesList);
