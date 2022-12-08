@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import com.automate.df.dao.LeadStageRefDao;
 import com.automate.df.dao.SourceAndIddao;
+import com.automate.df.dao.SubSourceRepository;
 import com.automate.df.dao.dashboard.DmsLeadDao;
 import com.automate.df.dao.dashboard.DmsLeadDropDao;
 import com.automate.df.dao.dashboard.DmsWfTaskDao;
@@ -26,6 +27,8 @@ import com.automate.df.dao.salesgap.DmsEmployeeRepo;
 import com.automate.df.dao.salesgap.TargetSettingRepo;
 import com.automate.df.dao.salesgap.TargetUserRepo;
 import com.automate.df.entity.LeadStageRefEntity;
+import com.automate.df.entity.SourceAndId;
+import com.automate.df.entity.SubSource;
 import com.automate.df.entity.dashboard.DmsLead;
 import com.automate.df.entity.dashboard.DmsWFTask;
 import com.automate.df.entity.salesgap.DmsEmployee;
@@ -96,6 +99,9 @@ public class ReceptionistServiceImpl implements ReceptionistService {
 
 	@Autowired
 	SourceAndIddao repository;
+	
+	@Autowired
+	SubSourceRepository subSourceRepository;
 	
 	@Autowired
 	DashBoardServiceV2 dashBoardServiceV2;
@@ -333,8 +339,8 @@ public class ReceptionistServiceImpl implements ReceptionistService {
 		String dealerCode = req.getDealerCode();
 
 		String orgId = req.getOrgId().toString();
-		//List<SourceAndId> reslist = repository.getSources(orgId);
-		List<String> reslist = repository.getSubSources(orgId);
+		List<SubSource> reslist = subSourceRepository.getAllSubsource(orgId);
+		//List<String> reslist = repository.getSubSources(orgId);
 		Map<String, Integer> map = new LinkedHashMap<>();
 		reslist.stream().forEach(res -> {
 			SourceRes leadSource = new SourceRes();
@@ -347,10 +353,10 @@ public class ReceptionistServiceImpl implements ReceptionistService {
 						loginEmpName, dealerCode, roleName); */
 			
 			if (StringUtils.isEmpty(dealerCode))
-				dmsLeadList = dmsLeadDao.getAllEmployeeLeadsBySubSource(orgId, startDate, endDate, res,
+				dmsLeadList = dmsLeadDao.getAllEmployeeLeadsBySubSource(orgId, startDate, endDate, res.getSubSource(),
 						loginEmpName);
 			else
-				dmsLeadList = dmsLeadDao.getAllEmployeeLeadsBySubSource(orgId, startDate, endDate, res,
+				dmsLeadList = dmsLeadDao.getAllEmployeeLeadsBySubSource(orgId, startDate, endDate, res.getSubSource(),
 						loginEmpName, dealerCode, roleName);
 			
 			Long enqLeadCnt = 0L;
@@ -375,7 +381,8 @@ public class ReceptionistServiceImpl implements ReceptionistService {
 
 				log.info("enqLeadCnt: " + enqLeadCnt + " ,droppedCnt : " + droppedCnt);
 			}
-			leadSource.setSource(res);
+			leadSource.setSubSource(res.getSubSource());
+			leadSource.setSource(res.getSource());
 			leadSource.setE(enqLeadCnt);
 			leadSource.setL(droppedCnt);
 
@@ -501,7 +508,52 @@ public class ReceptionistServiceImpl implements ReceptionistService {
 		int orgId = req.getOrgId();
 		String dealerCode = req.getDealerCode();
 
+		String empId = req.getLoggedInEmpId().toString();
 		List<String> dmsTeamEmployeeList = dashBoardServiceV2.getReportingEmployeeNames(req.getLoggedInEmpId());
+		List<Integer> dmsTeamEmployeeListInt ;
+		//
+		//List<Integer> empIdsUnderReporting = dashBoardUtil.getEmployeesUnderTL(empId);
+		//List<Integer> empIdsUnderReporting = dashBoardUtil.getEmployeesUnderMgr(empId);
+		//List<Integer> empIdsUnderReporting = dashBoardUtil.getEmployeesUnderBranchMgr(empId);
+		//List<Integer> empIdsUnderReporting = dashBoardUtil.getEmployeesUnderGeneralMgr(empId);
+		
+		/*
+		
+		if(null== req.getBranchId() && null==req.getLocationId() && null==req.getBranchmangerId() && null==req.getManagerId() && null==req.getTeamLeadId() && null == req.getEmployeeId() && empId!=null) {
+			log.info("General Manager PageLoad");
+			dmsTeamEmployeeListInt= dashBoardUtil.getEmployeesUnderGeneralMgr(empId);
+		}
+		else if(null != req.getBranchId() && null==req.getLocationId() && null==req.getBranchmangerId() && null==req.getManagerId() && null==req.getTeamLeadId() && null == req.getEmployeeId() && empId!=null) {
+			log.info("Only Branch ID is present");
+			dmsTeamEmployeeListInt =dashBoardUtil.getEmployeesUnderBranch(branch);
+		}
+		else if(null != req.getBranchId() && null!=req.getLocationId() && null==req.getBranchmangerId() && null==req.getManagerId() && null==req.getTeamLeadId() && null == req.getEmployeeId() && empId!=null) {
+			log.info("Only Branch ID and Location ID is present");
+			dmsTeamEmployeeListInt =buildTodaysDataForLocation(tRole,req);
+		}
+		
+		else if(null != req.getBranchId() && null!=req.getLocationId() && null!=req.getBranchmangerId() && null==req.getManagerId() && null==req.getTeamLeadId() && null == req.getEmployeeId() && empId!=null) {
+			log.info("Only Branch ID,Location ID and BranchMgr ID is present");
+			list=buildTodaysDataForBranchMgr(tRole,req,req.getBranchmangerId());
+			}
+		else if(null != req.getBranchId() && null!=req.getLocationId() && null!=req.getBranchmangerId() && null!=req.getManagerId() && null==req.getTeamLeadId() && null == req.getEmployeeId() && empId!=null) {
+			log.info("Only Branch ID,Location ID ,BranchMgr ID and Manager ID is present");
+			list=buildTodaysDataForMgr(tRole,req,req.getManagerId());
+		}
+		else if(null != req.getBranchId() && null!=req.getLocationId() && null!=req.getBranchmangerId() && null!=req.getManagerId() && null!=req.getTeamLeadId() && null == req.getEmployeeId() && empId!=null) {
+			log.info("Only Branch ID,Location ID ,BranchMgr ID and Manager ID is present");
+			list=buildTodaysDataForTL(tRole,req,req.getTeamLeadId());
+			}
+		else if(null != req.getBranchId() && null!=req.getLocationId() && null!=req.getBranchmangerId() && null!=req.getManagerId() && null!=req.getTeamLeadId() && null != req.getEmployeeId() && empId!=null) {
+			log.info("Only Branch ID,Location ID ,BranchMgr ID , Manager ID and Employeed ID is present");
+			list=buildTodaysDataForDSE(tRole,req,req.getEmployeeId());
+		}
+		
+		*/
+		
+		//TODO select reporting employee filter wise. 
+		
+		// if sales comtruct in not null  then selet list based on it only.
 		List<String> dmsEmployeeList = dmsEmployeeRepo.findEmpNames(orgId);
 
 		List consultantList = new ArrayList();

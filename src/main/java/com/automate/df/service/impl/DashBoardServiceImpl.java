@@ -2227,7 +2227,7 @@ public class DashBoardServiceImpl implements DashBoardService{
 		return map;
 	}
 	
-	private Map<String, Object> buildTodaysDataForGeneralMgr(TargetRoleRes tRole, DashBoardReq req) {
+private Map<String, Object> buildTodaysDataForGeneralMgr(TargetRoleRes tRole, DashBoardReq req) {
 		Map<String, Object> map = new HashMap<>();
 		   try {
 			String empId = req.getLoggedInEmpId();

@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 public class SourceRes {
 	
 	String source;
+	String subSource;
 	Long E;
 	Long T;
 	Long V;
