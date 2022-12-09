@@ -510,51 +510,62 @@ public class ReceptionistServiceImpl implements ReceptionistService {
 
 		String empId = req.getLoggedInEmpId().toString();
 		List<String> dmsTeamEmployeeList = dashBoardServiceV2.getReportingEmployeeNames(req.getLoggedInEmpId());
-		List<Integer> dmsTeamEmployeeListInt ;
+		
 		//
 		//List<Integer> empIdsUnderReporting = dashBoardUtil.getEmployeesUnderTL(empId);
 		//List<Integer> empIdsUnderReporting = dashBoardUtil.getEmployeesUnderMgr(empId);
 		//List<Integer> empIdsUnderReporting = dashBoardUtil.getEmployeesUnderBranchMgr(empId);
 		//List<Integer> empIdsUnderReporting = dashBoardUtil.getEmployeesUnderGeneralMgr(empId);
 		
-		/*
+		// As per uday, this is for digital manager beans he will be branch manager. there is no meaning of general manager/ branch manager lookup.
 		
-		if(null== req.getBranchId() && null==req.getLocationId() && null==req.getBranchmangerId() && null==req.getManagerId() && null==req.getTeamLeadId() && null == req.getEmployeeId() && empId!=null) {
+		if(req.getDealerCode() != null && StringUtils.isEmpty(req.getDealerCode()))
+		{
+			List<Integer> dmsTeamEmployeeListInt = new ArrayList() ;
+			
+		if(null==req.getBranchmangerId() && null==req.getManagerId() && null==req.getTeamLeadId()  && empId!=null) {
 			log.info("General Manager PageLoad");
 			dmsTeamEmployeeListInt= dashBoardUtil.getEmployeesUnderGeneralMgr(empId);
 		}
-		else if(null != req.getBranchId() && null==req.getLocationId() && null==req.getBranchmangerId() && null==req.getManagerId() && null==req.getTeamLeadId() && null == req.getEmployeeId() && empId!=null) {
+		/*else if(null != req.getBranchId() && null==req.getLocationId() && null==req.getBranchmangerId() && null==req.getManagerId() && null==req.getTeamLeadId() && null == req.getEmployeeId() && empId!=null) {
 			log.info("Only Branch ID is present");
 			dmsTeamEmployeeListInt =dashBoardUtil.getEmployeesUnderBranch(branch);
 		}
 		else if(null != req.getBranchId() && null!=req.getLocationId() && null==req.getBranchmangerId() && null==req.getManagerId() && null==req.getTeamLeadId() && null == req.getEmployeeId() && empId!=null) {
 			log.info("Only Branch ID and Location ID is present");
 			dmsTeamEmployeeListInt =buildTodaysDataForLocation(tRole,req);
-		}
+		}*/
 		
-		else if(null != req.getBranchId() && null!=req.getLocationId() && null!=req.getBranchmangerId() && null==req.getManagerId() && null==req.getTeamLeadId() && null == req.getEmployeeId() && empId!=null) {
-			log.info("Only Branch ID,Location ID and BranchMgr ID is present");
-			list=buildTodaysDataForBranchMgr(tRole,req,req.getBranchmangerId());
+		else if(null!=req.getBranchmangerId() && null==req.getManagerId() && null==req.getTeamLeadId() && empId!=null) {
+			log.info("Only  BranchMgr ID is present");
+			dmsTeamEmployeeListInt= dashBoardUtil.getEmployeesUnderBranchMgr(empId);
 			}
-		else if(null != req.getBranchId() && null!=req.getLocationId() && null!=req.getBranchmangerId() && null!=req.getManagerId() && null==req.getTeamLeadId() && null == req.getEmployeeId() && empId!=null) {
-			log.info("Only Branch ID,Location ID ,BranchMgr ID and Manager ID is present");
-			list=buildTodaysDataForMgr(tRole,req,req.getManagerId());
+		else if( null!=req.getBranchmangerId() && null!=req.getManagerId() && null==req.getTeamLeadId() && empId!=null) {
+			log.info("Only BranchMgr ID and Manager ID is present");
+			dmsTeamEmployeeListInt = dashBoardUtil.getEmployeesUnderMgr(empId);
 		}
-		else if(null != req.getBranchId() && null!=req.getLocationId() && null!=req.getBranchmangerId() && null!=req.getManagerId() && null!=req.getTeamLeadId() && null == req.getEmployeeId() && empId!=null) {
-			log.info("Only Branch ID,Location ID ,BranchMgr ID and Manager ID is present");
-			list=buildTodaysDataForTL(tRole,req,req.getTeamLeadId());
+		else if(null!=req.getBranchmangerId() && null!=req.getManagerId() && null!=req.getTeamLeadId()  && empId!=null) {
+			log.info("Only BranchMgr ID and Manager ID, TL is present");
+			dmsTeamEmployeeListInt = dashBoardUtil.getEmployeesUnderTL(empId);
 			}
-		else if(null != req.getBranchId() && null!=req.getLocationId() && null!=req.getBranchmangerId() && null!=req.getManagerId() && null!=req.getTeamLeadId() && null != req.getEmployeeId() && empId!=null) {
+		/*else if( null!=req.getBranchmangerId() && null!=req.getManagerId() && null!=req.getTeamLeadId() && null != req.getEmployeeId() && empId!=null) {
 			log.info("Only Branch ID,Location ID ,BranchMgr ID , Manager ID and Employeed ID is present");
 			list=buildTodaysDataForDSE(tRole,req,req.getEmployeeId());
 		}
 		
 		*/
+		dmsTeamEmployeeList = dmsEmployeeRepo.findEmpNamesById(dmsTeamEmployeeListInt);
 		
-		//TODO select reporting employee filter wise. 
 		
-		// if sales comtruct in not null  then selet list based on it only.
-		List<String> dmsEmployeeList = dmsEmployeeRepo.findEmpNames(orgId);
+		}
+		
+		
+		
+		List<String> dmsEmployeeList ;
+		if(req.getSalesEmpId() != null && !req.getSalesEmpId().isEmpty())
+			dmsEmployeeList = dmsEmployeeRepo.findEmpNamesById(req.getSalesEmpId());
+		else
+			dmsEmployeeList = dmsEmployeeRepo.findEmpNames(orgId);
 
 		List consultantList = new ArrayList();
 		for (String dmsEmployee : dmsEmployeeList) {

@@ -31,5 +31,12 @@ public class DigitalManagerDashBoardReq {
 	List<String> status;
 	String category;
 	
+	List<Integer> salesEmpId;
+	
+
+	String branchmangerId;
+	String managerId;
+	String teamLeadId;
+	
 	
 }
