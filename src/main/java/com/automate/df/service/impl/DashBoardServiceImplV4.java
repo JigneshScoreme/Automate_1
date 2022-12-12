@@ -651,7 +651,7 @@ public class DashBoardServiceImplV4 implements DashBoardServiceV4{
 				
 				
 				//List<Integer> dmsLeadList = dmsLeadDao.getLeadIdsByEmpNamesWithOutDrop(empNamesList);
-				List<Integer> dmsLeadList = dmsLeadDao.getAllEmployeeLeadsWithModel1(orgId,empNamesList,startDate, endDate, model);
+				List<Integer> dmsLeadList = dmsLeadDao.getAllEmployeeLeadsWithModel1(orgId,empNamesList,model);
 		        //System.out.println("dmsLeadList Before Adding"+dmsLeadList.size());
 
 		        dmsLeadList.addAll(dmsEmployeeAllocations.stream().filter(res -> !res.getDmsLead().getLeadStage().equalsIgnoreCase("DROPPED")
@@ -660,7 +660,7 @@ public class DashBoardServiceImplV4 implements DashBoardServiceV4{
 				
 				//System.out.println("dmsLeadList After Adding"+dmsLeadList.size());	
 				
-				List<Integer> dmsLeadListDropped = dmsLeadDao.getAllEmployeeLeadsWithModel1(orgId,empNamesList,startDate, endDate, model);
+				List<Integer> dmsLeadListDropped = dmsLeadDao.getAllEmployeeLeadsWithModel1(orgId,empNamesList,model);
 				
 				//System.out.println("dmsLeadListDropped Before Adding"+dmsLeadListDropped.size());
 				
@@ -867,7 +867,7 @@ public class DashBoardServiceImplV4 implements DashBoardServiceV4{
 			
 			
 			//List<Integer> dmsLeadList = dmsLeadDao.getLeadIdsByEmpNamesWithOutDrop(empNamesList);
-			List<Integer> dmsLeadList = dmsLeadDao.getAllEmployeeLeadsBasedOnEnquiry1(orgId,empNamesList,startDate, endDate, v,vehicleModelList);
+			List<Integer> dmsLeadList = dmsLeadDao.getAllEmployeeLeadsBasedOnEnquiry1(orgId,empNamesList,v,vehicleModelList);
 	        //System.out.println("dmsLeadList Before Adding"+dmsLeadList.size());
 
 	        dmsLeadList.addAll(dmsEmployeeAllocations.stream().filter(res -> !res.getDmsLead().getLeadStage().equalsIgnoreCase("DROPPED")
@@ -876,7 +876,7 @@ public class DashBoardServiceImplV4 implements DashBoardServiceV4{
 			
 			//System.out.println("dmsLeadList After Adding"+dmsLeadList.size());	
 			
-			List<Integer> dmsLeadListDropped = dmsLeadDao.getAllEmployeeLeadsBasedOnEnquiry1(orgId,empNamesList,startDate, endDate, v,vehicleModelList);
+			List<Integer> dmsLeadListDropped = dmsLeadDao.getAllEmployeeLeadsBasedOnEnquiry1(orgId,empNamesList,v,vehicleModelList);
 			
 			//System.out.println("dmsLeadListDropped Before Adding"+dmsLeadListDropped.size());
 			
