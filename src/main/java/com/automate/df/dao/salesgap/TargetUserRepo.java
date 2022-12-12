@@ -78,10 +78,21 @@ public interface TargetUserRepo extends JpaRepository<TargetEntityUser, Integer>
 	@Modifying
 	@Transactional
 	@Query(value = "UPDATE dms_target_setting_user SET targets = :targets WHERE emp_id = :employeeId and org_id=:org_id and branch =:branch and department = :department and designation=:designation and start_date>= :start_date and end_date <= :end_date",nativeQuery = true)
-	public int updateTargetSetings(@Param(value = "targets") String targets,
+	public int updateTargetSetings1(@Param(value = "targets") String targets,
 			@Param(value = "employeeId") String employeeId, @Param(value = "org_id") String org_id,
 			@Param(value = "branch") String branch, @Param(value = "department") String department,
 			@Param(value = "designation") String designation
 			,@Param(value = "start_date") String start_date,@Param(value = "end_date") String end_date
 			);
+
+
+	@Modifying
+	@Transactional
+	@Query(value = "UPDATE dms_target_setting_user SET targets = :targets, updated_by_user_id =:updated_by_user_id WHERE emp_id = :employeeId and org_id=:org_id and branch =:branch and department = :department and designation=:designation and start_date>= :start_date and end_date <= :end_date",nativeQuery = true)
+	public int updateTargetSetings(@Param(value = "targets") String targets,
+								   @Param(value = "employeeId") String employeeId, @Param(value = "org_id") String org_id,
+								   @Param(value = "branch") String branch, @Param(value = "department") String department,
+								   @Param(value = "designation") String designation, @Param(value = "start_date") String start_date,@Param(value = "end_date") String end_date,
+								   @Param(value = "updated_by_user_id") Integer updated_by_user_id
+	);
 }

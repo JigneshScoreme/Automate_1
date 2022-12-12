@@ -32,6 +32,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.automate.df.constants.DynamicFormConstants;
@@ -924,6 +925,42 @@ public class SalesGapServiceImpl implements SalesGapService {
 				outputList1 = outputList1.subList(fromIndex, toIndex);
 			}
 			outputList1.sort((o1,o2) -> o2.getEndDate().compareTo(o1.getEndDate()));
+
+
+			List<Integer> listOfParentUser = new ArrayList<>();
+
+			int userId =req.getLoggedInEmpId();
+			int reportingId =dmsEmployeeRepo.getReportingPersonId(userId);
+
+			if(userId != reportingId){
+				listOfParentUser.add(reportingId);
+
+				while(userId != reportingId){
+					userId = reportingId;
+					reportingId = dmsEmployeeRepo.getReportingPersonId(userId);
+					listOfParentUser.add(reportingId);
+				}
+
+				for (int i = 0; i <outputList1.size() ; i++) {
+					if(listOfParentUser.contains(outputList1.get(i).getUpdated_by_user_id())){
+						outputList1.get(i).setRecordEditable(false);
+					}else{
+						outputList1.get(i).setRecordEditable(true);
+					}
+				}
+			}else{
+				for (int i = 0; i <outputList1.size() ; i++) {
+						outputList1.get(i).setRecordEditable(true);
+				}
+			}
+
+
+
+			System.out.println(listOfParentUser);
+
+
+
+
 			map.put("totalCnt", totalCnt);
 			map.put("pageNo", pageNo);
 			map.put("size", size);
@@ -1708,6 +1745,11 @@ public class SalesGapServiceImpl implements SalesGapService {
 						TargetSettingRes tsRes = modelMapper.map(teUser, TargetSettingRes.class);
 						tsRes = convertTargetStrToObj(teUser.getTargets(), tsRes);
 						tsRes.setEmpName(getEmpName(tRole.getEmpId()));
+						if(teUser.getUpdatedById()!=null) {
+							tsRes.setUpdated_by_user_id(teUser.getUpdatedById());
+						}else {
+							tsRes.setUpdated_by_user_id(0);
+						}
 						tsRes.setEmployeeId(tRole.getEmpId());
 						tsRes.setId(teUser.getGeneratedId());
 						tsRes.setTargetName(teUser.getTargetName());
@@ -1819,6 +1861,11 @@ public class SalesGapServiceImpl implements SalesGapService {
 						TargetSettingRes tsRes = modelMapper.map(teUser, TargetSettingRes.class);
 						tsRes = convertTargetStrToObj(teUser.getTargets(), tsRes);
 						tsRes.setEmpName(getEmpName(tRole.getEmpId()));
+						if(teUser.getUpdatedById()!=null) {
+							tsRes.setUpdated_by_user_id(teUser.getUpdatedById());
+						}else {
+							tsRes.setUpdated_by_user_id(0);
+						}
 						tsRes.setEmployeeId(tRole.getEmpId());
 						tsRes.setId(teUser.getGeneratedId());
 						tsRes.setTargetName(teUser.getTargetName());
@@ -2802,6 +2849,10 @@ public class SalesGapServiceImpl implements SalesGapService {
 					try {
 						String target = calculateTargets(adminTargets, retailTarget);
 						te.setTargets(target);
+
+						if(req.getLoggedInEmpId()!=null){
+							te.setUpdatedById(Integer.parseInt(req.getLoggedInEmpId()));
+						}
 						te.setTargetAdminId(adminId);
 						te.setActive("Y");
 						if(te.getType().equalsIgnoreCase("default")) {
@@ -2839,6 +2890,10 @@ public class SalesGapServiceImpl implements SalesGapService {
 						res.setManager(getEmpName(res.getManagerId()));
 						res.setBranchmanger(getEmpName(req.getBranchmangerId()));
 						res.setGeneralManager(getEmpName(req.getGeneralManagerId()));
+
+						if(req.getLoggedInEmpId()!=null){
+							res.setUpdated_by_user_id(Integer.parseInt(req.getLoggedInEmpId()));
+						}
 
 						res.setBranchManagerId(req.getBranchmangerId());
 						// res.setLocation(req.getLocation());

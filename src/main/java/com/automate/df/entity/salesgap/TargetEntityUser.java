@@ -110,5 +110,9 @@ public class TargetEntityUser {
 		
 		@Column(name="target_admin_id")
 		Integer targetAdminId;
+
+
+	@Column(name="updated_by_user_id")
+	Integer updatedById;
 }
 

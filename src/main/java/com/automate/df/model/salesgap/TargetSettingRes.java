@@ -63,6 +63,30 @@ public class TargetSettingRes {
 	
 	String targetName;
 	String targetType;
+
+
+	boolean recordEditable;
+
+	int updated_by_user_id;
+
+	public int getUpdated_by_user_id() {
+		return updated_by_user_id;
+	}
+
+	public void setUpdated_by_user_id(int updated_by_user_id) {
+		this.updated_by_user_id = updated_by_user_id;
+	}
+
+
+	public boolean isRecordEditable() {
+		return recordEditable;
+	}
+
+	public void setRecordEditable(boolean recordEditable) {
+		this.recordEditable = recordEditable;
+	}
+
+
 	public Integer getId() {
 		return id;
 	}

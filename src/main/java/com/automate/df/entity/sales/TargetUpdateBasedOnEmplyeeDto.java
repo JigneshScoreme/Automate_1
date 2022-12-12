@@ -18,8 +18,8 @@ public class TargetUpdateBasedOnEmplyeeDto {
 	String department;
 	
 	String designation;
-	
-	
+
+	Integer updatedByUserId;
 	
 	
 	
