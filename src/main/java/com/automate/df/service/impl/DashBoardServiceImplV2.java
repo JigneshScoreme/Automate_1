@@ -1275,16 +1275,22 @@ public class DashBoardServiceImplV2 implements DashBoardServiceV2{
 		System.out.println(""+leadIdList.size()+"@@@@@@@ID's"+leadIdList);
 		List<Integer> leadIdListV1 = leadRefList.stream().filter(x->null!=x.getLeadStatus() && x.getLeadStatus().equals("INVOICECOMPLETED")).map(x->x.getLeadId()).distinct().collect(Collectors.toList());
 		System.out.println(""+leadIdListV1.size()+"@@@@@@@ID's"+leadIdListV1);
+		List<Integer> leadIdListV2 = leadRefList.stream().filter(x->null!=x.getLeadStatus() && x.getLeadStatus().equals("DELIVERYCOMPLETED")).map(x->x.getLeadId()).distinct().collect(Collectors.toList());
 
 		if(leadIdListV1!=null && !leadIdListV1.isEmpty()) {
 			exchangeCnt  = getExchangeCntSupportParam(leadIdListV1);
 			insuranceCnt = getInsuranceCntSupportParam(leadIdListV1);
-			accessoriesCnt = getAccessoriesCount(leadIdListV1);
-			if(accessoriesCnt==null || leadIdListV1.isEmpty())
-			{
-				accessoriesCnt = 0L;
-			}
+			
+			
 			financeCnt = getFinanceCntSupportParam(leadIdListV1);	
+		}
+		
+		if(leadIdListV2!=null && !leadIdListV2.isEmpty()) {
+			accessoriesCnt = getAccessoriesCount(leadIdListV2);
+		if(accessoriesCnt==null || leadIdListV2.isEmpty())
+		{
+			accessoriesCnt = 0L;
+		}
 		}
 		
 		extendedWarntyCnt  =getExtendedWarrntySupportParam(leadIdList);
