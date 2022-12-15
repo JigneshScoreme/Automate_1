@@ -1222,17 +1222,52 @@ public class SalesGapServiceImpl implements SalesGapService {
 			}
 
 
+			String targetType = req.getTargetType();
+			log.debug("targetType in get all api " + targetType);
+
+			if (null != targetType && targetType.equalsIgnoreCase(DynamicFormConstants.TARGET_MONTHLY_TYPE)) {
+				outputList1 = outputList1.stream()
+						.filter(x -> x.getTargetType().equalsIgnoreCase(DynamicFormConstants.TARGET_MONTHLY_TYPE))
+						.collect(Collectors.toList());
+			} else if (null != targetType && targetType.equalsIgnoreCase(DynamicFormConstants.TARGET_SPEICAL_TYPE)) {
+				outputList1 = outputList1.stream()
+						.filter(x -> x.getTargetType().equalsIgnoreCase(DynamicFormConstants.TARGET_SPEICAL_TYPE))
+						.collect(Collectors.toList());
+			}
+
 			for (int i = 0; i <outputList1.size() ; i++) {
-				retail += Integer.parseInt(outputList1.get(i).getRetailTarget());
-				enquiry += Integer.parseInt(outputList1.get(i).getEnquiry());
-				testDrive += Integer.parseInt(outputList1.get(i).getTestDrive());
-				visit += Integer.parseInt(outputList1.get(i).getHomeVisit());
-				booking += Integer.parseInt(outputList1.get(i).getBooking());
-				exchange += Integer.parseInt(outputList1.get(i).getExchange());
-				finance += Integer.parseInt(outputList1.get(i).getFinance());
-				insurance += Integer.parseInt(outputList1.get(i).getInsurance());
-				exwarranty += Integer.parseInt(outputList1.get(i).getExWarranty());
-				accessories += Integer.parseInt(outputList1.get(i).getAccessories());
+				if(outputList1.get(i)!=null) {
+					if(outputList1.get(i).getRetailTarget()!=null)
+						retail += Integer.parseInt(outputList1.get(i).getRetailTarget());
+
+					if(outputList1.get(i).getEnquiry()!=null)
+						enquiry += Integer.parseInt(outputList1.get(i).getEnquiry());
+
+					if(outputList1.get(i).getTestDrive()!=null)
+						testDrive += Integer.parseInt(outputList1.get(i).getTestDrive());
+
+					if(outputList1.get(i).getHomeVisit()!=null)
+						visit += Integer.parseInt(outputList1.get(i).getHomeVisit());
+
+					if(outputList1.get(i).getBooking()!=null)
+						booking += Integer.parseInt(outputList1.get(i).getBooking());
+
+					if(outputList1.get(i).getExchange()!=null)
+						exchange += Integer.parseInt(outputList1.get(i).getExchange());
+
+					if(outputList1.get(i).getFinance()!=null)
+						finance += Integer.parseInt(outputList1.get(i).getFinance());
+
+					if(outputList1.get(i).getInsurance()!=null)
+						insurance += Integer.parseInt(outputList1.get(i).getInsurance());
+
+					if(outputList1.get(i).getExWarranty()!=null)
+						exwarranty += Integer.parseInt(outputList1.get(i).getExWarranty());
+
+					if(outputList1.get(i).getAccessories()!=null)
+						accessories += Integer.parseInt(outputList1.get(i).getAccessories());
+				}
+
 			}
 
 			targetPlanningCountRes.setRetailTarget(String.valueOf(retail));
