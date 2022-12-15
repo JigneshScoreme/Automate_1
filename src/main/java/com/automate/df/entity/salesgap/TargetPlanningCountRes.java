@@ -1,5 +1,6 @@
 package com.automate.df.entity.salesgap;
 
+import com.automate.df.model.salesgap.TargetSettingRecord;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -22,4 +23,5 @@ public class TargetPlanningCountRes {
     String startDate;
     String endDate;
     String employeeId;
+    List<TargetSettingRecord> target;
 }

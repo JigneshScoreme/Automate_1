@@ -1,16 +1,18 @@
 package com.automate.df.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.automate.df.entity.salesgap.TargetPlanningCountRes;
-import com.automate.df.entity.salesgap.TargetPlanningReq;
+import com.automate.df.dao.salesgap.DmsEmployeeRepo;
+import com.automate.df.entity.salesgap.*;
 import com.automate.df.model.df.dashboard.DashBoardReq;
 import com.automate.df.model.df.dashboard.DashBoardReqV2;
 import com.automate.df.model.df.dashboard.TargetAchivement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -30,8 +32,6 @@ import com.automate.df.entity.sales.TargetUpdateBasedOnEmplyeeDto;
 import com.automate.df.entity.sales.TargetsDto;
 import com.automate.df.entity.sales.TargetsUpdateDto;
 import com.automate.df.entity.sales.TargetsUpdateDto1;
-import com.automate.df.entity.salesgap.TSAdminUpdateReq;
-import com.automate.df.entity.salesgap.TargetRoleReq;
 import com.automate.df.exception.DynamicFormsServiceException;
 import com.automate.df.model.salesgap.TargetDropDown;
 import com.automate.df.model.salesgap.TargetMappingAddReq;
@@ -65,6 +65,12 @@ public class SalesGapController {
 	
 	@Autowired
 	private TargetUserRepo targetuserrepo;
+
+	@Autowired
+	DmsEmployeeRepo dmsEmployeeRepo;
+
+	@Autowired
+	TargetUserRepo targetUserRepo;
 	
 	
 	@CrossOrigin
@@ -278,6 +284,57 @@ public class SalesGapController {
 			throws DynamicFormsServiceException {
 		TargetSettingRes response = null;
 		if (Optional.of(req).isPresent()) {
+
+			TargetSettingsResponseDto targetSettingsResponseDto = new TargetSettingsResponseDto();
+			String finalEmpId = null;
+
+			String empId = req.getEmployeeId();
+			String managerId = req.getManagerId();
+			String teamLeadId = req.getTeamLeadId();
+			String generalManagerId = req.getGeneralManagerId();
+
+			if (empId != null && Optional.of(empId).isPresent()) {
+				finalEmpId = empId;
+			}
+
+			else if (teamLeadId != null && Optional.of(teamLeadId).isPresent()) {
+				finalEmpId = teamLeadId;
+			} else if (managerId != null && Optional.of(managerId).isPresent()) {
+				finalEmpId = managerId;
+			} else if (generalManagerId != null && Optional.of(generalManagerId).isPresent()) {
+				finalEmpId = generalManagerId;
+			}
+
+
+			if( req.getLoggedInEmpId() ==null ||  req.getLoggedInEmpId().equals("")){
+				targetSettingsResponseDto.setMessage("Please add logged in employee id");
+				return new ResponseEntity<>(targetSettingsResponseDto, HttpStatus.BAD_REQUEST);
+			}else{
+				List<TargetEntityUser> targetEntityUserList = targetUserRepo.findByEmpIdWithDate(finalEmpId,
+						req.getStartDate(), req.getEndDate(), req.getTargetType(), req.getTargetName());
+
+				for(TargetEntityUser te : targetEntityUserList){
+
+					List<Integer> listOfParentUser = new ArrayList<>();
+					int userId = Integer.parseInt(req.getLoggedInEmpId());
+					int reportingId =dmsEmployeeRepo.getReportingPersonId(userId);
+
+					if(userId != reportingId){
+						listOfParentUser.add(reportingId);
+
+						while(userId != reportingId){
+							userId = reportingId;
+							reportingId = dmsEmployeeRepo.getReportingPersonId(userId);
+							listOfParentUser.add(reportingId);
+						}
+					}
+					if(listOfParentUser.contains(te.getUpdatedById())){
+						targetSettingsResponseDto.setMessage("You have not an access to update the record");
+						return new ResponseEntity<>(targetSettingsResponseDto, HttpStatus.BAD_REQUEST);
+					}
+				}
+			}
+
 			response = salesGapService.editTargetDataWithRoleV2(req);
 		} else {
 			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
@@ -365,24 +422,22 @@ public class SalesGapController {
 		TargetSettingsResponseDto response=new TargetSettingsResponseDto();
 		int updateTargetSetings=0;
 		List<TargetUpdateBasedOnEmplyeeDto> targetemployeesupdatedto = targetsUpdateDto.getTargets();
-		for(TargetUpdateBasedOnEmplyeeDto targetemployeeupdatedto: targetemployeesupdatedto) {
-			 List<TargetsDto> targets = targetemployeeupdatedto.getTargets();
-		ObjectMapper mapper = new ObjectMapper();
-		String json =null;
-		
-		try {
-		
-		   json = mapper.writeValueAsString(targets);
-		  //System.out.println("ResultingJSONstring = " + json);
-		  ////System.out.println(json);
-		} catch (JsonProcessingException e) {
-		   e.printStackTrace();
-		}
-		 updateTargetSetings = targetuserrepo.updateTargetSetings(json,
-				targetemployeeupdatedto.getEmployeeId(), targetsUpdateDto.getOrgId(), targetemployeeupdatedto.getBranch(),
-				targetemployeeupdatedto.getDepartment(), targetemployeeupdatedto.getDesignation()
-				,targetsUpdateDto.getStart_date(),targetsUpdateDto.getEnd_date()
-				);
+		for (TargetUpdateBasedOnEmplyeeDto targetemployeeupdatedto : targetemployeesupdatedto) {
+			List<TargetsDto> targets = targetemployeeupdatedto.getTargets();
+			ObjectMapper mapper = new ObjectMapper();
+			String json = null;
+
+			try {
+
+				json = mapper.writeValueAsString(targets);
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
+
+			updateTargetSetings = targetuserrepo.updateTargetSetings(json,
+					targetemployeeupdatedto.getEmployeeId(), targetsUpdateDto.getOrgId(), targetemployeeupdatedto.getBranch(),
+					targetemployeeupdatedto.getDepartment(), targetemployeeupdatedto.getDesignation()
+					, targetsUpdateDto.getStart_date(), targetsUpdateDto.getEnd_date(), Integer.parseInt(targetsUpdateDto.getEmployeeId()));
 		}
 		if (updateTargetSetings > 0) {
 			response.setMessage("Update Sucessfully");
@@ -412,7 +467,7 @@ public class SalesGapController {
 		} catch (JsonProcessingException e) {
 		   e.printStackTrace();
 		}
-		int updateTargetSetings = targetuserrepo.updateTargetSetings(json,
+		int updateTargetSetings = targetuserrepo.updateTargetSetings1(json,
 				targetsUpdateDto.getEmployeeId(), targetsUpdateDto.getOrgId(), targetsUpdateDto.getBranch(),
 				targetsUpdateDto.getDepartment(), targetsUpdateDto.getDesignation()
 				,targetsUpdateDto.getStart_date(),targetsUpdateDto.getEnd_date()

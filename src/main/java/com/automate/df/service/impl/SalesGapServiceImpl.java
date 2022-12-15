@@ -24,6 +24,7 @@ import javax.persistence.EntityManager;
 
 import com.automate.df.entity.salesgap.*;
 import com.automate.df.model.df.dashboard.DashBoardReq;
+import com.automate.df.model.salesgap.*;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.automate.df.constants.DynamicFormConstants;
@@ -45,15 +47,6 @@ import com.automate.df.dao.salesgap.TargetUserRepo;
 import com.automate.df.entity.oh.DmsBranch;
 import com.automate.df.entity.oh.DmsDesignation;
 import com.automate.df.exception.DynamicFormsServiceException;
-import com.automate.df.model.salesgap.Target;
-import com.automate.df.model.salesgap.TargetDropDown;
-import com.automate.df.model.salesgap.TargetMappingAddReq;
-import com.automate.df.model.salesgap.TargetMappingReq;
-import com.automate.df.model.salesgap.TargetParamReq;
-import com.automate.df.model.salesgap.TargetRoleRes;
-import com.automate.df.model.salesgap.TargetSearch;
-import com.automate.df.model.salesgap.TargetSettingReq;
-import com.automate.df.model.salesgap.TargetSettingRes;
 import com.automate.df.service.SalesGapService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -924,6 +917,108 @@ public class SalesGapServiceImpl implements SalesGapService {
 				outputList1 = outputList1.subList(fromIndex, toIndex);
 			}
 			outputList1.sort((o1,o2) -> o2.getEndDate().compareTo(o1.getEndDate()));
+
+
+			List<Integer> listOfParentUser = new ArrayList<>();
+
+			int userId =req.getLoggedInEmpId();
+			int reportingId =dmsEmployeeRepo.getReportingPersonId(userId);
+
+			if(userId != reportingId){
+				listOfParentUser.add(reportingId);
+
+				while(userId != reportingId){
+					userId = reportingId;
+					reportingId = dmsEmployeeRepo.getReportingPersonId(userId);
+					listOfParentUser.add(reportingId);
+				}
+
+				for (int i = 0; i <outputList1.size() ; i++) {
+					if(listOfParentUser.contains(outputList1.get(i).getUpdated_by_user_id())){
+						outputList1.get(i).setRecordEditable(false);
+					}else{
+						outputList1.get(i).setRecordEditable(true);
+					}
+				}
+			}else{
+				for (int i = 0; i <outputList1.size() ; i++) {
+						outputList1.get(i).setRecordEditable(true);
+				}
+			}
+
+
+
+			System.out.println(listOfParentUser);
+
+			List<Integer> availableDataId = new ArrayList<>();
+			for (int i = 0; i <outputList1.size() ; i++) {
+				List<TargetSettingRecord> targetSettingRecords = new ArrayList<>();
+
+				availableDataId.add(Integer.parseInt(outputList1.get(i).getEmployeeId()));
+
+				TargetSettingRecord ts1 = new TargetSettingRecord();
+				ts1.setParamName("Retail");
+				ts1.setTarget(outputList1.get(i).getRetailTarget());
+				targetSettingRecords.add(ts1);
+
+				TargetSettingRecord ts2 = new TargetSettingRecord();
+				ts2.setParamName("Enquiry");
+				ts2.setTarget(outputList1.get(i).getEnquiry());
+				targetSettingRecords.add(ts2);
+
+				TargetSettingRecord ts3 = new TargetSettingRecord();
+				ts3.setParamName("Test Drive");
+				ts3.setTarget(outputList1.get(i).getTestDrive());
+				targetSettingRecords.add(ts3);
+
+				TargetSettingRecord ts4 = new TargetSettingRecord();
+				ts4.setParamName("Visit");
+				ts4.setTarget(outputList1.get(i).getHomeVisit());
+				targetSettingRecords.add(ts4);
+
+				TargetSettingRecord ts5 = new TargetSettingRecord();
+				ts5.setParamName("Booking");
+				ts5.setTarget(outputList1.get(i).getBooking());
+				targetSettingRecords.add(ts5);
+
+				TargetSettingRecord ts6 = new TargetSettingRecord();
+				ts6.setParamName("Exchange");
+				ts6.setTarget(outputList1.get(i).getExchange());
+				targetSettingRecords.add(ts6);
+
+				TargetSettingRecord ts7 = new TargetSettingRecord();
+				ts7.setParamName("Finance");
+				ts7.setTarget(outputList1.get(i).getFinance());
+				targetSettingRecords.add(ts7);
+
+				TargetSettingRecord ts8 = new TargetSettingRecord();
+				ts8.setParamName("Insurance");
+				ts8.setTarget(outputList1.get(i).getInsurance());
+				targetSettingRecords.add(ts8);
+
+				TargetSettingRecord ts9 = new TargetSettingRecord();
+				ts9.setParamName("Exwarranty");
+				ts9.setTarget(outputList1.get(i).getExWarranty());
+				targetSettingRecords.add(ts9);
+
+				TargetSettingRecord ts10 = new TargetSettingRecord();
+				ts10.setParamName("Accessories");
+				ts10.setTarget(outputList1.get(i).getAccessories());
+				targetSettingRecords.add(ts10);
+
+				outputList1.get(i).setTarget(targetSettingRecords);
+			}
+
+
+			for (Integer userIdData :req.getChildEmpId()) {
+				if(!availableDataId.contains(userIdData)){
+					TargetSettingRes ts = new TargetSettingRes();
+					ts.setEmployeeId(String.valueOf(userIdData));
+					outputList1.add(ts);
+				}
+			}
+
+
 			map.put("totalCnt", totalCnt);
 			map.put("pageNo", pageNo);
 			map.put("size", size);
@@ -960,6 +1055,60 @@ public class SalesGapServiceImpl implements SalesGapService {
 		for(Integer childEmpId : req.getChildEmpId()){
 			TargetPlanningCountRes targetPlanningCountRes = getAllSelectedUserTargetPlanningCount(req,req.getStartDate(),req.getEndDate(),childEmpId);
 			if(targetPlanningCountRes.getEmployeeId() !=null){
+
+				List<TargetSettingRecord> targetSettingRecords = new ArrayList<>();
+
+				TargetSettingRecord ts1 = new TargetSettingRecord();
+				ts1.setParamName("Retail");
+				ts1.setTarget(targetPlanningCountRes.getRetailTarget());
+				targetSettingRecords.add(ts1);
+
+				TargetSettingRecord ts2 = new TargetSettingRecord();
+				ts2.setParamName("Enquiry");
+				ts2.setTarget(targetPlanningCountRes.getEnquiry());
+				targetSettingRecords.add(ts2);
+
+				TargetSettingRecord ts3 = new TargetSettingRecord();
+				ts3.setParamName("Test Drive");
+				ts3.setTarget(targetPlanningCountRes.getTestDrive());
+				targetSettingRecords.add(ts3);
+
+				TargetSettingRecord ts4 = new TargetSettingRecord();
+				ts4.setParamName("Visit");
+				ts4.setTarget(targetPlanningCountRes.getHomeVisit());
+				targetSettingRecords.add(ts4);
+
+				TargetSettingRecord ts5 = new TargetSettingRecord();
+				ts5.setParamName("Booking");
+				ts5.setTarget(targetPlanningCountRes.getBooking());
+				targetSettingRecords.add(ts5);
+
+				TargetSettingRecord ts6 = new TargetSettingRecord();
+				ts6.setParamName("Exchange");
+				ts6.setTarget(targetPlanningCountRes.getExchange());
+				targetSettingRecords.add(ts6);
+
+				TargetSettingRecord ts7 = new TargetSettingRecord();
+				ts7.setParamName("Finance");
+				ts7.setTarget(targetPlanningCountRes.getFinance());
+				targetSettingRecords.add(ts7);
+
+				TargetSettingRecord ts8 = new TargetSettingRecord();
+				ts8.setParamName("Insurance");
+				ts8.setTarget(targetPlanningCountRes.getInsurance());
+				targetSettingRecords.add(ts8);
+
+				TargetSettingRecord ts9 = new TargetSettingRecord();
+				ts9.setParamName("Exwarranty");
+				ts9.setTarget(targetPlanningCountRes.getExWarranty());
+				targetSettingRecords.add(ts9);
+
+				TargetSettingRecord ts10 = new TargetSettingRecord();
+				ts10.setParamName("Accessories");
+				ts10.setTarget(targetPlanningCountRes.getAccessories());
+				targetSettingRecords.add(ts10);
+
+				targetPlanningCountRes.setTarget(targetSettingRecords);
 				targetPlanningCountResList.add(targetPlanningCountRes);
 			}
 		}
@@ -1073,17 +1222,52 @@ public class SalesGapServiceImpl implements SalesGapService {
 			}
 
 
+			String targetType = req.getTargetType();
+			log.debug("targetType in get all api " + targetType);
+
+			if (null != targetType && targetType.equalsIgnoreCase(DynamicFormConstants.TARGET_MONTHLY_TYPE)) {
+				outputList1 = outputList1.stream()
+						.filter(x -> x.getTargetType().equalsIgnoreCase(DynamicFormConstants.TARGET_MONTHLY_TYPE))
+						.collect(Collectors.toList());
+			} else if (null != targetType && targetType.equalsIgnoreCase(DynamicFormConstants.TARGET_SPEICAL_TYPE)) {
+				outputList1 = outputList1.stream()
+						.filter(x -> x.getTargetType().equalsIgnoreCase(DynamicFormConstants.TARGET_SPEICAL_TYPE))
+						.collect(Collectors.toList());
+			}
+
 			for (int i = 0; i <outputList1.size() ; i++) {
-				retail += Integer.parseInt(outputList1.get(i).getRetailTarget());
-				enquiry += Integer.parseInt(outputList1.get(i).getEnquiry());
-				testDrive += Integer.parseInt(outputList1.get(i).getTestDrive());
-				visit += Integer.parseInt(outputList1.get(i).getHomeVisit());
-				booking += Integer.parseInt(outputList1.get(i).getBooking());
-				exchange += Integer.parseInt(outputList1.get(i).getExchange());
-				finance += Integer.parseInt(outputList1.get(i).getFinance());
-				insurance += Integer.parseInt(outputList1.get(i).getInsurance());
-				exwarranty += Integer.parseInt(outputList1.get(i).getExWarranty());
-				accessories += Integer.parseInt(outputList1.get(i).getAccessories());
+				if(outputList1.get(i)!=null) {
+					if(outputList1.get(i).getRetailTarget()!=null)
+						retail += Integer.parseInt(outputList1.get(i).getRetailTarget());
+
+					if(outputList1.get(i).getEnquiry()!=null)
+						enquiry += Integer.parseInt(outputList1.get(i).getEnquiry());
+
+					if(outputList1.get(i).getTestDrive()!=null)
+						testDrive += Integer.parseInt(outputList1.get(i).getTestDrive());
+
+					if(outputList1.get(i).getHomeVisit()!=null)
+						visit += Integer.parseInt(outputList1.get(i).getHomeVisit());
+
+					if(outputList1.get(i).getBooking()!=null)
+						booking += Integer.parseInt(outputList1.get(i).getBooking());
+
+					if(outputList1.get(i).getExchange()!=null)
+						exchange += Integer.parseInt(outputList1.get(i).getExchange());
+
+					if(outputList1.get(i).getFinance()!=null)
+						finance += Integer.parseInt(outputList1.get(i).getFinance());
+
+					if(outputList1.get(i).getInsurance()!=null)
+						insurance += Integer.parseInt(outputList1.get(i).getInsurance());
+
+					if(outputList1.get(i).getExWarranty()!=null)
+						exwarranty += Integer.parseInt(outputList1.get(i).getExWarranty());
+
+					if(outputList1.get(i).getAccessories()!=null)
+						accessories += Integer.parseInt(outputList1.get(i).getAccessories());
+				}
+
 			}
 
 			targetPlanningCountRes.setRetailTarget(String.valueOf(retail));
@@ -1708,6 +1892,11 @@ public class SalesGapServiceImpl implements SalesGapService {
 						TargetSettingRes tsRes = modelMapper.map(teUser, TargetSettingRes.class);
 						tsRes = convertTargetStrToObj(teUser.getTargets(), tsRes);
 						tsRes.setEmpName(getEmpName(tRole.getEmpId()));
+						if(teUser.getUpdatedById()!=null) {
+							tsRes.setUpdated_by_user_id(teUser.getUpdatedById());
+						}else {
+							tsRes.setUpdated_by_user_id(0);
+						}
 						tsRes.setEmployeeId(tRole.getEmpId());
 						tsRes.setId(teUser.getGeneratedId());
 						tsRes.setTargetName(teUser.getTargetName());
@@ -1819,6 +2008,11 @@ public class SalesGapServiceImpl implements SalesGapService {
 						TargetSettingRes tsRes = modelMapper.map(teUser, TargetSettingRes.class);
 						tsRes = convertTargetStrToObj(teUser.getTargets(), tsRes);
 						tsRes.setEmpName(getEmpName(tRole.getEmpId()));
+						if(teUser.getUpdatedById()!=null) {
+							tsRes.setUpdated_by_user_id(teUser.getUpdatedById());
+						}else {
+							tsRes.setUpdated_by_user_id(0);
+						}
 						tsRes.setEmployeeId(tRole.getEmpId());
 						tsRes.setId(teUser.getGeneratedId());
 						tsRes.setTargetName(teUser.getTargetName());
@@ -2802,6 +2996,10 @@ public class SalesGapServiceImpl implements SalesGapService {
 					try {
 						String target = calculateTargets(adminTargets, retailTarget);
 						te.setTargets(target);
+
+						if(req.getLoggedInEmpId()!=null){
+							te.setUpdatedById(Integer.parseInt(req.getLoggedInEmpId()));
+						}
 						te.setTargetAdminId(adminId);
 						te.setActive("Y");
 						if(te.getType().equalsIgnoreCase("default")) {
@@ -2839,6 +3037,10 @@ public class SalesGapServiceImpl implements SalesGapService {
 						res.setManager(getEmpName(res.getManagerId()));
 						res.setBranchmanger(getEmpName(req.getBranchmangerId()));
 						res.setGeneralManager(getEmpName(req.getGeneralManagerId()));
+
+						if(req.getLoggedInEmpId()!=null){
+							res.setUpdated_by_user_id(Integer.parseInt(req.getLoggedInEmpId()));
+						}
 
 						res.setBranchManagerId(req.getBranchmangerId());
 						// res.setLocation(req.getLocation());
