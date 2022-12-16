@@ -9,7 +9,7 @@ import javax.persistence.Column;
 @NoArgsConstructor
 public class TargetMappingAddReq {
 
-
+	String recordId;
 	String loggedInEmpId;
 	String branch=null;
 	String location;

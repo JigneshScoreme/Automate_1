@@ -372,11 +372,49 @@ public class SalesGapController {
 	@DeleteMapping(value = "delete_target_mapping_role")
 	public ResponseEntity<?> deleteTSData(
 			@RequestParam(name="recordId",required = true) String recordId,
-			@RequestParam(name="empId",required = true) String empId
+			@RequestParam(name="empId",required = true) String empId,
+			@RequestParam(name="loggedInEmpId",required = true) String loggedInEmpId
 			)
 			throws DynamicFormsServiceException {
 		String response = null;
+
+
 		if (Optional.of(recordId).isPresent()) {
+
+
+
+			TargetSettingsResponseDto targetSettingsResponseDto = new TargetSettingsResponseDto();
+			if( loggedInEmpId ==null ||  loggedInEmpId.equals("")){
+				targetSettingsResponseDto.setMessage("Please add logged in employee id");
+				return new ResponseEntity<>(targetSettingsResponseDto, HttpStatus.BAD_REQUEST);
+			}else{
+				Optional<TargetEntityUser> targetEntityUserList = targetUserRepo.findByEmpIdWithRecordId(recordId,empId);
+
+				if(targetEntityUserList.isPresent() && targetEntityUserList.get() !=null){
+
+					List<Integer> listOfParentUser = new ArrayList<>();
+					int userId = Integer.parseInt(loggedInEmpId);
+					int reportingId =dmsEmployeeRepo.getReportingPersonId(userId);
+
+					if(userId != reportingId){
+						listOfParentUser.add(reportingId);
+
+						while(userId != reportingId){
+							userId = reportingId;
+							reportingId = dmsEmployeeRepo.getReportingPersonId(userId);
+							listOfParentUser.add(reportingId);
+						}
+					}
+					if(listOfParentUser.contains(targetEntityUserList.get().getUpdatedById())){
+						targetSettingsResponseDto.setMessage("You have not an access to delete the record");
+						return new ResponseEntity<>(targetSettingsResponseDto, HttpStatus.BAD_REQUEST);
+					}
+				}
+			}
+
+
+
+
 			response = salesGapService.deleteTSData(recordId,empId);
 		} else {
 			throw new DynamicFormsServiceException(env.getProperty("BAD_REQUEST"), HttpStatus.BAD_REQUEST);
@@ -423,6 +461,41 @@ public class SalesGapController {
 		int updateTargetSetings=0;
 		List<TargetUpdateBasedOnEmplyeeDto> targetemployeesupdatedto = targetsUpdateDto.getTargets();
 		for (TargetUpdateBasedOnEmplyeeDto targetemployeeupdatedto : targetemployeesupdatedto) {
+			TargetSettingsResponseDto targetSettingsResponseDto = new TargetSettingsResponseDto();
+			if( targetsUpdateDto.getEmployeeId() ==null ||  targetsUpdateDto.getEmployeeId().equals("")){
+				targetSettingsResponseDto.setMessage("Please add logged in employee id");
+				return new ResponseEntity<>(targetSettingsResponseDto, HttpStatus.BAD_REQUEST);
+			}else{
+				List<TargetEntityUser> targetEntityUserList = targetuserrepo.getTargetSettings(
+						targetemployeeupdatedto.getEmployeeId(), targetsUpdateDto.getOrgId(), targetemployeeupdatedto.getBranch(),
+						targetemployeeupdatedto.getDepartment(), targetemployeeupdatedto.getDesignation()
+						, targetsUpdateDto.getStart_date(), targetsUpdateDto.getEnd_date());
+
+				for(TargetEntityUser te : targetEntityUserList){
+
+					List<Integer> listOfParentUser = new ArrayList<>();
+					int userId = Integer.parseInt(targetsUpdateDto.getEmployeeId());
+					int reportingId =dmsEmployeeRepo.getReportingPersonId(userId);
+
+					if(userId != reportingId){
+						listOfParentUser.add(reportingId);
+
+						while(userId != reportingId){
+							userId = reportingId;
+							reportingId = dmsEmployeeRepo.getReportingPersonId(userId);
+							listOfParentUser.add(reportingId);
+						}
+					}
+					if(listOfParentUser.contains(te.getUpdatedById())){
+						targetSettingsResponseDto.setMessage("You have not an access to update the record");
+						return new ResponseEntity<>(targetSettingsResponseDto, HttpStatus.BAD_REQUEST);
+					}
+				}
+			}
+		}
+
+
+		for (TargetUpdateBasedOnEmplyeeDto targetemployeeupdatedto : targetemployeesupdatedto) {
 			List<TargetsDto> targets = targetemployeeupdatedto.getTargets();
 			ObjectMapper mapper = new ObjectMapper();
 			String json = null;
@@ -467,11 +540,48 @@ public class SalesGapController {
 		} catch (JsonProcessingException e) {
 		   e.printStackTrace();
 		}
+
+
+		TargetSettingsResponseDto targetSettingsResponseDto = new TargetSettingsResponseDto();
+		if( targetsUpdateDto.getLoggedInEmpId() ==null ||  targetsUpdateDto.getLoggedInEmpId().equals("")){
+			targetSettingsResponseDto.setMessage("Please add logged in employee id");
+			return new ResponseEntity<>(targetSettingsResponseDto, HttpStatus.BAD_REQUEST);
+		}else{
+			List<TargetEntityUser> targetEntityUserList = targetUserRepo.getTargetSettings(
+					targetsUpdateDto.getEmployeeId(), targetsUpdateDto.getOrgId(), targetsUpdateDto.getBranch(),
+					targetsUpdateDto.getDepartment(), targetsUpdateDto.getDesignation()
+					,targetsUpdateDto.getStart_date(),targetsUpdateDto.getEnd_date()
+			);
+
+			for(TargetEntityUser te : targetEntityUserList){
+
+				List<Integer> listOfParentUser = new ArrayList<>();
+				int userId = Integer.parseInt(targetsUpdateDto.getLoggedInEmpId());
+				int reportingId =dmsEmployeeRepo.getReportingPersonId(userId);
+
+				if(userId != reportingId){
+					listOfParentUser.add(reportingId);
+
+					while(userId != reportingId){
+						userId = reportingId;
+						reportingId = dmsEmployeeRepo.getReportingPersonId(userId);
+						listOfParentUser.add(reportingId);
+					}
+				}
+				if(listOfParentUser.contains(te.getUpdatedById())){
+					targetSettingsResponseDto.setMessage("You have not an access to update the record");
+					return new ResponseEntity<>(targetSettingsResponseDto, HttpStatus.BAD_REQUEST);
+				}
+			}
+		}
+
+
+
 		int updateTargetSetings = targetuserrepo.updateTargetSetings1(json,
 				targetsUpdateDto.getEmployeeId(), targetsUpdateDto.getOrgId(), targetsUpdateDto.getBranch(),
 				targetsUpdateDto.getDepartment(), targetsUpdateDto.getDesignation()
 				,targetsUpdateDto.getStart_date(),targetsUpdateDto.getEnd_date()
-				);
+				,Integer.parseInt(targetsUpdateDto.getLoggedInEmpId()));
 		if (updateTargetSetings > 0) {
 			response.setMessage("Update Sucessfully");
 			return new ResponseEntity<>(response, HttpStatus.OK);

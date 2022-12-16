@@ -2984,8 +2984,14 @@ public class SalesGapServiceImpl implements SalesGapService {
 			log.debug("targetName:::: "+req.getTargetName());
 			log.debug("finalEmpId::" + finalEmpId+", startDate:"+req.getStartDate()+" End Dte "+req.getEndDate()+" ,TargetType "+req.getTargetType());
 			log.debug("Targe name "+req.getTargetName());
-			List<TargetEntityUser> targetEntityUserList = targetUserRepo.findByEmpIdWithDate(finalEmpId,
-					req.getStartDate(), req.getEndDate(), req.getTargetType(), req.getTargetName());
+
+			Optional<TargetEntityUser> targetEntityUser = targetUserRepo.findByEmpIdWithRecordId(req.getRecordId(),empId);
+
+			List<TargetEntityUser> targetEntityUserList = new ArrayList<>();
+			if(targetEntityUser.isPresent() && targetEntityUser.get()!=null){
+				targetEntityUserList.add(targetEntityUser.get());
+			}
+
 			log.debug("targetEntityUserList:::::"+targetEntityUserList);
 			Map<String, Object> adminTargetMap = getAdminTargetString(Integer.parseInt(finalEmpId));
 			String adminTargets = (String) adminTargetMap.get("VAL");
