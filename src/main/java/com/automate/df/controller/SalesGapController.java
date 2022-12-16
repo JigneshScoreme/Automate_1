@@ -306,33 +306,39 @@ public class SalesGapController {
 			}
 
 
-			if( req.getLoggedInEmpId() ==null ||  req.getLoggedInEmpId().equals("")){
-				targetSettingsResponseDto.setMessage("Please add logged in employee id");
-				return new ResponseEntity<>(targetSettingsResponseDto, HttpStatus.BAD_REQUEST);
-			}else{
-				List<TargetEntityUser> targetEntityUserList = targetUserRepo.findByEmpIdWithDate(finalEmpId,
-						req.getStartDate(), req.getEndDate(), req.getTargetType(), req.getTargetName());
+			try {
+				if (req.getLoggedInEmpId() == null || req.getLoggedInEmpId().equals("")) {
+					targetSettingsResponseDto.setMessage("Please add logged in employee id");
+					return new ResponseEntity<>(targetSettingsResponseDto, HttpStatus.BAD_REQUEST);
+				} else {
+					List<TargetEntityUser> targetEntityUserList = new ArrayList<>();
 
-				for(TargetEntityUser te : targetEntityUserList){
+					Optional<TargetEntityUser> targetEntityUser = targetUserRepo.findByEmpIdWithRecordId(req.getRecordId(), empId);
+					targetEntityUserList.add(targetEntityUser.get());
 
-					List<Integer> listOfParentUser = new ArrayList<>();
-					int userId = Integer.parseInt(req.getLoggedInEmpId());
-					int reportingId =dmsEmployeeRepo.getReportingPersonId(userId);
+					for (TargetEntityUser te : targetEntityUserList) {
 
-					if(userId != reportingId){
-						listOfParentUser.add(reportingId);
+						List<Integer> listOfParentUser = new ArrayList<>();
+						int userId = Integer.parseInt(req.getLoggedInEmpId());
+						int reportingId = dmsEmployeeRepo.getReportingPersonId(userId);
 
-						while(userId != reportingId){
-							userId = reportingId;
-							reportingId = dmsEmployeeRepo.getReportingPersonId(userId);
+						if (userId != reportingId) {
 							listOfParentUser.add(reportingId);
+
+							while (userId != reportingId) {
+								userId = reportingId;
+								reportingId = dmsEmployeeRepo.getReportingPersonId(userId);
+								listOfParentUser.add(reportingId);
+							}
+						}
+						if (listOfParentUser.contains(te.getUpdatedById())) {
+							targetSettingsResponseDto.setMessage("You have not an access to update the record");
+							return new ResponseEntity<>(targetSettingsResponseDto, HttpStatus.BAD_REQUEST);
 						}
 					}
-					if(listOfParentUser.contains(te.getUpdatedById())){
-						targetSettingsResponseDto.setMessage("You have not an access to update the record");
-						return new ResponseEntity<>(targetSettingsResponseDto, HttpStatus.BAD_REQUEST);
-					}
 				}
+			}catch (Exception e){
+				e.printStackTrace();
 			}
 
 			response = salesGapService.editTargetDataWithRoleV2(req);
@@ -382,36 +388,39 @@ public class SalesGapController {
 		if (Optional.of(recordId).isPresent()) {
 
 
+			try {
+				TargetSettingsResponseDto targetSettingsResponseDto = new TargetSettingsResponseDto();
+				if (loggedInEmpId == null || loggedInEmpId.equals("")) {
+					targetSettingsResponseDto.setMessage("Please add logged in employee id");
+					return new ResponseEntity<>(targetSettingsResponseDto, HttpStatus.BAD_REQUEST);
+				} else {
+					Optional<TargetEntityUser> targetEntityUserList = targetUserRepo.findByEmpIdWithRecordId(recordId, empId);
 
-			TargetSettingsResponseDto targetSettingsResponseDto = new TargetSettingsResponseDto();
-			if( loggedInEmpId ==null ||  loggedInEmpId.equals("")){
-				targetSettingsResponseDto.setMessage("Please add logged in employee id");
-				return new ResponseEntity<>(targetSettingsResponseDto, HttpStatus.BAD_REQUEST);
-			}else{
-				Optional<TargetEntityUser> targetEntityUserList = targetUserRepo.findByEmpIdWithRecordId(recordId,empId);
+					if (targetEntityUserList.isPresent() && targetEntityUserList.get() != null) {
 
-				if(targetEntityUserList.isPresent() && targetEntityUserList.get() !=null){
+						List<Integer> listOfParentUser = new ArrayList<>();
+						int userId = Integer.parseInt(loggedInEmpId);
+						int reportingId = dmsEmployeeRepo.getReportingPersonId(userId);
 
-					List<Integer> listOfParentUser = new ArrayList<>();
-					int userId = Integer.parseInt(loggedInEmpId);
-					int reportingId =dmsEmployeeRepo.getReportingPersonId(userId);
-
-					if(userId != reportingId){
-						listOfParentUser.add(reportingId);
-
-						while(userId != reportingId){
-							userId = reportingId;
-							reportingId = dmsEmployeeRepo.getReportingPersonId(userId);
+						if (userId != reportingId) {
 							listOfParentUser.add(reportingId);
+
+							while (userId != reportingId) {
+								userId = reportingId;
+								reportingId = dmsEmployeeRepo.getReportingPersonId(userId);
+								listOfParentUser.add(reportingId);
+							}
+						}
+						if (listOfParentUser.contains(targetEntityUserList.get().getUpdatedById())) {
+							targetSettingsResponseDto.setMessage("You have not an access to delete the record");
+							return new ResponseEntity<>(targetSettingsResponseDto, HttpStatus.BAD_REQUEST);
 						}
 					}
-					if(listOfParentUser.contains(targetEntityUserList.get().getUpdatedById())){
-						targetSettingsResponseDto.setMessage("You have not an access to delete the record");
-						return new ResponseEntity<>(targetSettingsResponseDto, HttpStatus.BAD_REQUEST);
-					}
 				}
-			}
 
+			}catch (Exception e){
+				e.printStackTrace();
+			}
 
 
 
@@ -460,38 +469,45 @@ public class SalesGapController {
 		TargetSettingsResponseDto response=new TargetSettingsResponseDto();
 		int updateTargetSetings=0;
 		List<TargetUpdateBasedOnEmplyeeDto> targetemployeesupdatedto = targetsUpdateDto.getTargets();
-		for (TargetUpdateBasedOnEmplyeeDto targetemployeeupdatedto : targetemployeesupdatedto) {
-			TargetSettingsResponseDto targetSettingsResponseDto = new TargetSettingsResponseDto();
-			if( targetsUpdateDto.getEmployeeId() ==null ||  targetsUpdateDto.getEmployeeId().equals("")){
-				targetSettingsResponseDto.setMessage("Please add logged in employee id");
-				return new ResponseEntity<>(targetSettingsResponseDto, HttpStatus.BAD_REQUEST);
-			}else{
-				List<TargetEntityUser> targetEntityUserList = targetuserrepo.getTargetSettings(
-						targetemployeeupdatedto.getEmployeeId(), targetsUpdateDto.getOrgId(), targetemployeeupdatedto.getBranch(),
-						targetemployeeupdatedto.getDepartment(), targetemployeeupdatedto.getDesignation()
-						, targetsUpdateDto.getStart_date(), targetsUpdateDto.getEnd_date());
+		try {
+			for (TargetUpdateBasedOnEmplyeeDto targetemployeeupdatedto : targetemployeesupdatedto) {
+				TargetSettingsResponseDto targetSettingsResponseDto = new TargetSettingsResponseDto();
+				if (targetsUpdateDto.getEmployeeId() == null || targetsUpdateDto.getEmployeeId().equals("")) {
+					targetSettingsResponseDto.setMessage("Please add logged in employee id");
+					return new ResponseEntity<>(targetSettingsResponseDto, HttpStatus.BAD_REQUEST);
+				} else {
 
-				for(TargetEntityUser te : targetEntityUserList){
 
-					List<Integer> listOfParentUser = new ArrayList<>();
-					int userId = Integer.parseInt(targetsUpdateDto.getEmployeeId());
-					int reportingId =dmsEmployeeRepo.getReportingPersonId(userId);
+					List<TargetEntityUser> targetEntityUserList = targetuserrepo.getTargetSettings(
+							targetemployeeupdatedto.getEmployeeId(), targetsUpdateDto.getOrgId(), targetemployeeupdatedto.getBranch(),
+							targetemployeeupdatedto.getDepartment(), targetemployeeupdatedto.getDesignation()
+							, targetsUpdateDto.getStart_date(), targetsUpdateDto.getEnd_date());
 
-					if(userId != reportingId){
-						listOfParentUser.add(reportingId);
+					for (TargetEntityUser te : targetEntityUserList) {
 
-						while(userId != reportingId){
-							userId = reportingId;
-							reportingId = dmsEmployeeRepo.getReportingPersonId(userId);
+						List<Integer> listOfParentUser = new ArrayList<>();
+						int userId = Integer.parseInt(targetsUpdateDto.getEmployeeId());
+						int reportingId = dmsEmployeeRepo.getReportingPersonId(userId);
+
+						if (userId != reportingId) {
 							listOfParentUser.add(reportingId);
+
+							while (userId != reportingId) {
+								userId = reportingId;
+								reportingId = dmsEmployeeRepo.getReportingPersonId(userId);
+								listOfParentUser.add(reportingId);
+							}
+						}
+						if (listOfParentUser.contains(te.getUpdatedById())) {
+							targetSettingsResponseDto.setMessage("You have not an access to update the record");
+							return new ResponseEntity<>(targetSettingsResponseDto, HttpStatus.BAD_REQUEST);
 						}
 					}
-					if(listOfParentUser.contains(te.getUpdatedById())){
-						targetSettingsResponseDto.setMessage("You have not an access to update the record");
-						return new ResponseEntity<>(targetSettingsResponseDto, HttpStatus.BAD_REQUEST);
-					}
+
 				}
 			}
+		}catch (Exception e){
+			e.printStackTrace();
 		}
 
 
@@ -541,41 +557,43 @@ public class SalesGapController {
 		   e.printStackTrace();
 		}
 
+		try {
+			TargetSettingsResponseDto targetSettingsResponseDto = new TargetSettingsResponseDto();
+			if (targetsUpdateDto.getLoggedInEmpId() == null || targetsUpdateDto.getLoggedInEmpId().equals("")) {
+				targetSettingsResponseDto.setMessage("Please add logged in employee id");
+				return new ResponseEntity<>(targetSettingsResponseDto, HttpStatus.BAD_REQUEST);
+			} else {
+				List<TargetEntityUser> targetEntityUserList = targetUserRepo.getTargetSettings(
+						targetsUpdateDto.getEmployeeId(), targetsUpdateDto.getOrgId(), targetsUpdateDto.getBranch(),
+						targetsUpdateDto.getDepartment(), targetsUpdateDto.getDesignation()
+						, targetsUpdateDto.getStart_date(), targetsUpdateDto.getEnd_date()
+				);
 
-		TargetSettingsResponseDto targetSettingsResponseDto = new TargetSettingsResponseDto();
-		if( targetsUpdateDto.getLoggedInEmpId() ==null ||  targetsUpdateDto.getLoggedInEmpId().equals("")){
-			targetSettingsResponseDto.setMessage("Please add logged in employee id");
-			return new ResponseEntity<>(targetSettingsResponseDto, HttpStatus.BAD_REQUEST);
-		}else{
-			List<TargetEntityUser> targetEntityUserList = targetUserRepo.getTargetSettings(
-					targetsUpdateDto.getEmployeeId(), targetsUpdateDto.getOrgId(), targetsUpdateDto.getBranch(),
-					targetsUpdateDto.getDepartment(), targetsUpdateDto.getDesignation()
-					,targetsUpdateDto.getStart_date(),targetsUpdateDto.getEnd_date()
-			);
+				for (TargetEntityUser te : targetEntityUserList) {
 
-			for(TargetEntityUser te : targetEntityUserList){
+					List<Integer> listOfParentUser = new ArrayList<>();
+					int userId = Integer.parseInt(targetsUpdateDto.getLoggedInEmpId());
+					int reportingId = dmsEmployeeRepo.getReportingPersonId(userId);
 
-				List<Integer> listOfParentUser = new ArrayList<>();
-				int userId = Integer.parseInt(targetsUpdateDto.getLoggedInEmpId());
-				int reportingId =dmsEmployeeRepo.getReportingPersonId(userId);
-
-				if(userId != reportingId){
-					listOfParentUser.add(reportingId);
-
-					while(userId != reportingId){
-						userId = reportingId;
-						reportingId = dmsEmployeeRepo.getReportingPersonId(userId);
+					if (userId != reportingId) {
 						listOfParentUser.add(reportingId);
+
+						while (userId != reportingId) {
+							userId = reportingId;
+							reportingId = dmsEmployeeRepo.getReportingPersonId(userId);
+							listOfParentUser.add(reportingId);
+						}
+					}
+					if (listOfParentUser.contains(te.getUpdatedById())) {
+						targetSettingsResponseDto.setMessage("You have not an access to update the record");
+						return new ResponseEntity<>(targetSettingsResponseDto, HttpStatus.BAD_REQUEST);
 					}
 				}
-				if(listOfParentUser.contains(te.getUpdatedById())){
-					targetSettingsResponseDto.setMessage("You have not an access to update the record");
-					return new ResponseEntity<>(targetSettingsResponseDto, HttpStatus.BAD_REQUEST);
-				}
+
 			}
+		}catch (Exception e){
+			e.printStackTrace();
 		}
-
-
 
 		int updateTargetSetings = targetuserrepo.updateTargetSetings1(json,
 				targetsUpdateDto.getEmployeeId(), targetsUpdateDto.getOrgId(), targetsUpdateDto.getBranch(),
@@ -589,6 +607,5 @@ public class SalesGapController {
 			response.setMessage("Not Updated");
 			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 		}
-	
 	}
 }
