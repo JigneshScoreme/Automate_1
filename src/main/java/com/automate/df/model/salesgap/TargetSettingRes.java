@@ -1,8 +1,11 @@
 package com.automate.df.model.salesgap;
 
+import com.automate.df.entity.sales.TargetSettingsResponseDto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+
+import java.util.List;
 
 
 @NoArgsConstructor
@@ -63,6 +66,42 @@ public class TargetSettingRes {
 	
 	String targetName;
 	String targetType;
+
+
+	boolean recordEditable;
+
+	int updated_by_user_id;
+
+	List<TargetSettingRecord> target;
+
+	public List<TargetSettingRecord> getTarget() {
+		return target;
+	}
+
+	public void setTarget(List<TargetSettingRecord> target) {
+		this.target = target;
+	}
+
+
+
+	public int getUpdated_by_user_id() {
+		return updated_by_user_id;
+	}
+
+	public void setUpdated_by_user_id(int updated_by_user_id) {
+		this.updated_by_user_id = updated_by_user_id;
+	}
+
+
+	public boolean isRecordEditable() {
+		return recordEditable;
+	}
+
+	public void setRecordEditable(boolean recordEditable) {
+		this.recordEditable = recordEditable;
+	}
+
+
 	public Integer getId() {
 		return id;
 	}
@@ -302,3 +341,4 @@ public class TargetSettingRes {
 	
 	
 }
+

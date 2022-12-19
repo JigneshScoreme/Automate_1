@@ -17,6 +17,6 @@ public class TargetsUpdateDto {
 	
 	String orgId;
 	
-	
+	String employeeId;
 
 }

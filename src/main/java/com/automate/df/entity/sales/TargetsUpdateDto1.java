@@ -8,7 +8,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class TargetsUpdateDto1 {
-	
+
+	String loggedInEmpId;
+
 List<TargetsDto> targets;
 	
 	String employeeId;
