@@ -361,7 +361,7 @@ public class SalesGapController {
 	@CrossOrigin
 	@PostMapping(value = "target-update")
 	public ResponseEntity<?> targetUpdate(@RequestBody TargetsUpdateDto targetsUpdateDto) {
-		//System.out.println("entered into controller");
+		////System.out.println("entered into controller");
 		TargetSettingsResponseDto response=new TargetSettingsResponseDto();
 		int updateTargetSetings=0;
 		List<TargetUpdateBasedOnEmplyeeDto> targetemployeesupdatedto = targetsUpdateDto.getTargets();
@@ -373,8 +373,8 @@ public class SalesGapController {
 		try {
 		
 		   json = mapper.writeValueAsString(targets);
-		  //System.out.println("ResultingJSONstring = " + json);
-		  ////System.out.println(json);
+		  ////System.out.println("ResultingJSONstring = " + json);
+		  //////System.out.println(json);
 		} catch (JsonProcessingException e) {
 		   e.printStackTrace();
 		}
@@ -406,8 +406,8 @@ public class SalesGapController {
 		try {
 			
 		   json = mapper.writeValueAsString(targetsUpdateDto.getTargets());
-		  //System.out.println("ResultingJSONstring = " + json);
-		  ////System.out.println(json);
+		  ////System.out.println("ResultingJSONstring = " + json);
+		  //////System.out.println(json);
 			
 		} catch (JsonProcessingException e) {
 		   e.printStackTrace();
