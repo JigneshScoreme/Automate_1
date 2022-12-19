@@ -116,7 +116,7 @@ public class TrailPlan {
 //						});
 //			}
 //			if (roleName.equals(UserRoles.AGRONOMIST.getValue())) {
-//				//System.out.println("Agronomist User:" + roleName);
+//				////System.out.println("Agronomist User:" + roleName);
 //				return jdbcTemplate.query(envProps.getProperty("query.getTrailPlansForAgronomist"),
 //						new Object[] { yearId, cropId, seasonId, userId, countryId, companyId, functionId }, (result, rowNum) -> {
 //							TrailPlanDO trailPlan = constructTrailPlan(result);
@@ -128,7 +128,7 @@ public class TrailPlan {
 //						});
 //			}
 //			if (roleName.equals(UserRoles.ZONAL_MANAGER.getValue())) {
-//				//System.out.println("ZONAL_MANAGER User:" + roleName);
+//				////System.out.println("ZONAL_MANAGER User:" + roleName);
 //				return jdbcTemplate.query(envProps.getProperty("query.getTrailPlansForZonalManager"),
 //						new Object[] { yearId, cropId, seasonId, userId, countryId, companyId, functionId }, (result, rowNum) -> {
 //							TrailPlanDO trailPlan = constructTrailPlan(result);
@@ -141,7 +141,7 @@ public class TrailPlan {
 //
 //			}
 //			if (roleName.equals(UserRoles.CROP_HEAD.getValue())) {
-//				//System.out.println("CROP_HEAD User:" + roleName);
+//				////System.out.println("CROP_HEAD User:" + roleName);
 //				return jdbcTemplate.query(envProps.getProperty("query.getTrailPlans"),
 //						new Object[] { yearId, cropId, seasonId,userId, countryId, companyId, functionId  }, (result, rowNum) -> {
 //							TrailPlanDO trailPlan = constructTrailPlan(result);
@@ -166,7 +166,7 @@ public class TrailPlan {
 //						});
 //			}
 //			if (roleName.equals(UserRoles.AGRONOMIST.getValue())) {
-//				//System.out.println("Agronomist User:" + roleName);
+//				////System.out.println("Agronomist User:" + roleName);
 //				return jdbcTemplate.query(envProps.getProperty("query.getAllTrailsForAgronomist"),
 //						new Object[] { yearId, cropId, seasonId, userId, countryId , companyId, functionId  }, (result, rowNum) -> {
 //							TrailPlanDO trailPlan = constructTrailPlan(result);
@@ -177,7 +177,7 @@ public class TrailPlan {
 //						});
 //			}
 //			if (roleName.equals(UserRoles.ZONAL_MANAGER.getValue())) {
-//				//System.out.println("ZONAL_MANAGER User:" + roleName);
+//				////System.out.println("ZONAL_MANAGER User:" + roleName);
 //				return jdbcTemplate.query(envProps.getProperty("query.getAllTrailsForZonalManager"),
 //						new Object[] { yearId, cropId, seasonId, userId, countryId , companyId, functionId  }, (result, rowNum) -> {
 //							TrailPlanDO trailPlan = constructTrailPlan(result);
@@ -189,7 +189,7 @@ public class TrailPlan {
 //
 //			}
 //			if (roleName.equals(UserRoles.CROP_HEAD.getValue())) {
-//				//System.out.println("CROP_HEAD User:" + roleName);
+//				////System.out.println("CROP_HEAD User:" + roleName);
 //				return jdbcTemplate.query(envProps.getProperty("query.getAllTrails"),
 //						new Object[] { yearId, cropId, seasonId, countryId , companyId, functionId  }, (result, rowNum) -> {
 //							TrailPlanDO trailPlan = constructTrailPlan(result);
