@@ -1014,6 +1014,17 @@ public class SalesGapServiceImpl implements SalesGapService {
 				if(!availableDataId.contains(userIdData)){
 					TargetSettingRes ts = new TargetSettingRes();
 					ts.setEmployeeId(String.valueOf(userIdData));
+
+					Optional<DmsEmployee> dmsEmployee = dmsEmployeeRepo.findEmpById(userIdData);
+					ts.setEmployeeId(String.valueOf(userIdData));
+					if(dmsEmployee.isPresent() && dmsEmployee.get()!=null){
+						if(dmsEmployee.get().getDeptId()!=null)
+						ts.setDepartment(dmsEmployee.get().getDeptId());
+
+						if(dmsEmployee.get().getDesignationId()!=null)
+						ts.setDesignation(dmsEmployee.get().getDesignationId());
+					}
+
 					outputList1.add(ts);
 				}
 			}
