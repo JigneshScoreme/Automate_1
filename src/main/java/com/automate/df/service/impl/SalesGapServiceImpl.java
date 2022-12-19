@@ -1835,7 +1835,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 				} else {
 					target = te.getTargets();
 				}
-				//System.out.println("target::" + target);
+				////System.out.println("target::" + target);
 				res = convertTargetStrToObj(target, res);
 				res.setEmpName(getEmpName(tRole.getEmpId()));
 				res.setEmployeeId(tRole.getEmpId());
@@ -2064,12 +2064,12 @@ public class SalesGapServiceImpl implements SalesGapService {
 		log.debug("Inside getTargetSettingMasterDataForGivenRole,for tRole");
 		log.debug("tRole:::" + tRole);
 		List<TargetEntity> finalList = new ArrayList<>();
-		//System.out.println("tRole.getDesignationId() " + tRole.getDesignationId());
-		//System.out.println("tRole.getOrgId()::" + tRole.getOrgId());
-		//System.out.println("tRole.getBranchId()::" + tRole.getBranchId());
-		//System.out.println("tRole.getLocationId()::" + tRole.getLocationId());
-		//System.out.println("tRole.getDeptId()::" + tRole.getDeptId());
-		//System.out.println("tRole.getDesignationId()::" + tRole.getDesignationId());
+		////System.out.println("tRole.getDesignationId() " + tRole.getDesignationId());
+		////System.out.println("tRole.getOrgId()::" + tRole.getOrgId());
+		////System.out.println("tRole.getBranchId()::" + tRole.getBranchId());
+		////System.out.println("tRole.getLocationId()::" + tRole.getLocationId());
+		////System.out.println("tRole.getDeptId()::" + tRole.getDeptId());
+		////System.out.println("tRole.getDesignationId()::" + tRole.getDesignationId());
 
 		// List<TargetEntityUser> userTargetList =
 		// targetUserRepo.getUserTargetData(tRole.getOrgId(),tRole.getDeptId(),tRole.getDesignationId(),tRole.getBranchId());
@@ -2136,7 +2136,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 			for (TargetEntity te : dbList) {
 				res = modelMapper.map(te, TargetSettingRes.class);
 				String target = te.getTargets();
-				//System.out.println("target::" + target);
+				////System.out.println("target::" + target);
 				res = convertTargetStrToObjV2(target, res, retailTarget);
 				res.setEmpName(getEmpName(tRole.getEmpId()));
 				res.setEmployeeId(tRole.getEmpId());
@@ -2305,7 +2305,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 		try {
 			Object obj = entityManager.createNativeQuery(deptQuery.replaceAll("<ID>", deptId)).getSingleResult();
 			res = (String) obj;
-			//System.out.println("Dept ID " + deptId + " is : " + res);
+			////System.out.println("Dept ID " + deptId + " is : " + res);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -2339,7 +2339,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 	public static int getDiffYears(Date first, Date last) {
 		Calendar a = getCalendar(first);
 		Calendar b = getCalendar(last);
-		//System.out.println("b.get(Calendar.YEAR) " + b.get(Calendar.YEAR) + ":::, " + a.get(Calendar.YEAR));
+		////System.out.println("b.get(Calendar.YEAR) " + b.get(Calendar.YEAR) + ":::, " + a.get(Calendar.YEAR));
 		int diff = b.get(Calendar.YEAR) - a.get(Calendar.YEAR);
 		if (a.get(Calendar.DAY_OF_YEAR) > b.get(Calendar.DAY_OF_YEAR)) {
 			diff--;
@@ -3209,10 +3209,10 @@ public class SalesGapServiceImpl implements SalesGapService {
 		if (unit.equalsIgnoreCase(PERCENTAGE)) {
 			Double t = Double.valueOf(target);
 			Double perc = 0D;
-			//System.out.println("t " + t + " retailTarget " + retailTarget);
+			////System.out.println("t " + t + " retailTarget " + retailTarget);
 			if (t > 0) {
 				Double p = t / 100;
-				//System.out.println(" P :::" + p);
+				////System.out.println(" P :::" + p);
 				perc = (t / 100) * retailTarget;
 			}
 			log.debug("Calculated Enquiry for target " + target + " and retailTarget " + retailTarget + " is " + perc);
@@ -3229,10 +3229,10 @@ public class SalesGapServiceImpl implements SalesGapService {
 			Double t = Double.valueOf(bookingTarget);
 			Double e = Double.valueOf(enqTarget);
 			Double perc = 0D;
-			// //System.out.println("t " + t + " retailTarget " + retailTarget);
+			// ////System.out.println("t " + t + " retailTarget " + retailTarget);
 			if (t > 0) {
 				Double p = t / 100;
-				//System.out.println(" P :::" + p);
+				////System.out.println(" P :::" + p);
 				perc = (t / 100) * e;
 			}
 			log.debug("Calculated Enquiry for target " + bookingTarget + " and enqTarget " + enqTarget + " is " + perc);
@@ -3649,12 +3649,12 @@ public class SalesGapServiceImpl implements SalesGapService {
 		log.debug("Inside getTargetSettingMasterDataForGivenRole,for tRole");
 		log.debug("tRole:::" + tRole);
 		List<TargetEntity> finalList = new ArrayList<>();
-		//System.out.println("tRole.getDesignationId() " + tRole.getDesignationId());
-		//System.out.println("tRole.getOrgId()::" + tRole.getOrgId());
-		//System.out.println("tRole.getBranchId()::" + tRole.getBranchId());
-		//System.out.println("tRole.getLocationId()::" + tRole.getLocationId());
-		//System.out.println("tRole.getDeptId()::" + tRole.getDeptId());
-		//System.out.println("tRole.getDesignationId()::" + tRole.getDesignationId());
+		////System.out.println("tRole.getDesignationId() " + tRole.getDesignationId());
+		////System.out.println("tRole.getOrgId()::" + tRole.getOrgId());
+		////System.out.println("tRole.getBranchId()::" + tRole.getBranchId());
+		////System.out.println("tRole.getLocationId()::" + tRole.getLocationId());
+		////System.out.println("tRole.getDeptId()::" + tRole.getDeptId());
+		////System.out.println("tRole.getDesignationId()::" + tRole.getDesignationId());
 
 		List<TargetEntityUser> userTargetList = targetUserRepo.getUserTargetData(tRole.getOrgId(), tRole.getDeptId(),
 				tRole.getDesignationId(), tRole.getBranchId());
@@ -3844,7 +3844,7 @@ public class SalesGapServiceImpl implements SalesGapService {
 	 * 
 	 * } }
 	 * 
-	 * //System.out.println("list in getTSDataForRoleV2  " + list);
+	 * ////System.out.println("list in getTSDataForRoleV2  " + list);
 	 * 
 	 * } catch (Exception e) { log.error("getTargetSettingData() ", e); } return
 	 * list;
